@@ -1,0 +1,20 @@
+package com.example.roommanagement.service;
+
+import com.example.roommanagement.dto.request.admin.CreateAdminDTO;
+import com.example.roommanagement.dto.request.admin.FindAllAdminDTO;
+import com.example.roommanagement.dto.request.admin.SignIn;
+import com.example.roommanagement.dto.request.admin.UpdateAdminDTO;
+import com.example.roommanagement.dto.respon.AdminRespon;
+import com.example.roommanagement.entity.Admin;
+import com.example.roommanagement.infrastructure.error.Reponse;
+import org.hibernate.annotations.processing.Find;
+
+import java.util.List;
+
+public interface AdminSerive {
+    Reponse<Admin> create(CreateAdminDTO createAdminDTO);
+    Reponse<Admin> update(UpdateAdminDTO updateAdminDTO , String id);
+    List<Admin> findAll();
+    List<FindAllAdminDTO> findAllAdminRespon();
+    Reponse<SignIn> signIn(SignIn signIn);
+}
