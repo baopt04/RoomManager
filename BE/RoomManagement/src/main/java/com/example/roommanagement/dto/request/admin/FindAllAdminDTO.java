@@ -9,11 +9,11 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FindAllAdminDTO {
-    private Integer stt;
+    private Long stt;
+    private String id;
     private String code;
     private String name;
     private String email;
     private String numberPhone;
     private String role;
-private Timestamp lastModifiedDate;
 }

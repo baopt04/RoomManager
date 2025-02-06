@@ -1,9 +1,6 @@
 package com.example.roommanagement.service;
 
-import com.example.roommanagement.dto.request.admin.CreateAdminDTO;
-import com.example.roommanagement.dto.request.admin.FindAllAdminDTO;
-import com.example.roommanagement.dto.request.admin.SignIn;
-import com.example.roommanagement.dto.request.admin.UpdateAdminDTO;
+import com.example.roommanagement.dto.request.admin.*;
 import com.example.roommanagement.dto.respon.AdminRespon;
 import com.example.roommanagement.entity.Admin;
 import com.example.roommanagement.infrastructure.error.Reponse;
@@ -17,4 +14,6 @@ public interface AdminSerive {
     List<Admin> findAll();
     List<FindAllAdminDTO> findAllAdminRespon();
     Reponse<SignIn> signIn(SignIn signIn);
+   Reponse<FindAllAdminDTO> getOneEmail(String email);
+   Reponse<FindAllAdminDTO> getOneNumberPhone(String phone);
 }

@@ -43,11 +43,18 @@ public class BaseEntity implements Isdentityfied {
     this.lastModifiedDate = LocalDateTime.now();
     this.updateBy = getCurrmentUserName();
 }
-private String getCurrmentUserName(){
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (authentication != null && authentication.getPrincipal() instanceof String) {
-        return (String) authentication.getPrincipal();
+    private String getCurrmentUserName() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            Object principal = authentication.getPrincipal();
+            if (principal instanceof UserDetails) {
+                return ((UserDetails) principal).getUsername();  // Lấy tên người dùng từ UserDetails
+            } else if (principal instanceof String) {
+                return (String) principal;  // Nếu principal là String (thường là tên người dùng)
+            }
+        }
+        return "unknown";
     }
-    return "unknown";
-}
+
+
 }

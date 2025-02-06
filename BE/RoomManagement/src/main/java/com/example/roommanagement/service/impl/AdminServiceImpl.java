@@ -1,9 +1,6 @@
 package com.example.roommanagement.service.impl;
 
-import com.example.roommanagement.dto.request.admin.CreateAdminDTO;
-import com.example.roommanagement.dto.request.admin.FindAllAdminDTO;
-import com.example.roommanagement.dto.request.admin.SignIn;
-import com.example.roommanagement.dto.request.admin.UpdateAdminDTO;
+import com.example.roommanagement.dto.request.admin.*;
 import com.example.roommanagement.dto.respon.AdminRespon;
 import com.example.roommanagement.entity.Admin;
 import com.example.roommanagement.infrastructure.error.Reponse;
@@ -47,7 +44,7 @@ public class AdminServiceImpl implements AdminSerive {
         String rawPassword = generate.generatePasswordAdmin(7);
         Admin admin = Admin.builder()
                 .name(createAdminDTO.getName())
-                .code(generate.generateCode())
+                .code(generate.generateCodeAdmin())
                 .numberPhone(createAdminDTO.getNumberPhone())
                 .email(createAdminDTO.getEmail())
                 .password(passwordEncoder.encode(rawPassword))
@@ -66,24 +63,17 @@ public class AdminServiceImpl implements AdminSerive {
 
     @Override
     public Reponse<Admin> update(UpdateAdminDTO updateAdminDTO, String id) {
-        if (adminRepository.existsAdminByEmail(updateAdminDTO.getEmail())) {
-            return new Reponse<>(400, "Email đã tồn tại !", null);
-        }
-        if (adminRepository.existsByNumberPhone(updateAdminDTO.getNumberPhone())) {
-            return new Reponse<>(400, "Số điện thoại đã tồn tại ! ", null);
-        }
+
         Optional<Admin> admin = adminRepository.findById(id);
         if (!admin.isPresent()) {
-            return new Reponse<>(404, "Không tìm thấy", null);
+            return new Reponse<>(404, "Không tìm thấy admin", null);
         }
         Admin admin1 = admin.get();
-        if (admin1.getEmail().equals(updateAdminDTO.getEmail()) || admin1.getNumberPhone().equals(updateAdminDTO.getNumberPhone())) {
-            if (adminRepository.existsByNumberPhone(updateAdminDTO.getNumberPhone())) {
-                return new Reponse<>(400, "Số điện thoại đã tồn tại !", null);
-            }
-            if (adminRepository.existsAdminByEmail(updateAdminDTO.getEmail())) {
-                return new Reponse<>(400, "Email đã tồn tại !", null);
-            }
+        if (!admin1.getEmail().equals(updateAdminDTO.getEmail())) {
+            return new Reponse<>(400, "Email đã tồn tại !", null);
+        }
+        if (!admin1.getNumberPhone().equals(updateAdminDTO.getNumberPhone())) {
+            return new Reponse<>(400, "Số điện thoại đã tồn tại ! ", null);
         }
         admin1.setName(updateAdminDTO.getName());
         admin1.setEmail(updateAdminDTO.getEmail());
@@ -114,10 +104,33 @@ public class AdminServiceImpl implements AdminSerive {
             var jwt = jwtUtils.generateToken(user);
             signIn.setToken(jwt);
             signIn.setRole(role);
-            return new Reponse<SignIn>(200, "Success",signIn);
-        }catch (Exception e) {
-            return new Reponse<>(500 , "Error loginn" , null);
+            return new Reponse<SignIn>(200, "Success", signIn);
+        } catch (Exception e) {
+            return new Reponse<>(500, "Error loginn", null);
         }
+    }
+
+    @Override
+    public Reponse<FindAllAdminDTO> getOneEmail(String email) {
+        if(email == null) {
+            return new Reponse<>(404 , "Vui lòng nhâp email cần tìm !" , null);
         }
+        FindAllAdminDTO adminRespon = adminRepository.getOneAdminByEmail(email);
+        if(adminRespon == null) {
+            return new Reponse<>(404 , "Không tìm thấy " , null);
+        }
+        return new Reponse<>(200, "Success", adminRespon);
+    }
+@Override
+    public Reponse<FindAllAdminDTO> getOneNumberPhone(String numberPhone) {
+        if (numberPhone == null) {
+            return new Reponse<>(404 , "Vui lòng nhập số điện thoại cân tìm" , null);
+        }
+        FindAllAdminDTO adminRespon = adminRepository.getOneAdminByNumberPhone(numberPhone);
+        if(adminRespon == null) {
+            return new Reponse<>(404 , "Không tìm thấy" , null);
+        }
+        return new Reponse<>(200, "Success", adminRespon);
+}
 
 }
