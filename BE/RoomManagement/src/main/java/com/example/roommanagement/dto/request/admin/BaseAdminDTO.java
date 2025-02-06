@@ -9,6 +9,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BaseAdminDTO {
+    private String id;
+    private String code;
     @NotNull(message = "Tên không được trống")
     @Size(min = 2, message = "Vui lòng nhâp lớn hai ký tự")
     private String name;

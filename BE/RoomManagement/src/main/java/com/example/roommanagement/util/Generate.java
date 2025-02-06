@@ -16,11 +16,15 @@ public class Generate {
         return stringBuilder.toString();
     }
 
-    public static String generateCode() {
+    public static String generateCodeAdmin() {
         Random random = new Random();
         Integer radandomCode = 1000 + random.nextInt(9000);
         return "AD" + radandomCode;
     }
-
+public static String generateCodeCustomer(){
+        Random random = new Random();
+        Integer randomCode = 1000 + random.nextInt(9000);
+        return "CT" + randomCode;
+}
 
 }

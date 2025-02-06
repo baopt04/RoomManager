@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,6 +26,6 @@ public class Customer  extends BaseEntity{
     @Column(name = "citizen_identification")
     private String cccd;
     @Column(name = "date_of_birth")
-    private String dateOfBirth;
+    private Date dateOfBirth;
 
 }
