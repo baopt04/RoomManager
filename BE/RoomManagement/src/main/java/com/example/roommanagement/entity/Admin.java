@@ -25,12 +25,13 @@ public class Admin extends BaseEntity implements UserDetails {
     private String password;
     @Column(name = "number_phone")
     private String numberPhone;
+    @Column(name = "role")
 @Enumerated(EnumType.STRING)
     private Role role;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role.name()));
+        return role != null ? List.of(new SimpleGrantedAuthority(role.name())) : List.of();
     }
 
     @Override

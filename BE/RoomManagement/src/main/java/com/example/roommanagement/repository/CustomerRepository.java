@@ -19,6 +19,7 @@ public interface CustomerRepository extends JpaRepository<Customer, String> {
     boolean existsByCccd(String cccd);
 
     Optional<Customer> findById(String id);
+    Optional<Customer> findByEmail(String email);
 
     @Query(value = """
             SELECT 

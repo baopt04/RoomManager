@@ -22,9 +22,10 @@ public class Room extends BaseEntity {
     private String acreage;
     @Column(name = "people_max")
     private Integer peopleMax;
+    @Column(name = "decription")
     private String description;
     @Enumerated(EnumType.STRING)
-    private StatusRoom statusRoom;
+    private StatusRoom status;
     @ManyToOne
     @JoinColumn(name = "id_customer" , referencedColumnName = "id")
     private Customer customer;

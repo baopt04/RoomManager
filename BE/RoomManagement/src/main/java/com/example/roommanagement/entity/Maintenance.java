@@ -23,10 +23,11 @@ public class Maintenance extends BaseEntity {
     private Date dataRequest;
     @Column(name = "data_complete")
     private Date dataComplete;
+    @Column(name = "discription")
     private String description;
     private BigDecimal expense;
     @Enumerated(EnumType.STRING)
-    private StatusMaintenance  statusMaintenance;
+    private StatusMaintenance status;
     @ManyToOne
     @JoinColumn(name = "id_room" , referencedColumnName = "id")
     private Room room;

@@ -26,5 +26,49 @@ public static String generateCodeCustomer(){
         Integer randomCode = 1000 + random.nextInt(9000);
         return "CT" + randomCode;
 }
-
+public static String generateCodeHost(){
+        Random random = new Random();
+        Integer randomCode = 1000 + random.nextInt(9000);
+        return "CN" + randomCode;
+    }
+    public static String generateCodeHouseForRent(){
+        Random random = new Random();
+        Integer randomCode = 1000 + random.nextInt(9000);
+        return "NT" + randomCode;
+    }
+    public static String generateCodeRoom(){
+        Random random = new Random();
+        Integer randomCode = 1000 + random.nextInt(9000);
+        return "RM" + randomCode;
+    }
+    public static String generateCodeWater(){
+        Random random = new Random();
+        Integer randomCode = 1000 + random.nextInt(9000);
+        return "WT" + randomCode;
+    }
+    public static String generateCodeElectricity() {
+        Random random = new Random();
+        Integer randomCode = 1000 + random.nextInt(9000);
+        return "ET" + randomCode;
+    }
+    public static String generateCodeService() {
+        Random random = new Random();
+        Integer randomCode = 1000 + random.nextInt(9000);
+        return "SR" + randomCode;
+    }
+    public static String generateCodeMaintenance() {
+        Random random = new Random();
+        Integer randomCode = 1000 + random.nextInt(9000);
+        return "MT" + randomCode;
+    }
+    public static String generateCodeContract() {
+        Random random = new Random();
+        Integer randomCode = 1000 + random.nextInt(9000);
+        return "CT" + randomCode;
+    }
+    public static String generateCodeBill() {
+        Random random = new Random();
+        Integer randomCode = 1000 + random.nextInt(9000);
+        return "HD" + randomCode;
+    }
 }

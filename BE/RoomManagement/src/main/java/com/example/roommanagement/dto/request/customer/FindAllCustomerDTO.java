@@ -13,8 +13,8 @@ public class FindAllCustomerDTO  {
     private String id;
     private String code;
     private String name;
-    private String numberPhone;
     private String email;
+    private String numberPhone;
     private Boolean gender;
     private String cccd;
     private Date dateOfBirth;

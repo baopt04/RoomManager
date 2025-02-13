@@ -3,6 +3,8 @@ package com.example.roommanagement.service.impl;
 import com.example.roommanagement.dto.request.admin.*;
 import com.example.roommanagement.dto.respon.AdminRespon;
 import com.example.roommanagement.entity.Admin;
+import com.example.roommanagement.entity.Contract;
+import com.example.roommanagement.infrastructure.constant.Constrants;
 import com.example.roommanagement.infrastructure.error.Reponse;
 import com.example.roommanagement.repository.AdminRepository;
 import com.example.roommanagement.service.AdminSerive;
@@ -66,21 +68,25 @@ public class AdminServiceImpl implements AdminSerive {
 
         Optional<Admin> admin = adminRepository.findById(id);
         if (!admin.isPresent()) {
-            return new Reponse<>(404, "Không tìm thấy admin", null);
+            return new Reponse<>(404, Constrants.NOT_FOUND, null);
         }
         Admin admin1 = admin.get();
         if (!admin1.getEmail().equals(updateAdminDTO.getEmail())) {
-            return new Reponse<>(400, "Email đã tồn tại !", null);
+            if (adminRepository.existsAdminByEmail(updateAdminDTO.getEmail())) {
+                return new Reponse<>(400, Constrants.EMAIL_EXISTS, null);
+            }
         }
         if (!admin1.getNumberPhone().equals(updateAdminDTO.getNumberPhone())) {
-            return new Reponse<>(400, "Số điện thoại đã tồn tại ! ", null);
+            if (adminRepository.existsByNumberPhone(updateAdminDTO.getNumberPhone())) {
+                return new Reponse<>(400, Constrants.NUMBER_PHONE_EXISTS, null);
+            }
         }
         admin1.setName(updateAdminDTO.getName());
         admin1.setEmail(updateAdminDTO.getEmail());
         admin1.setNumberPhone(updateAdminDTO.getNumberPhone());
         admin1.setRole(updateAdminDTO.getRole());
         adminRepository.save(admin1);
-        return new Reponse<>(200, "Update Success", admin1);
+        return new Reponse<>(200, Constrants.UPDATE, admin1);
     }
 
     @Override
@@ -112,25 +118,26 @@ public class AdminServiceImpl implements AdminSerive {
 
     @Override
     public Reponse<FindAllAdminDTO> getOneEmail(String email) {
-        if(email == null) {
-            return new Reponse<>(404 , "Vui lòng nhâp email cần tìm !" , null);
+        if (email == null || email.isEmpty()) {
+            return new Reponse<>(404, Constrants.FIND_NULL, null);
         }
         FindAllAdminDTO adminRespon = adminRepository.getOneAdminByEmail(email);
-        if(adminRespon == null) {
-            return new Reponse<>(404 , "Không tìm thấy " , null);
+        if (adminRespon == null) {
+            return new Reponse<>(404, Constrants.NOT_FOUND, null);
         }
-        return new Reponse<>(200, "Success", adminRespon);
+        return new Reponse<>(200, Constrants.GET_SUCCESS, adminRespon);
     }
-@Override
+
+    @Override
     public Reponse<FindAllAdminDTO> getOneNumberPhone(String numberPhone) {
-        if (numberPhone == null) {
-            return new Reponse<>(404 , "Vui lòng nhập số điện thoại cân tìm" , null);
+        if (numberPhone == null || numberPhone.isEmpty()) {
+            return new Reponse<>(404, Constrants.FIND_NULL, null);
         }
         FindAllAdminDTO adminRespon = adminRepository.getOneAdminByNumberPhone(numberPhone);
-        if(adminRespon == null) {
-            return new Reponse<>(404 , "Không tìm thấy" , null);
+        if (adminRespon == null) {
+            return new Reponse<>(404, Constrants.NOT_FOUND, null);
         }
-        return new Reponse<>(200, "Success", adminRespon);
-}
+        return new Reponse<>(200, Constrants.GET_SUCCESS, adminRespon);
+    }
 
 }
