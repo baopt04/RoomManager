@@ -1,5 +1,6 @@
 package com.example.roommanagement.entity;
 
+import com.example.roommanagement.infrastructure.constant.StatusWaterEndElectric;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,7 +27,10 @@ public class Electricity extends BaseEntity {
     private BigDecimal dataClose;
     @Column(name = "total_price")
     private BigDecimal totalPrice;
-    @OneToOne
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private StatusWaterEndElectric status;
+    @ManyToOne
     @JoinColumn(name = "id_room")
     private Room room;
 }

@@ -17,16 +17,19 @@ import java.util.Date;
 @Table(name = "bill")
 @Builder
 public class Bill extends BaseEntity {
+    private String code;
     @Column(name = "total_price_service")
     private BigDecimal totalPriceService;
     @Column(name = "total_price_water")
     private BigDecimal totalPriceWater;
     @Column(name = "total_price_electricity")
     private BigDecimal totalPriceElectricity;
-    @Column(name = "paymnet_date")
+    @Column(name = "payment_date")
     private Date paymnetDate;
+    @Column(name = "total_price")
+    private BigDecimal totalPrice;
     @Enumerated(EnumType.STRING)
-    private StatusBill statusBill;
+    private StatusBill status;
     @OneToOne
     @JoinColumn(name = "id_room" , referencedColumnName = "id")
     private Room room;

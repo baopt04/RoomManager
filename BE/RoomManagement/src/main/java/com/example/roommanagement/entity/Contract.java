@@ -18,16 +18,18 @@ import java.util.Date;
 @Builder
 
 public class Contract extends BaseEntity {
+    private String code;
     @Column(name = "date_start")
     private Date dateStart;
     @Column(name = "date_end")
     private Date dateEnd;
-    @Column(name = "contract_deponsit")
+    @Column(name = "contract_deposit")
     private BigDecimal contractDeponsit;
     @Column(name = "next_due_date")
     private Date nextDueDate;
     @Enumerated(EnumType.STRING)
-    private StatusContract statusContract;
+    private StatusContract status;
+    @Column(name = "discription")
     private String description;
     @OneToOne
     @JoinColumn(name = "id_room" , referencedColumnName = "id")
