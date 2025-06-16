@@ -1,14 +1,17 @@
 package com.example.roommanagement.service.impl;
 
+import com.example.roommanagement.dto.request.maintenance.BaseMaintenanceDTO;
 import com.example.roommanagement.dto.request.maintenance.CreateMaintenanceDTO;
 import com.example.roommanagement.dto.request.maintenance.FindAllMaintencanceDTO;
 import com.example.roommanagement.dto.request.maintenance.UpdateMaintenanceDTO;
 import com.example.roommanagement.entity.Maintenance;
 import com.example.roommanagement.infrastructure.constant.Constrants;
+import com.example.roommanagement.infrastructure.error.BusinessException;
 import com.example.roommanagement.infrastructure.error.Reponse;
 import com.example.roommanagement.repository.MaintenaceRepository;
 import com.example.roommanagement.service.MaintencanceService;
 import com.example.roommanagement.util.Generate;
+import org.hibernate.sql.Update;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +32,7 @@ public class MaintencanceServiceImpl implements MaintencanceService {
     }
 
     @Override
-    public Reponse<CreateMaintenanceDTO> create(CreateMaintenanceDTO createMaintenanceDTO) {
+    public CreateMaintenanceDTO create(CreateMaintenanceDTO createMaintenanceDTO) {
         Maintenance maintenance = Maintenance.builder()
                 .code(generate.generateCodeMaintenance())
                 .name(createMaintenanceDTO.getName())
@@ -41,14 +44,14 @@ public class MaintencanceServiceImpl implements MaintencanceService {
                 .room(createMaintenanceDTO.getRoom())
                 .build();
         maintenaceRepository.save(maintenance);
-        return new Reponse<>(200 , Constrants.CREATE , createMaintenanceDTO);
+      return createMaintenanceDTO;
     }
 
     @Override
-    public Reponse<UpdateMaintenanceDTO> update(String id, UpdateMaintenanceDTO updateMaintenanceDTO) {
+    public UpdateMaintenanceDTO update(String id, UpdateMaintenanceDTO updateMaintenanceDTO) {
         Optional<Maintenance> maintenance = maintenaceRepository.findById(id);
         if (!maintenance.isPresent()) {
-            return new Reponse<>(404 , Constrants.NOT_FOUND , updateMaintenanceDTO);
+            throw new BusinessException( Constrants.NOT_FOUND );
         }
         Maintenance updateMaintenance = maintenance.get();
         updateMaintenance.setName(updateMaintenanceDTO.getName());
@@ -59,6 +62,26 @@ public class MaintencanceServiceImpl implements MaintencanceService {
         updateMaintenance.setStatus(updateMaintenanceDTO.getStatus());
         updateMaintenance.setRoom(updateMaintenanceDTO.getRoom());
         maintenaceRepository.save(updateMaintenance);
-        return new Reponse<>(200 , Constrants.UPDATE , updateMaintenanceDTO);
+        return updateMaintenanceDTO;
+    }
+
+    @Override
+    public BaseMaintenanceDTO detail(String id) {
+        Optional<Maintenance> maintenance = maintenaceRepository.findById(id);
+        if (!maintenance.isPresent()) {
+            throw new BusinessException( Constrants.NOT_FOUND );
+        }
+        Maintenance detail = maintenance.get();
+        BaseMaintenanceDTO baseMaintenanceDTO = new BaseMaintenanceDTO(
+                detail.getCode() ,
+                detail.getName() ,
+                detail.getDataRequest() ,
+                detail.getDataComplete() ,
+                detail.getDescription() ,
+                detail.getExpense() ,
+                detail.getStatus() ,
+                detail.getRoom()
+        );
+        return baseMaintenanceDTO;
     }
 }

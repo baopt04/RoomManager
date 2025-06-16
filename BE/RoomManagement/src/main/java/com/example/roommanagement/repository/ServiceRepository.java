@@ -14,7 +14,6 @@ import java.util.Optional;
 public interface ServiceRepository extends JpaRepository<ServiceS, String> {
     Optional<ServiceS> findById(String id);
 
-    Boolean existsByRoom(Room room);
 boolean existsByName(String name);
     @Query(value = """
             SELECT 
@@ -22,14 +21,9 @@ boolean existsByName(String name);
             r.id as id ,
             r.code as code ,
             r.name as name,
-                        r.wifi as wifi,
-                                    r.parking as parking,
-                                                r.elevator as elevator,
-                                                            r.general_service as generalService,
             r.price as price ,
             r.unit_of_measure as unitOfMeasure ,
-            r.discription as discription ,
-            r.id_room as room
+            r.discription as discription 
              FROM Service r 
             """, nativeQuery = true)
     List<FindAllServiceDTO> findAllServices();

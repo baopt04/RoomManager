@@ -16,18 +16,19 @@ import org.springframework.web.multipart.MultipartFile;
 public class ImageServiceImpl implements ImageService {
     @Override
     public Reponse<CreateImageDTO> create(CreateImageDTO createImageDTO , MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("Image file cannot be null or empty");
-        }
-
-        String urlImage = uploadImageService.uploadImage(file);
-        Image image = Image.builder()
-                .name(urlImage)
-                .room(createImageDTO.getRoom())
-                .contract(createImageDTO.getContract())
-                .build();
-        imageRepository.save(image);
-        return new Reponse<>(200 , Constrants.CREATE , createImageDTO);
+//        if (file == null || file.isEmpty()) {
+//            throw new IllegalArgumentException("Image file cannot be null or empty");
+//        }
+//
+//        String urlImage = uploadImageService.uploadImage(file);
+//        Image image = Image.builder()
+//                .name(urlImage)
+//                .room(createImageDTO.getRoom())
+//                .contract(createImageDTO.getContract())
+//                .build();
+//        imageRepository.save(image);
+//        return new Reponse<>(200 , Constrants.CREATE , createImageDTO);
+        return null;
     }
 
     @Override

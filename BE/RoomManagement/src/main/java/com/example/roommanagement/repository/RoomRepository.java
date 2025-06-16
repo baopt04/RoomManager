@@ -1,7 +1,9 @@
 package com.example.roommanagement.repository;
 
 import com.example.roommanagement.dto.request.room.FindAllRoomDTO;
+import com.example.roommanagement.dto.request.room.FindAllRoomProjection;
 import com.example.roommanagement.dto.request.room.ListPriceRoom;
+import com.example.roommanagement.dto.request.room.RoomDetailProjection;
 import com.example.roommanagement.entity.Customer;
 import com.example.roommanagement.entity.Room;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,7 +17,7 @@ import java.util.Optional;
 @Repository
 public interface RoomRepository extends JpaRepository<Room, String> {
     Optional<Room> findById(String id);
-
+Boolean existsByName(String name);
     @Query(value = """
             SELECT 
             ROW_NUMBER() over(order by r.last_modified_date desc ) as stt ,
@@ -26,6 +28,7 @@ public interface RoomRepository extends JpaRepository<Room, String> {
             r.acreage as acreage ,
             r.people_Max as peopleMax ,
             r.decription as description ,
+            r.type as type , 
             r.status as status ,
             r.id_customer as customer ,
             r.id_house_for_rent as houseForRent
@@ -43,6 +46,7 @@ public interface RoomRepository extends JpaRepository<Room, String> {
                         r.acreage as acreage ,
                         r.people_Max as peopleMax ,
                         r.decription as description ,
+                         r.type as type , 
                         r.status as status ,
                         r.id_customer as customer ,
                         r.id_house_for_rent as houseForRent
@@ -71,4 +75,59 @@ public interface RoomRepository extends JpaRepository<Room, String> {
 
 
     String id(String id);
+
+    @Query(value = "SELECT " +
+            "ROW_NUMBER() OVER (ORDER BY r.id) as stt, " +
+            "r.id as id, " +
+            "r.code as code, " +
+            "r.name as name, " +
+            "r.price as price, " +
+            "r.acreage as acreage, " +
+            "r.people_max as peopleMax, " +
+            "r.decription as description, " +
+            "r.type as type, " +
+            "r.status as status, " +
+            "c.name as customer, " +
+            "h.name as houseForRent " +
+            "FROM room r " +
+            "LEFT JOIN customer c ON r.id_customer = c.id " +
+            "LEFT JOIN house_for_rent h ON r.id_house_for_rent = h.id " +
+            "WHERE r.id NOT IN (" +
+            "SELECT b.id_room FROM bill b WHERE b.mother_pay = :month AND b.year_pay = :year)", nativeQuery = true)
+    List<FindAllRoomProjection> findRoomsWithoutBillInMonthAndYear(@Param("month") int month,
+                                                                   @Param("year") int year);
+
+    @Query(value = """
+    SELECT 
+        r.id AS room_id,
+        r.name AS room_name,
+        r.price AS room_price,
+
+        e.data_close AS total_electric_usage,
+        e.unit_price AS electric_unit_price,
+        e.total_price AS total_electric_price,
+
+        w.data_close AS total_water_usage,
+        w.unit_price AS water_unit_price,
+        w.total_price AS total_water_price,
+
+        COALESCE(SUM(sv.price), 0) AS total_service_price
+
+    FROM room r
+
+    LEFT JOIN electricity e ON e.id_room = r.id
+    LEFT JOIN water w ON w.id_room = r.id
+    LEFT JOIN room_services su ON su.id_room = r.id
+    LEFT JOIN service sv ON sv.id = su.id_service
+
+    WHERE r.id = :roomId
+
+    GROUP BY 
+        r.id, r.name, r.price,
+        e.data_close, e.unit_price, e.total_price,
+        w.data_close, w.unit_price, w.total_price
+    """, nativeQuery = true)
+    RoomDetailProjection findTotalPriceRoomDetailById(@Param("roomId") String roomId);
+
+
 }

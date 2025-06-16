@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BaseHostDTO {
+    private String code;
     private String name;
     private String numberPhone;
     private String email;

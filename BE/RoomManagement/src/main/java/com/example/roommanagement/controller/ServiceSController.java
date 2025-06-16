@@ -1,9 +1,9 @@
 package com.example.roommanagement.controller;
 
+import com.example.roommanagement.dto.request.service.BaseServiceDTO;
 import com.example.roommanagement.dto.request.service.CreateServiceDTO;
 import com.example.roommanagement.dto.request.service.FindAllServiceDTO;
 import com.example.roommanagement.dto.request.service.UpdateServiceDTO;
-import com.example.roommanagement.infrastructure.error.Reponse;
 import com.example.roommanagement.service.ServiceService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,13 +24,18 @@ public class ServiceSController {
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
     @PostMapping("/create")
-    public ResponseEntity<Reponse<CreateServiceDTO>> create(@Valid @RequestBody CreateServiceDTO createServiceDTO) {
-        Reponse<CreateServiceDTO> response = serviceService.create(createServiceDTO);
+    public ResponseEntity<CreateServiceDTO> create(@Valid @RequestBody CreateServiceDTO createServiceDTO) {
+        CreateServiceDTO response = serviceService.create(createServiceDTO);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
     @PutMapping("/update/{id}")
-    public ResponseEntity<Reponse<UpdateServiceDTO>> update(@PathVariable String id, @Valid @RequestBody UpdateServiceDTO updateServiceDTO) {
-        Reponse<UpdateServiceDTO> response = serviceService.update(id, updateServiceDTO);
+    public ResponseEntity<UpdateServiceDTO> update(@PathVariable String id, @Valid @RequestBody UpdateServiceDTO updateServiceDTO) {
+        UpdateServiceDTO response = serviceService.update(id, updateServiceDTO);
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+    @GetMapping("/detail/{id}")
+    public ResponseEntity<BaseServiceDTO> detail(@PathVariable String id) {
+        BaseServiceDTO baseServiceDTO = serviceService.detail(id);
+        return new ResponseEntity<>(baseServiceDTO, HttpStatus.OK);
     }
 }

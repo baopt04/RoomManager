@@ -1,10 +1,12 @@
 package com.example.roommanagement.service.impl;
 
+import com.example.roommanagement.dto.request.host.BaseHostDTO;
 import com.example.roommanagement.dto.request.host.CreateHostDTO;
 import com.example.roommanagement.dto.request.host.FindAllHostDTO;
 import com.example.roommanagement.dto.request.host.UpdateHostDTO;
 import com.example.roommanagement.entity.Host;
 import com.example.roommanagement.infrastructure.constant.Constrants;
+import com.example.roommanagement.infrastructure.error.BusinessException;
 import com.example.roommanagement.infrastructure.error.Reponse;
 import com.example.roommanagement.repository.HostRepository;
 import com.example.roommanagement.service.HostService;
@@ -28,12 +30,13 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public Reponse<CreateHostDTO> create(CreateHostDTO createHostDTO) {
+    public CreateHostDTO create(CreateHostDTO createHostDTO) {
         if (hostRepository.existsByEmail(createHostDTO.getEmail())) {
-            return new Reponse<>(400, Constrants.EMAIL_EXISTS, null);
+            throw new BusinessException("Email đã tồn tại!");
         }
+
         if (hostRepository.existsByNumberPhone(createHostDTO.getNumberPhone())) {
-            return new Reponse<>(400, Constrants.NUMBER_PHONE_EXISTS, null);
+            throw new BusinessException("Số điện thoại đã tồn tại!");
         }
         Host host = Host.builder()
                 .name(createHostDTO.getName())
@@ -43,23 +46,23 @@ public class HostServiceImpl implements HostService {
                 .gender(createHostDTO.getGender())
                 .build();
         hostRepository.save(host);
-        return new Reponse<>(400, Constrants.CREATE, createHostDTO);
+        return createHostDTO;
     }
 
     @Override
-    public Reponse<UpdateHostDTO> update(String id, UpdateHostDTO updateHostDTO) {
+    public UpdateHostDTO update(String id, UpdateHostDTO updateHostDTO) {
         Optional<Host> findById = hostRepository.findById(id);
         if (!findById.isPresent()) {
-            return new Reponse<>(404, Constrants.NOT_FOUND, null);
+            throw new BusinessException( Constrants.NOT_FOUND);
         }
         if (!findById.get().getEmail().equals(updateHostDTO.getEmail())) {
             if (hostRepository.existsByEmail(updateHostDTO.getEmail())) {
-                return new Reponse<>(400, Constrants.EMAIL_EXISTS, null);
+                throw new BusinessException(Constrants.EMAIL_EXISTS);
             }
         }
         if (!findById.get().getNumberPhone().equals(updateHostDTO.getNumberPhone())) {
             if (hostRepository.existsByNumberPhone(updateHostDTO.getNumberPhone())) {
-                return new Reponse<>(400, Constrants.NUMBER_PHONE_EXISTS, null);
+                throw  new BusinessException( Constrants.NUMBER_PHONE_EXISTS);
             }
         }
         findById.get().setName(updateHostDTO.getName());
@@ -67,7 +70,7 @@ public class HostServiceImpl implements HostService {
         findById.get().setGender(updateHostDTO.getGender());
         findById.get().setEmail(updateHostDTO.getEmail());
         hostRepository.save(findById.get());
-        return new Reponse<>(200, Constrants.UPDATE, updateHostDTO);
+        return updateHostDTO;
     }
 
     @Override
@@ -93,4 +96,19 @@ public class HostServiceImpl implements HostService {
         }
         return new Reponse<>(200, Constrants.GET_SUCCESS, findAllHostDTO);
     }
+
+    @Override
+    public BaseHostDTO detail(String id) {
+        Host host = hostRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy chủ nhà với ID: " + id));
+
+        return new BaseHostDTO(
+                host.getCode(),
+                host.getName(),
+                host.getNumberPhone(),
+                host.getEmail(),
+                host.getGender()
+        );
+    }
+
 }

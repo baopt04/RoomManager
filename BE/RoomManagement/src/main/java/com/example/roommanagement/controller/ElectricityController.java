@@ -1,5 +1,6 @@
 package com.example.roommanagement.controller;
 
+import com.example.roommanagement.dto.request.electricity.BaseElectricityDTO;
 import com.example.roommanagement.dto.request.electricity.CreateElectricityDTO;
 import com.example.roommanagement.dto.request.electricity.FindAllElectricityDTO;
 import com.example.roommanagement.dto.request.electricity.UpdateElectricityDTO;
@@ -25,13 +26,20 @@ public class ElectricityController {
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
     @PostMapping("/create")
-    public ResponseEntity<Reponse<CreateElectricityDTO>> create(@Valid @RequestBody CreateElectricityDTO createElectricityDTO) {
-        Reponse<CreateElectricityDTO> reponse = electricityService.create(createElectricityDTO);
+    public ResponseEntity<CreateElectricityDTO> create(@Valid @RequestBody CreateElectricityDTO createElectricityDTO) {
+        CreateElectricityDTO reponse = electricityService.create(createElectricityDTO);
         return new ResponseEntity<>(reponse, HttpStatus.OK);
     }
     @PutMapping("/update/{id}")
-    public ResponseEntity<Reponse<UpdateElectricityDTO>> update(@PathVariable String id , @Valid @RequestBody UpdateElectricityDTO updateElectricityDTO) {
-        Reponse<UpdateElectricityDTO> reponse = electricityService.update(id, updateElectricityDTO);
+    public ResponseEntity<UpdateElectricityDTO> update(@PathVariable String id , @Valid @RequestBody UpdateElectricityDTO updateElectricityDTO) {
+        UpdateElectricityDTO reponse = electricityService.update(id, updateElectricityDTO);
         return new ResponseEntity<>(reponse, HttpStatus.OK);
     }
+    @GetMapping("/detail/{id}")
+    public ResponseEntity<BaseElectricityDTO> detail(@PathVariable String id) {
+        BaseElectricityDTO baseElectricityDTO = electricityService.detail(id);
+        return new ResponseEntity<>(baseElectricityDTO, HttpStatus.OK);
+    }
 }
+
+

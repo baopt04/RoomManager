@@ -38,4 +38,6 @@ SELECT c.id FROM Contract c where c.id_room =:id_room
 """ , nativeQuery = true)
     List<Object[]> findIdContract(@Param("id_room")String id_room);
 
+    Optional<Contract> findByRoomId(String roomId);
+
 }

@@ -1,16 +1,20 @@
 package com.example.roommanagement.service;
 
-import com.example.roommanagement.dto.request.room.CreateRoomDTO;
-import com.example.roommanagement.dto.request.room.FindAllRoomDTO;
-import com.example.roommanagement.dto.request.room.ListPriceRoom;
-import com.example.roommanagement.dto.request.room.UpdateRoomDTO;
+import com.example.roommanagement.dto.request.room.*;
+import com.example.roommanagement.entity.Image;
+import com.example.roommanagement.entity.Room;
 import com.example.roommanagement.infrastructure.error.Reponse;
 
 import java.util.List;
 
 public interface RoomService {
     List<FindAllRoomDTO> findAllRooms();
-    Reponse<CreateRoomDTO> createRoom(CreateRoomDTO createRoomDTO);
-    Reponse<UpdateRoomDTO> updateRoom(String id ,UpdateRoomDTO updateRoomDTO);
-    Reponse<FindAllRoomDTO> findCustomerAndHouseForRent(String customer ,String houseForRent);
+    CreateRoomDTO createRoom(CreateRoomDTO createRoomDTO);
+    UpdateRoomDTO updateRoom(String id ,UpdateRoomDTO updateRoomDTO);
+    FindAllRoomDTO findCustomerAndHouseForRent(String customer ,String houseForRent);
+    BaseRoomDTO detailRoom(String id);
+    List<FindAllRoomProjection> findAllRoomNoPayment(Integer mother , Integer year);
+    RoomDetailProjection findTotalPriceRoom(String id);
+
+    List<Image> findAllImagesForRoom(String id);
 }

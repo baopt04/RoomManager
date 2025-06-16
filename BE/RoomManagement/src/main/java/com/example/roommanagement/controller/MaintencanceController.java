@@ -1,5 +1,6 @@
 package com.example.roommanagement.controller;
 
+import com.example.roommanagement.dto.request.maintenance.BaseMaintenanceDTO;
 import com.example.roommanagement.dto.request.maintenance.CreateMaintenanceDTO;
 import com.example.roommanagement.dto.request.maintenance.FindAllMaintencanceDTO;
 import com.example.roommanagement.dto.request.maintenance.UpdateMaintenanceDTO;
@@ -25,13 +26,18 @@ public class MaintencanceController {
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
     @PostMapping("/create")
-    public ResponseEntity<Reponse<CreateMaintenanceDTO>> create(@Valid @RequestBody CreateMaintenanceDTO createMaintenanceDTO) {
-        Reponse<CreateMaintenanceDTO> reponse = maintencanceService.create(createMaintenanceDTO);
+    public ResponseEntity<CreateMaintenanceDTO> create(@Valid @RequestBody CreateMaintenanceDTO createMaintenanceDTO) {
+        CreateMaintenanceDTO reponse = maintencanceService.create(createMaintenanceDTO);
         return new ResponseEntity<>(reponse, HttpStatus.OK);
     }
     @PutMapping("/update/{id}")
-    public ResponseEntity<Reponse<UpdateMaintenanceDTO>> update(@PathVariable String id, @Valid @RequestBody UpdateMaintenanceDTO updateMaintenanceDTO) {
-        Reponse<UpdateMaintenanceDTO> reponse = maintencanceService.update(id, updateMaintenanceDTO);
+    public ResponseEntity<UpdateMaintenanceDTO> update(@PathVariable String id, @Valid @RequestBody UpdateMaintenanceDTO updateMaintenanceDTO) {
+        UpdateMaintenanceDTO reponse = maintencanceService.update(id, updateMaintenanceDTO);
+        return new ResponseEntity<>(reponse, HttpStatus.OK);
+    }
+    @GetMapping("/detail/{id}")
+    public ResponseEntity<BaseMaintenanceDTO> detail(@PathVariable String id) {
+        BaseMaintenanceDTO reponse = maintencanceService.detail(id);
         return new ResponseEntity<>(reponse, HttpStatus.OK);
     }
 }
