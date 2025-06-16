@@ -14,12 +14,7 @@ public class FindAllServiceDTO {
     private String id;
     private String code;
     private String name;
-    private BigDecimal wifi;
-    private BigDecimal parking;
-    private BigDecimal elevator;
-    private BigDecimal generalService;
     private BigDecimal price;
     private String unitOfMeasure;
     private String description;
-    private String room;
 }

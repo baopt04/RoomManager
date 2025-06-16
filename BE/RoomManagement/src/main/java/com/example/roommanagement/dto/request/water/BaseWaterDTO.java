@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BaseWaterDTO {
+    private String code;
     private BigDecimal numberFirst;
     private BigDecimal numberLast;
     private BigDecimal unitPrice;

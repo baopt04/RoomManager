@@ -1,5 +1,6 @@
 package com.example.roommanagement.controller;
 
+import com.example.roommanagement.dto.request.houseForRent.BaseHouseForRentDTO;
 import com.example.roommanagement.dto.request.houseForRent.CreateHouseForRentDTO;
 import com.example.roommanagement.dto.request.houseForRent.FindAllHouseForRentDTO;
 import com.example.roommanagement.dto.request.houseForRent.UpdateHouseForRentDTO;
@@ -25,18 +26,23 @@ public class HouserForRentController {
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
     @PostMapping("/create")
-    public ResponseEntity<Reponse<CreateHouseForRentDTO>> create(@RequestBody CreateHouseForRentDTO createHouseForRentDTO) {
-        Reponse<CreateHouseForRentDTO> create = houseForRentService.create(createHouseForRentDTO);
+    public ResponseEntity<CreateHouseForRentDTO> create(@RequestBody CreateHouseForRentDTO createHouseForRentDTO) {
+        CreateHouseForRentDTO create = houseForRentService.create(createHouseForRentDTO);
         return new ResponseEntity<>(create, HttpStatus.OK);
     }
     @PutMapping("/update/{id}")
-    public ResponseEntity<Reponse<UpdateHouseForRentDTO>> update(@PathVariable String id ,@RequestBody UpdateHouseForRentDTO updateHouseForRentDTO) {
-        Reponse<UpdateHouseForRentDTO> update = houseForRentService.update(id, updateHouseForRentDTO);
+    public ResponseEntity<UpdateHouseForRentDTO> update(@PathVariable String id ,@RequestBody UpdateHouseForRentDTO updateHouseForRentDTO) {
+        UpdateHouseForRentDTO update = houseForRentService.update(id, updateHouseForRentDTO);
         return new ResponseEntity<>(update, HttpStatus.OK);
     }
     @GetMapping("/getNameAndAddress")
-    public ResponseEntity<Reponse<FindAllHouseForRentDTO>> getNameAndPhone(@RequestParam(name = "name") String name , @RequestParam(name = "address") String address) {
-        Reponse<FindAllHouseForRentDTO> search = houseForRentService.findByNameAndAddress(name, address);
+    public ResponseEntity<FindAllHouseForRentDTO> getNameAndPhone(@RequestParam(name = "name") String name , @RequestParam(name = "address") String address) {
+        FindAllHouseForRentDTO search = houseForRentService.findByNameAndAddress(name, address);
         return new ResponseEntity<>(search, HttpStatus.OK);
+    }
+    @GetMapping("/detail/{id}")
+    public ResponseEntity<BaseHouseForRentDTO> detail(@PathVariable String id) {
+        BaseHouseForRentDTO detail = houseForRentService.detail(id);
+        return new ResponseEntity<>(detail, HttpStatus.OK);
     }
 }

@@ -23,4 +23,8 @@ public class Image extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "id_room" , referencedColumnName = "id")
     private Room room;
+
+    public Image(String name) {
+        this.name = name;
+    }
 }

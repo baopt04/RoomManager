@@ -24,6 +24,8 @@ public interface HouseForRentRepository extends JpaRepository<HouseForRent, Stri
              r.name as name ,
              r.address as address ,
              r.discription as discription ,
+            r.price as price ,
+                        r.status as status ,
              r.id_host as id_host
              FROM  house_for_rent r
             """, nativeQuery = true)

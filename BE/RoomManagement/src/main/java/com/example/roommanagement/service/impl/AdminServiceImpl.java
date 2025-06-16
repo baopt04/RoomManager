@@ -8,6 +8,7 @@ import com.example.roommanagement.infrastructure.constant.Constrants;
 import com.example.roommanagement.infrastructure.error.Reponse;
 import com.example.roommanagement.repository.AdminRepository;
 import com.example.roommanagement.service.AdminSerive;
+import com.example.roommanagement.service.EmailService;
 import com.example.roommanagement.util.Generate;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +55,7 @@ public class AdminServiceImpl implements AdminSerive {
                 .build();
         adminRepository.save(admin);
         try {
-            emailService.sendMail(createAdminDTO.getEmail(), "Đăng ký tài khoản thành công"
+            emailService.sendMailCreateAmdin(createAdminDTO.getEmail(), "Đăng ký tài khoản thành công"
                     , "Mật khẩu của bạn là :" + rawPassword);
         } catch (MessagingException e) {
             throw new RuntimeException(e);

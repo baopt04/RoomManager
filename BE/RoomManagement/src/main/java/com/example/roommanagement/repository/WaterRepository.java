@@ -15,7 +15,7 @@ import java.util.Optional;
 @Repository
 public interface WaterRepository extends JpaRepository<Water, String> {
     Optional<Water> findById(String id);
-
+boolean existsByRoom_Id(String id);
     Optional<Water> findByRoomId(String roomId);
 
     @Query(value = """

@@ -71,4 +71,9 @@ public static String generateCodeHost(){
         Integer randomCode = 1000 + random.nextInt(9000);
         return "HD" + randomCode;
     }
+    public static String generateCodeCar() {
+        Random random = new Random();
+        Integer randomCode = 1000 + random.nextInt(9000);
+        return "CAR" + randomCode;
+    }
 }

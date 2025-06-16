@@ -1,14 +1,17 @@
 package com.example.roommanagement.service.impl;
 
+import com.example.roommanagement.dto.request.customer.BaseCustomerDTO;
 import com.example.roommanagement.dto.request.customer.CreateCustomerDTO;
 import com.example.roommanagement.dto.request.customer.FindAllCustomerDTO;
 import com.example.roommanagement.dto.request.customer.UpdateCustomerDTO;
 import com.example.roommanagement.entity.Customer;
 import com.example.roommanagement.infrastructure.constant.Constrants;
+import com.example.roommanagement.infrastructure.error.BusinessException;
 import com.example.roommanagement.infrastructure.error.Reponse;
 import com.example.roommanagement.repository.CustomerRepository;
 import com.example.roommanagement.service.CustomerService;
 import com.example.roommanagement.util.Generate;
+import org.hibernate.sql.Update;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,15 +26,15 @@ public class CustomerServiceImpl implements CustomerService {
     private Generate generate;
 
     @Override
-    public Reponse<CreateCustomerDTO> create(CreateCustomerDTO createCustomerDTO) {
+    public CreateCustomerDTO create(CreateCustomerDTO createCustomerDTO) {
         if (customerRepository.existsByEmail(createCustomerDTO.getEmail())) {
-            return new Reponse<>(400, Constrants.EMAIL_EXISTS, null);
+          throw new BusinessException( Constrants.EMAIL_EXISTS);
         }
         if (customerRepository.existsByNumberPhone(createCustomerDTO.getNumberPhone())) {
-            return new Reponse<>(400, Constrants.NUMBER_PHONE_EXISTS, null);
+           throw new BusinessException( Constrants.NUMBER_PHONE_EXISTS);
         }
         if (customerRepository.existsByCccd(createCustomerDTO.getCccd())) {
-            return new Reponse<>(400, Constrants.CCCD_EXISTS, null);
+            throw new BusinessException(Constrants.CCCD_EXISTS);
         }
         Customer customer = Customer.builder()
                 .name(createCustomerDTO.getName())
@@ -43,31 +46,31 @@ public class CustomerServiceImpl implements CustomerService {
                 .dateOfBirth(createCustomerDTO.getDateOfBirth())
                 .build();
         customerRepository.save(customer);
-        return new Reponse<>(200, "Register Success", createCustomerDTO);
+        return createCustomerDTO;
     }
 
     @Override
-    public Reponse<UpdateCustomerDTO> update(String id, UpdateCustomerDTO updateCustomerDTO) {
+    public UpdateCustomerDTO update(String id, UpdateCustomerDTO updateCustomerDTO) {
 
         Optional<Customer> customer = customerRepository.findById(id);
 
         if (!customer.isPresent()) {
-            return new Reponse<>(404, Constrants.NOT_FOUND, null);
+          throw new BusinessException(Constrants.NOT_FOUND);
         }
         Customer customer1 = customer.get();
         if (!customer1.getEmail().equals(updateCustomerDTO.getEmail())) {
             if (customerRepository.existsByEmail(updateCustomerDTO.getEmail())) {
-                return new Reponse<>(400, Constrants.EMAIL_EXISTS, null);
+                throw new BusinessException(Constrants.EMAIL_EXISTS);
             }
         }
         if (!customer1.getNumberPhone().equals(updateCustomerDTO.getNumberPhone())) {
             if (customerRepository.existsByNumberPhone(updateCustomerDTO.getNumberPhone())) {
-                return new Reponse<>(400, Constrants.NUMBER_PHONE_EXISTS, null);
+                throw new BusinessException( Constrants.NUMBER_PHONE_EXISTS);
             }
         }
         if (!customer1.getCccd().equals(updateCustomerDTO.getCccd())) {
             if (customerRepository.existsByCccd(updateCustomerDTO.getCccd())) {
-                return new Reponse<>(400, Constrants.CCCD_EXISTS, null);
+                throw new BusinessException( Constrants.CCCD_EXISTS);
             }
 
         }
@@ -78,7 +81,7 @@ public class CustomerServiceImpl implements CustomerService {
         customer1.setDateOfBirth(updateCustomerDTO.getDateOfBirth());
         customer1.setCccd(updateCustomerDTO.getCccd());
         customerRepository.save(customer1);
-        return new Reponse<>(200, "Update Success", updateCustomerDTO);
+        return updateCustomerDTO;
     }
 
     @Override
@@ -87,27 +90,45 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Reponse<FindAllCustomerDTO> getOneByEmail(String email) {
+    public FindAllCustomerDTO getOneByEmail(String email) {
         if (email == null || email.isEmpty()) {
-            return new Reponse<>(400, Constrants.FIND_EMAIL_NULL, null);
+            throw new BusinessException( Constrants.FIND_EMAIL_NULL);
         }
         FindAllCustomerDTO respon = customerRepository.getOneByEmail(email);
         if (respon == null) {
-            return new Reponse<>(404, Constrants.NOT_FOUND, null);
+            throw new BusinessException( Constrants.NOT_FOUND);
         }
-        return new Reponse<>(200, Constrants.GET_SUCCESS, respon);
+       return respon;
     }
 
     @Override
-    public Reponse<FindAllCustomerDTO> getOneByNumberPhone(String phone) {
+    public FindAllCustomerDTO getOneByNumberPhone(String phone) {
         if (phone == null || phone.isEmpty()) {
-            return new Reponse<>(400, Constrants.FIND_NULL, null);
+            throw new BusinessException(Constrants.FIND_NULL);
         }
         FindAllCustomerDTO respon = customerRepository.getOneByNumberPhone(phone);
         if (respon == null) {
-            return new Reponse<>(404, Constrants.NOT_FOUND, null);
+            throw new BusinessException(Constrants.NOT_FOUND);
         }
-        return new Reponse<>(200, Constrants.GET_SUCCESS, respon);
+        return respon;
+    }
+
+    @Override
+    public BaseCustomerDTO detail(String id) {
+        Customer customer = customerRepository.findById(id).orElseThrow(
+                () -> new RuntimeException(Constrants.NOT_FOUND)
+        );
+        BaseCustomerDTO respon = new BaseCustomerDTO(
+                customer.getId() ,
+                customer.getCode() ,
+                customer.getName() ,
+                customer.getEmail() ,
+                customer.getNumberPhone() ,
+                customer.getGender() ,
+                customer.getCccd() ,
+                customer.getDateOfBirth()
+        );
+        return respon;
     }
 
 

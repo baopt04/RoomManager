@@ -1,14 +1,17 @@
 package com.example.roommanagement.service.impl;
 
+import com.example.roommanagement.dto.request.electricity.BaseElectricityDTO;
 import com.example.roommanagement.dto.request.electricity.CreateElectricityDTO;
 import com.example.roommanagement.dto.request.electricity.FindAllElectricityDTO;
 import com.example.roommanagement.dto.request.electricity.UpdateElectricityDTO;
 import com.example.roommanagement.entity.Electricity;
 import com.example.roommanagement.infrastructure.constant.Constrants;
+import com.example.roommanagement.infrastructure.error.BusinessException;
 import com.example.roommanagement.infrastructure.error.Reponse;
 import com.example.roommanagement.repository.ElectricityRepository;
 import com.example.roommanagement.service.ElectricityService;
 import com.example.roommanagement.util.Generate;
+import org.hibernate.sql.Update;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,13 +31,16 @@ public class ElectricityServiceImpl implements ElectricityService {
     }
 
     @Override
-    public Reponse<CreateElectricityDTO> create(CreateElectricityDTO createElectricityDTO) {
+    public CreateElectricityDTO create(CreateElectricityDTO createElectricityDTO) {
         BigDecimal numberFirst = createElectricityDTO.getNumberFirst();
         BigDecimal numberLast = createElectricityDTO.getNumberLast();
         BigDecimal unitPrice = createElectricityDTO.getUnitPrice();
         BigDecimal quantityData = numberLast.subtract(numberFirst);
         if (quantityData.compareTo(BigDecimal.ZERO) < 0) {
-            return new Reponse<>(400 , Constrants.NUMBER_FIRST_LAST , null);
+            throw new BusinessException( Constrants.NUMBER_FIRST_LAST );
+        }
+        if (electricityRepository.existsByRoom_Id(createElectricityDTO.getRoom().getId())) {
+            throw new BusinessException(Constrants.HAVE_ROOM);
         }
         BigDecimal totalPrice = quantityData.multiply(unitPrice);
         Electricity electricity = Electricity.builder()
@@ -48,21 +54,26 @@ public class ElectricityServiceImpl implements ElectricityService {
                 .room(createElectricityDTO.getRoom())
                 .build();
         electricityRepository.save(electricity);
-        return new Reponse<>(200 , Constrants.CREATE , createElectricityDTO);
+       return createElectricityDTO;
     }
 
     @Override
-    public Reponse<UpdateElectricityDTO> update(String id, UpdateElectricityDTO updateElectricityDTO) {
+    public UpdateElectricityDTO update(String id, UpdateElectricityDTO updateElectricityDTO) {
         Optional<Electricity> electricity = electricityRepository.findById(id);
         if (!electricity.isPresent()) {
-            return new Reponse<>(400 , Constrants.NOT_FOUND , null);
+            throw new BusinessException( Constrants.NOT_FOUND);
+        }
+        if (!updateElectricityDTO.getRoom().getId().equals(electricity.get().getRoom().getId())) {
+            if (electricityRepository.existsByRoom_Id(updateElectricityDTO.getRoom().getId())) {
+                throw new BusinessException(Constrants.HAVE_ROOM);
+            }
         }
         BigDecimal numberFirst = updateElectricityDTO.getNumberFirst();
         BigDecimal numberLast = updateElectricityDTO.getNumberLast();
         BigDecimal unitPrice = updateElectricityDTO.getUnitPrice();
         BigDecimal quantityData = numberLast.subtract(numberFirst);
         if (quantityData.compareTo(BigDecimal.ZERO) < 0) {
-            return new Reponse<>(400 , Constrants.NUMBER_FIRST_LAST , null);
+           throw new BusinessException( Constrants.NUMBER_FIRST_LAST);
         }
         BigDecimal totalPrice = quantityData.multiply(unitPrice);
         electricity.get().setNumberFirst(numberFirst);
@@ -73,6 +84,24 @@ public class ElectricityServiceImpl implements ElectricityService {
         electricity.get().setStatus(updateElectricityDTO.getStatus());
         electricity.get().setRoom(updateElectricityDTO.getRoom());
         electricityRepository.save(electricity.get());
-        return new Reponse<>(200 , Constrants.UPDATE , updateElectricityDTO);
+       return updateElectricityDTO;
+    }
+
+    @Override
+    public BaseElectricityDTO detail(String id) {
+        Electricity electricity = electricityRepository.findById(id).orElseThrow(
+                () -> new BusinessException( Constrants.NOT_FOUND)
+        );
+        BaseElectricityDTO baseElectricityDTO = new BaseElectricityDTO(
+                electricity.getCode() ,
+                electricity.getNumberFirst() ,
+                electricity.getNumberLast() ,
+                electricity.getUnitPrice() ,
+                electricity.getDataClose() ,
+                electricity.getTotalPrice() ,
+                electricity.getStatus() ,
+                electricity.getRoom()
+        );
+        return baseElectricityDTO;
     }
 }

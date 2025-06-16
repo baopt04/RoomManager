@@ -6,6 +6,10 @@ public class Constrants {
     public static final String CREATE = "Create Success!";
     public static final String UPDATE = "Update Success!";
     public static final String NOT_FOUND = "Không tìm thấy !";
+    public static final String ROOM_FOUND = "Không tìm thấy phòng trọ !";
+    public static final String ADMIN_FOUND = "Không tìm thấy admin !";
+    public static final String CUSTOMER_FOUND = "Không tìm thấy khách hàng !";
+    public static final String HOUSE_FOR_RENT_FOUND = "Không tìm thấy nhà cho thuê !";
     public static final String FIND_EMAIL_NULL = "Vui lòng nhập email cần tìm";
     public static final String FIND_PHONE_NULL = "Vui lòng nhập số điện thoại cần tìm";
     public static final String CCCD_EXISTS = "Căn cước đã tồn tại !";
@@ -15,4 +19,13 @@ public class Constrants {
     public static final String NOT_FOUND_ID_BILL = "Không tìm thấy phòng này !";
     public static final String FIND_NULL = "Vui lòng nhập thông tin cần tim !";
     public static final String NUMBER_FIRST_LAST = "Vui lòng nhập số cuối lớn hơn số đầu !";
+    public static final String HAVE_ROOM = "Phòng đã tồn tại!";
+    public static final String HAVE_SERVICE_ROOM = "Phòng đã có dịch vụ này!";
+    public static final String CAR_EXISTS = "Xe đã tồn tại !";
+    public static final String CAR_NOT_FOUND = "Không tìm thấy xe !";
+    public static final String BILL_NOT_FOUND = "Không tìm thấy hóa đơn !";
+    public static final String CONTRACT_NOT_FOUND = "Không tìm thấy hợp đồng !";
+    public static final String WATER_NOT_FOUND = "Không tìm thấy hợp đồng !";
+    public static final String ELECTRICITY_NOT_FOUND = "Không tìm thấy hợp đồng !";
+
 }

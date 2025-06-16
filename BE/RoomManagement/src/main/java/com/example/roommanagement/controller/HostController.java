@@ -1,5 +1,6 @@
 package com.example.roommanagement.controller;
 
+import com.example.roommanagement.dto.request.host.BaseHostDTO;
 import com.example.roommanagement.dto.request.host.CreateHostDTO;
 import com.example.roommanagement.dto.request.host.FindAllHostDTO;
 import com.example.roommanagement.dto.request.host.UpdateHostDTO;
@@ -25,15 +26,21 @@ public class HostController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Reponse<CreateHostDTO>> create(@RequestBody CreateHostDTO createHostDTO) {
-        Reponse<CreateHostDTO> response = hostService.create(createHostDTO);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+    public ResponseEntity<CreateHostDTO> create(@RequestBody CreateHostDTO createHostDTO) {
+        CreateHostDTO dto = hostService.create(createHostDTO);
+        return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
+
     @PutMapping("/update/{id}")
-    public ResponseEntity<Reponse<UpdateHostDTO>> update(@PathVariable String id, @RequestBody UpdateHostDTO updateHostDTO) {
-        Reponse<UpdateHostDTO> response = hostService.update(id, updateHostDTO);
+    public ResponseEntity<UpdateHostDTO> update(@PathVariable String id, @RequestBody UpdateHostDTO updateHostDTO) {
+        UpdateHostDTO response = hostService.update(id, updateHostDTO);
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+    @GetMapping("/detail/{id}")
+    public ResponseEntity<BaseHostDTO> getDetail(@PathVariable String id) {
+        BaseHostDTO dto = hostService.detail(id);
+        return ResponseEntity.ok(dto);
     }
 
     @GetMapping("/getOneEmail")

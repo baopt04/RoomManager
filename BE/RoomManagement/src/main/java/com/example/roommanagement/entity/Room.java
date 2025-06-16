@@ -23,7 +23,8 @@ public class Room extends BaseEntity {
     @Column(name = "people_max")
     private Integer peopleMax;
     @Column(name = "decription")
-    private String description;
+    private String decription;
+    private String type;
     @Enumerated(EnumType.STRING)
     private StatusRoom status;
     @ManyToOne

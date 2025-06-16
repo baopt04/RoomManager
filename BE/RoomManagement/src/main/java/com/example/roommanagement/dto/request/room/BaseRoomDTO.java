@@ -18,9 +18,10 @@ public class BaseRoomDTO {
     private BigDecimal price;
     private String acreage;
     private Integer peopleMax;
-    private String description;
+    private String decription;
+    private String type;
     private StatusRoom status;
-    private Customer roomCustomer;
-    private HouseForRent roomHouseForRent;
+    private Customer customer;
+    private HouseForRent houseForRent;
 
 }

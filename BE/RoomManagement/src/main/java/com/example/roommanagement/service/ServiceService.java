@@ -1,5 +1,7 @@
 package com.example.roommanagement.service;
 
+import com.example.roommanagement.dto.request.electricity.UpdateElectricityDTO;
+import com.example.roommanagement.dto.request.service.BaseServiceDTO;
 import com.example.roommanagement.dto.request.service.CreateServiceDTO;
 import com.example.roommanagement.dto.request.service.FindAllServiceDTO;
 import com.example.roommanagement.dto.request.service.UpdateServiceDTO;
@@ -10,7 +12,10 @@ import java.util.List;
 public interface ServiceService {
     List<FindAllServiceDTO> findAll();
 
-    Reponse<CreateServiceDTO> create(CreateServiceDTO createServiceDTO);
+    CreateServiceDTO create(CreateServiceDTO createServiceDTO);
 
-    Reponse<UpdateServiceDTO> update(String id, UpdateServiceDTO updateServiceDTO);
+    UpdateServiceDTO update(String id, UpdateServiceDTO updateServiceDTO);
+
+    BaseServiceDTO detail(String id);
 }
+

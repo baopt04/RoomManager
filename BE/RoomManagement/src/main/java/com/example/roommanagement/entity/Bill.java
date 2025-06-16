@@ -17,26 +17,67 @@ import java.util.Date;
 @Table(name = "bill")
 @Builder
 public class Bill extends BaseEntity {
+    @Column(nullable = false, unique = true)
     private String code;
-    @Column(name = "total_price_service")
-    private BigDecimal totalPriceService;
-    @Column(name = "total_price_water")
+
+    @Column(name = "total_room")
+    private BigDecimal totalRoom;
+
+    @Column(name = "total_room_service")
+    private BigDecimal totalRoomService;
+
+    @Column(name = "total_water_service")
     private BigDecimal totalPriceWater;
-    @Column(name = "total_price_electricity")
+
+    @Column(name = "total_electricity_service")
     private BigDecimal totalPriceElectricity;
-    @Column(name = "payment_date")
-    private Date paymnetDate;
-    @Column(name = "total_price")
-    private BigDecimal totalPrice;
+
+    @Column(name = "total_amount")
+    private BigDecimal totalAmonut;
+
+    @Column(name = "amount_paid")
+    private BigDecimal amountPaid;
+
+    @Column(name = "electricity_usage")
+    private BigDecimal electricityUsage;
+
+    @Column(name = "water_usage")
+    private BigDecimal waterUsage;
+
+    @Column(name = "mother_pay")
+    private Integer motherPay;
+
+    @Column(name = "year_pay")
+    private Integer yearPay;
+
+    @Column(name = "paid_date")
+    private Date paidDate;
+
+    @Column(name = "due_date")
+    private Date dueDate;
+
+    @Column(name = "date_create")
+    private Date dateCreate;
+
     @Enumerated(EnumType.STRING)
     private StatusBill status;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
     @OneToOne
-    @JoinColumn(name = "id_room" , referencedColumnName = "id")
+    @JoinColumn(name = "id_room", referencedColumnName = "id", foreignKey = @ForeignKey(name = "FK_bill_room"))
     private Room room;
+
     @ManyToOne
-    @JoinColumn(name = "id_customer", referencedColumnName = "id")
+    @JoinColumn(name = "id_customer", referencedColumnName = "id", foreignKey = @ForeignKey(name = "FK_bill_customer"))
     private Customer customer;
+
     @ManyToOne
-    @JoinColumn(name = "id_contract" , referencedColumnName = "id")
+    @JoinColumn(name = "id_contract", referencedColumnName = "id", foreignKey = @ForeignKey(name = "FK_bill_contract"))
     private Contract contract;
+
+    @ManyToOne
+    @JoinColumn(name = "id_admin", referencedColumnName = "id", foreignKey = @ForeignKey(name = "FK_bill_admin"))
+    private Admin admin;
 }

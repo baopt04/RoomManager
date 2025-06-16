@@ -1,5 +1,6 @@
 package com.example.roommanagement.controller;
 
+import com.example.roommanagement.dto.request.water.BaseWaterDTO;
 import com.example.roommanagement.dto.request.water.CreateWaterDTO;
 import com.example.roommanagement.dto.request.water.FindAllWaterDTO;
 import com.example.roommanagement.dto.request.water.UpdateWaterDTO;
@@ -25,13 +26,18 @@ public class WaterController {
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
     @PostMapping("/create")
-    public ResponseEntity<Reponse<CreateWaterDTO>> create(@Valid  @RequestBody CreateWaterDTO createWaterDTO) {
-        Reponse<CreateWaterDTO> reponse = waterService.create(createWaterDTO);
+    public ResponseEntity<CreateWaterDTO> create(@Valid  @RequestBody CreateWaterDTO createWaterDTO) {
+        CreateWaterDTO reponse = waterService.create(createWaterDTO);
         return new ResponseEntity<>(reponse, HttpStatus.OK);
     }
     @PutMapping("/update/{id}")
-    public ResponseEntity<Reponse<UpdateWaterDTO>> update(@PathVariable String id, @Valid @RequestBody UpdateWaterDTO updateWaterDTO) {
-        Reponse<UpdateWaterDTO> reponse = waterService.update(id, updateWaterDTO);
+    public ResponseEntity<UpdateWaterDTO> update(@PathVariable String id, @Valid @RequestBody UpdateWaterDTO updateWaterDTO) {
+        UpdateWaterDTO reponse = waterService.update(id, updateWaterDTO);
+        return new ResponseEntity<>(reponse, HttpStatus.OK);
+    }
+    @GetMapping("/detail/{id}")
+    public ResponseEntity<BaseWaterDTO> detail(@PathVariable String id) {
+        BaseWaterDTO reponse = waterService.detail(id);
         return new ResponseEntity<>(reponse, HttpStatus.OK);
     }
 }

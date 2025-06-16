@@ -18,7 +18,7 @@ import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 @Repository
 public interface ElectricityRepository extends CrudRepository<Electricity, String> {
     Optional<Electricity> findById(String id);
-
+    boolean existsByRoom_Id(String id);
     Optional<Electricity> findByRoomId(String roomId);
 
     @Query(value = """

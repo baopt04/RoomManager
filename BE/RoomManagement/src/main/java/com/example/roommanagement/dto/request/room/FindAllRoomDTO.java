@@ -19,6 +19,7 @@ public class FindAllRoomDTO {
     private String acreage;
     private Integer peopleMax;
     private String description;
+    private String type;
     private String status;
     private String customer;
     private String houseForRent;

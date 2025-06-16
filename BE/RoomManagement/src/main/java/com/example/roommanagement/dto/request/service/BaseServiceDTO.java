@@ -13,12 +13,7 @@ import java.math.BigDecimal;
 public class BaseServiceDTO {
     private String code;
     private String name;
-    private BigDecimal wifi;
-    private BigDecimal parking;
-    private BigDecimal elevator;
-    private BigDecimal generalService;
     private BigDecimal price;
     private String unitOfMeasure;
     private String discription;
-    private Room room;
 }

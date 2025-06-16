@@ -1,13 +1,13 @@
 package com.example.roommanagement.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import com.example.roommanagement.infrastructure.constant.StatusHouseForRent;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
 
 @Data
 @NoArgsConstructor
@@ -20,6 +20,9 @@ public class HouseForRent extends BaseEntity{
     private String name;
     private String address;
     private String discription;
+    private BigDecimal price;
+    @Enumerated(EnumType.STRING)
+    private StatusHouseForRent status;
     @ManyToOne
     @JoinColumn(name = "id_host" ,referencedColumnName = "id")
     private Host host;

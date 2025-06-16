@@ -12,17 +12,22 @@ import java.util.Map;
 public class UploadImageService {
     @Autowired
     private Cloudinary cloudinary;
-    public String uploadImage(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("File cannot be null or empty");
+    public String uploadImage(String fileName, byte[] bytes) {
+        if (bytes == null || bytes.length == 0) {
+            throw new IllegalArgumentException("File content cannot be null or empty");
         }
         try {
-
-            Map updloadResult = cloudinary.uploader().upload(file.getBytes() , ObjectUtils.emptyMap());
-            return (String) updloadResult.get("url");
-        }catch (Exception e){
+            Map uploadResult = cloudinary.uploader().upload(bytes, ObjectUtils.asMap(
+                    "public_id", fileName
+            ));
+            return (String) uploadResult.get("url");
+        } catch (Exception e) {
             e.printStackTrace();
             return "upload fail";
         }
     }
+    public void deleteImage(String imageUrl) throws Exception {
+
+    }
+
 }

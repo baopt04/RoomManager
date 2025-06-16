@@ -1,10 +1,12 @@
 package com.example.roommanagement.service.impl;
 
+import com.example.roommanagement.dto.request.water.BaseWaterDTO;
 import com.example.roommanagement.dto.request.water.CreateWaterDTO;
 import com.example.roommanagement.dto.request.water.FindAllWaterDTO;
 import com.example.roommanagement.dto.request.water.UpdateWaterDTO;
 import com.example.roommanagement.entity.Water;
 import com.example.roommanagement.infrastructure.constant.Constrants;
+import com.example.roommanagement.infrastructure.error.BusinessException;
 import com.example.roommanagement.infrastructure.error.Reponse;
 import com.example.roommanagement.repository.WaterRepository;
 import com.example.roommanagement.service.WaterService;
@@ -22,19 +24,24 @@ public class WaterServiceImpl implements WaterService {
     private WaterRepository waterRepository;
     @Autowired
     private Generate generate;
+
     @Override
     public List<FindAllWaterDTO> findAllWater() {
     return waterRepository.findAllWaters();
     }
 
     @Override
-    public Reponse<CreateWaterDTO> create(CreateWaterDTO createWaterDTO) {
+    public CreateWaterDTO create(CreateWaterDTO createWaterDTO) {
         BigDecimal numberFirst = createWaterDTO.getNumberFirst();
         BigDecimal numberLast = createWaterDTO.getNumberLast();
         BigDecimal numberQuantity = numberLast.subtract(numberFirst);
-        if(numberQuantity.compareTo(BigDecimal.ZERO) < 0) {
-            return new Reponse<>(400 , Constrants.NUMBER_FIRST_LAST , null);
+        if (waterRepository.existsByRoom_Id(createWaterDTO.getRoom().getId())) {
+            throw new BusinessException("Phòng đã tồn tại !");
         }
+        if(numberQuantity.compareTo(BigDecimal.ZERO) < 0) {
+            throw new BusinessException( Constrants.NUMBER_FIRST_LAST );
+        }
+
         BigDecimal unitPrice = createWaterDTO.getUnitPrice();
         BigDecimal totalPrice = numberQuantity.multiply(unitPrice);
         Water water = Water.builder()
@@ -48,20 +55,25 @@ public class WaterServiceImpl implements WaterService {
                 .room(createWaterDTO.getRoom())
                 .build();
         waterRepository.save(water);
-        return new Reponse<>(200 , Constrants.CREATE , createWaterDTO);
+        return createWaterDTO;
     }
 
     @Override
-    public Reponse<UpdateWaterDTO> update(String id, UpdateWaterDTO updateWaterDTO) {
+    public UpdateWaterDTO update(String id, UpdateWaterDTO updateWaterDTO) {
         Optional<Water> optionalWater = waterRepository.findById(id);
         if(!optionalWater.isPresent()) {
-            return new Reponse<>(404 , Constrants.NOT_FOUND ,null);
+            throw new BusinessException( Constrants.NOT_FOUND);
+        }
+        if (!optionalWater.get().getRoom().getId().equals(updateWaterDTO.getRoom().getId())) {
+            if (waterRepository.existsByRoom_Id(updateWaterDTO.getRoom().getId())) {
+                throw new BusinessException("Phòng đã tồn tại !");
+            }
         }
         BigDecimal numberFirst = updateWaterDTO.getNumberFirst();
         BigDecimal numberLast = updateWaterDTO.getNumberLast();
         BigDecimal numberQuantity = numberLast.subtract(numberFirst);
         if(numberQuantity.compareTo(BigDecimal.ZERO) < 0) {
-            return new Reponse<>(400 , Constrants.NUMBER_FIRST_LAST , null);
+           throw new BusinessException( Constrants.NUMBER_FIRST_LAST );
         }
         BigDecimal unitPrice = updateWaterDTO.getUnitPrice();
         BigDecimal totalPrice = numberQuantity.multiply(unitPrice);
@@ -73,6 +85,22 @@ public class WaterServiceImpl implements WaterService {
        optionalWater.get().setStatus(updateWaterDTO.getStatus());
        optionalWater.get().setRoom(updateWaterDTO.getRoom());
         waterRepository.save(optionalWater.get());
-        return new Reponse<>(200 , Constrants.UPDATE , updateWaterDTO);
+       return updateWaterDTO;
+    }
+
+    @Override
+    public BaseWaterDTO detail(String id) {
+      Water wt = waterRepository.findById(id).orElseThrow(() -> new BusinessException(Constrants.NOT_FOUND));
+
+      return new BaseWaterDTO(
+             wt.getCode(),
+              wt.getNumberFirst() ,
+              wt.getNumberLast() ,
+              wt.getUnitPrice() ,
+              wt.getDataClose() ,
+              wt.getTotalPrice() ,
+              wt.getStatus() ,
+              wt.getRoom()
+      );
     }
 }
