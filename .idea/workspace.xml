@@ -17,9 +17,9 @@
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/BE/RoomManagement/src/main/java/com/example/roommanagement/RoomManagementApplication.java" root0="SKIP_HIGHLIGHTING" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 7
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
   <component name="ProjectId" id="2uuUWxrj1PA0NVjv15F0E5JMzXo" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
@@ -33,10 +33,11 @@
     "RequestMappingsPanelWidth0": "75",
     "RequestMappingsPanelWidth1": "75",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "<unknown>",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "nhanhphu",
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "D:/room-manerment/BE",
+    "last_opened_file_path": "D:/room-management/BE",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -62,6 +63,7 @@
       <option name="presentableId" value="Default" />
       <updated>1743097988244</updated>
       <workItem from="1743097989301" duration="215000" />
+      <workItem from="1750075407616" duration="96000" />
     </task>
     <servers />
   </component>

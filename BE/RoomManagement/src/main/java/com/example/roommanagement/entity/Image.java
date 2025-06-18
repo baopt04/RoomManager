@@ -1,9 +1,7 @@
 package com.example.roommanagement.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import com.example.roommanagement.infrastructure.constant.TypeImages;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,7 +21,9 @@ public class Image extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "id_room" , referencedColumnName = "id")
     private Room room;
-
+    @Column(name = "image_type")
+    @Enumerated(EnumType.STRING)
+    private TypeImages type;
     public Image(String name) {
         this.name = name;
     }

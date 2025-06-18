@@ -51,13 +51,13 @@ public class ContractServiceImpl implements ContractService {
     @Override
     public CreateContractDTO create(CreateContractDTO createContractDTO) {
         Room room = roomRepository.findById(createContractDTO.getRoomId())
-                .orElseThrow(() -> new RuntimeException(Constrants.ROOM_FOUND));
+                .orElseThrow(() -> new BusinessException(Constrants.ROOM_FOUND));
         Admin admin = adminRepository.findById(createContractDTO.getAdminId())
-                .orElseThrow(() -> new RuntimeException(Constrants.ADMIN_FOUND));
+                .orElseThrow(() -> new BusinessException(Constrants.ADMIN_FOUND));
         HouseForRent houseForRent = houseForRentRepository.findById(createContractDTO.getHouseForRentId()).
-                orElseThrow(() -> new RuntimeException(Constrants.HOUSE_FOR_RENT_FOUND));
+                orElseThrow(() -> new BusinessException(Constrants.HOUSE_FOR_RENT_FOUND));
         Customer customer = customerRepository.findById(createContractDTO.getCustomerId()).
-                orElseThrow(() -> new RuntimeException(Constrants.CUSTOMER_FOUND));
+                orElseThrow(() -> new BusinessException(Constrants.CUSTOMER_FOUND));
         Contract contract = Contract.builder()
                 .code(generate.generateCodeContract())
                 .dateStart(createContractDTO.getDateStart())

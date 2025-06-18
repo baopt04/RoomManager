@@ -5,17 +5,23 @@ import com.example.roommanagement.dto.request.electricity.CreateElectricityDTO;
 import com.example.roommanagement.dto.request.electricity.FindAllElectricityDTO;
 import com.example.roommanagement.dto.request.electricity.UpdateElectricityDTO;
 import com.example.roommanagement.entity.Electricity;
+import com.example.roommanagement.entity.ElectricityHistory;
 import com.example.roommanagement.infrastructure.constant.Constrants;
+import com.example.roommanagement.infrastructure.constant.StatusWaterEndElectric;
 import com.example.roommanagement.infrastructure.error.BusinessException;
 import com.example.roommanagement.infrastructure.error.Reponse;
+import com.example.roommanagement.repository.ElectricityHistoryRepository;
 import com.example.roommanagement.repository.ElectricityRepository;
 import com.example.roommanagement.service.ElectricityService;
 import com.example.roommanagement.util.Generate;
 import org.hibernate.sql.Update;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,6 +31,8 @@ public class ElectricityServiceImpl implements ElectricityService {
     private ElectricityRepository electricityRepository;
     @Autowired
     private Generate generate;
+    @Autowired
+    private ElectricityHistoryRepository electricityHistoryRepository;
     @Override
     public List<FindAllElectricityDTO> getAllElectricity() {
        return electricityRepository.findAllElectricity();
@@ -36,6 +44,9 @@ public class ElectricityServiceImpl implements ElectricityService {
         BigDecimal numberLast = createElectricityDTO.getNumberLast();
         BigDecimal unitPrice = createElectricityDTO.getUnitPrice();
         BigDecimal quantityData = numberLast.subtract(numberFirst);
+        LocalDateTime dateNow = LocalDateTime.now();
+        Integer mother = dateNow.getMonthValue() ;
+        Integer year = dateNow.getYear();
         if (quantityData.compareTo(BigDecimal.ZERO) < 0) {
             throw new BusinessException( Constrants.NUMBER_FIRST_LAST );
         }
@@ -54,12 +65,27 @@ public class ElectricityServiceImpl implements ElectricityService {
                 .room(createElectricityDTO.getRoom())
                 .build();
         electricityRepository.save(electricity);
+
+        ElectricityHistory electricityHistory = ElectricityHistory.builder()
+                .numberFirst(numberFirst)
+                .numberLast(numberLast)
+                .unitPrice(unitPrice)
+                .totalPrice(totalPrice)
+                .month(mother)
+                .year(year)
+                .status(StatusWaterEndElectric.CHUA_THANH_TOAN)
+                .electricity(electricity)
+                .build();
+        electricityHistoryRepository.save(electricityHistory);
        return createElectricityDTO;
     }
 
     @Override
     public UpdateElectricityDTO update(String id, UpdateElectricityDTO updateElectricityDTO) {
         Optional<Electricity> electricity = electricityRepository.findById(id);
+        LocalDateTime localDateTime = LocalDateTime.now();
+        Integer mother = localDateTime.getMonthValue() ;
+        Integer year = localDateTime.getYear();
         if (!electricity.isPresent()) {
             throw new BusinessException( Constrants.NOT_FOUND);
         }
@@ -84,6 +110,17 @@ public class ElectricityServiceImpl implements ElectricityService {
         electricity.get().setStatus(updateElectricityDTO.getStatus());
         electricity.get().setRoom(updateElectricityDTO.getRoom());
         electricityRepository.save(electricity.get());
+        ElectricityHistory electricityHistory = ElectricityHistory.builder()
+                .numberFirst(numberFirst)
+                .numberLast(numberLast)
+                .unitPrice(unitPrice)
+                .totalPrice(totalPrice)
+                .month(mother)
+                .year(year)
+                .status(updateElectricityDTO.getStatus())
+                .electricity(electricity.get())
+                .build();
+        electricityHistoryRepository.save(electricityHistory);
        return updateElectricityDTO;
     }
 
