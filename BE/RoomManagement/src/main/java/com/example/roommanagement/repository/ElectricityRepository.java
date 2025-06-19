@@ -31,6 +31,8 @@ public interface ElectricityRepository extends CrudRepository<Electricity, Strin
             r.unit_price as unitPrice ,
             r.data_close as dataClose ,
             r.total_price as totalPrice ,
+                        r.mother as mother ,
+                                    r.year as year ,
                         r.status as stautus,
             r.id_room as room
             FROM Electricity r

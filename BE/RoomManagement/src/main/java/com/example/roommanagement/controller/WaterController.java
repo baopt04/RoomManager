@@ -1,5 +1,6 @@
 package com.example.roommanagement.controller;
 
+import com.example.roommanagement.dto.request.electricity.FindAllElectricityAndWaterHistoryProjection;
 import com.example.roommanagement.dto.request.water.BaseWaterDTO;
 import com.example.roommanagement.dto.request.water.CreateWaterDTO;
 import com.example.roommanagement.dto.request.water.FindAllWaterDTO;
@@ -39,5 +40,10 @@ public class WaterController {
     public ResponseEntity<BaseWaterDTO> detail(@PathVariable String id) {
         BaseWaterDTO reponse = waterService.detail(id);
         return new ResponseEntity<>(reponse, HttpStatus.OK);
+    }
+    @GetMapping("/history/{id}")
+    public ResponseEntity<List<FindAllElectricityAndWaterHistoryProjection>> history(@PathVariable String id) {
+        List<FindAllElectricityAndWaterHistoryProjection> list = waterService.getAllHistoryWater(id);
+        return new ResponseEntity<>(list, HttpStatus.OK);
     }
 }

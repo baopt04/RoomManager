@@ -17,6 +17,8 @@ public class FindAllElectricityDTO {
     private BigDecimal unitPrice;
     private BigDecimal dataClose;
     private BigDecimal totalPrice;
+    private Integer mother;
+    private Integer year;
     private String status;
     private String room;
 }

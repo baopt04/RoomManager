@@ -28,6 +28,8 @@ boolean existsByRoom_Id(String id);
             r.unit_price as unitPrice ,
             r.data_close as dataClose ,
             r.total_price as totalPrice ,
+                        r.mother as mother ,
+                                    r.year as year ,
                         r.status as status ,
             r.id_room as room
             FROM Water r

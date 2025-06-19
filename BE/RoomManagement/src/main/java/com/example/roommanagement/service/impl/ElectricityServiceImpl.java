@@ -1,26 +1,19 @@
 package com.example.roommanagement.service.impl;
 
-import com.example.roommanagement.dto.request.electricity.BaseElectricityDTO;
-import com.example.roommanagement.dto.request.electricity.CreateElectricityDTO;
-import com.example.roommanagement.dto.request.electricity.FindAllElectricityDTO;
-import com.example.roommanagement.dto.request.electricity.UpdateElectricityDTO;
+import com.example.roommanagement.dto.request.electricity.*;
 import com.example.roommanagement.entity.Electricity;
 import com.example.roommanagement.entity.ElectricityHistory;
 import com.example.roommanagement.infrastructure.constant.Constrants;
 import com.example.roommanagement.infrastructure.constant.StatusWaterEndElectric;
 import com.example.roommanagement.infrastructure.error.BusinessException;
-import com.example.roommanagement.infrastructure.error.Reponse;
 import com.example.roommanagement.repository.ElectricityHistoryRepository;
 import com.example.roommanagement.repository.ElectricityRepository;
 import com.example.roommanagement.service.ElectricityService;
 import com.example.roommanagement.util.Generate;
-import org.hibernate.sql.Update;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -61,6 +54,8 @@ public class ElectricityServiceImpl implements ElectricityService {
                 .unitPrice(unitPrice)
                 .dataClose(quantityData)
                 .totalPrice(totalPrice)
+                .mother(mother)
+                .year(year)
                 .status(createElectricityDTO.getStatus())
                 .room(createElectricityDTO.getRoom())
                 .build();
@@ -107,20 +102,34 @@ public class ElectricityServiceImpl implements ElectricityService {
         electricity.get().setUnitPrice(unitPrice);
         electricity.get().setDataClose(quantityData);
         electricity.get().setTotalPrice(totalPrice);
+        electricity.get().setMother(mother);
+        electricity.get().setYear(year);
         electricity.get().setStatus(updateElectricityDTO.getStatus());
         electricity.get().setRoom(updateElectricityDTO.getRoom());
         electricityRepository.save(electricity.get());
-        ElectricityHistory electricityHistory = ElectricityHistory.builder()
-                .numberFirst(numberFirst)
-                .numberLast(numberLast)
-                .unitPrice(unitPrice)
-                .totalPrice(totalPrice)
-                .month(mother)
-                .year(year)
-                .status(updateElectricityDTO.getStatus())
-                .electricity(electricity.get())
-                .build();
-        electricityHistoryRepository.save(electricityHistory);
+Optional<ElectricityHistory> optionalElectricityHistory = electricityHistoryRepository.findByElectricity_IdAndMonthAndYear(id , mother , year);
+        if (optionalElectricityHistory.isPresent()) {
+            ElectricityHistory history = optionalElectricityHistory.get();
+            history.setNumberFirst(numberFirst);
+            history.setNumberLast(numberLast);
+            history.setUnitPrice(unitPrice);
+            history.setTotalPrice(totalPrice);
+            history.setStatus(updateElectricityDTO.getStatus());
+            electricityHistoryRepository.save(history);
+        }else {
+            ElectricityHistory newHistory = ElectricityHistory.builder()
+                    .numberFirst(numberFirst)
+                    .numberLast(numberLast)
+                    .unitPrice(unitPrice)
+                    .totalPrice(totalPrice)
+                    .month(mother)
+                    .year(year)
+                    .status(updateElectricityDTO.getStatus())
+                    .electricity(electricity.get())
+                    .build();
+            electricityHistoryRepository.save(newHistory);
+        }
+
        return updateElectricityDTO;
     }
 
@@ -140,5 +149,10 @@ public class ElectricityServiceImpl implements ElectricityService {
                 electricity.getRoom()
         );
         return baseElectricityDTO;
+    }
+
+    @Override
+    public List<FindAllElectricityAndWaterHistoryProjection> getAllHistoryElectricity(String id) {
+        return electricityHistoryRepository.findByIdElectricity(id);
     }
 }

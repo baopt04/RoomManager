@@ -31,6 +31,10 @@ public class Water extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private StatusWaterEndElectric status;
+    @Column(name = "mother")
+    private Integer mother;
+    @Column(name = "year")
+    private Integer year;
     @ManyToOne
     @JoinColumn(name = "id_room")
     private Room room;

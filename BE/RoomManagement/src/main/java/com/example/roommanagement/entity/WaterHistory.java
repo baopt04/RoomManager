@@ -33,8 +33,8 @@ public class WaterHistory extends BaseEntity {
     @Column(name = "unit_price", nullable = false, precision = 10, scale = 2)
     private BigDecimal unitPrice;
 
-    @Column(name = "total_price", precision = 10, scale = 2, insertable = false, updatable = false)
-    private BigDecimal totalPrice; // Generated column in DB
+    @Column(name = "total_price")
+    private BigDecimal totalPrice;
 
     @Column(nullable = false)
     private int month;

@@ -1,13 +1,8 @@
 package com.example.roommanagement.controller;
 
-import com.example.roommanagement.dto.request.electricity.BaseElectricityDTO;
-import com.example.roommanagement.dto.request.electricity.CreateElectricityDTO;
-import com.example.roommanagement.dto.request.electricity.FindAllElectricityDTO;
-import com.example.roommanagement.dto.request.electricity.UpdateElectricityDTO;
-import com.example.roommanagement.infrastructure.error.Reponse;
+import com.example.roommanagement.dto.request.electricity.*;
 import com.example.roommanagement.service.ElectricityService;
 import jakarta.validation.Valid;
-import org.hibernate.annotations.processing.Find;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,6 +34,11 @@ public class ElectricityController {
     public ResponseEntity<BaseElectricityDTO> detail(@PathVariable String id) {
         BaseElectricityDTO baseElectricityDTO = electricityService.detail(id);
         return new ResponseEntity<>(baseElectricityDTO, HttpStatus.OK);
+    }
+    @GetMapping("/history/{id}")
+    public ResponseEntity<List<FindAllElectricityAndWaterHistoryProjection>> history(@PathVariable String id) {
+        List<FindAllElectricityAndWaterHistoryProjection> list = electricityService.getAllHistoryElectricity(id);
+        return new ResponseEntity<>(list, HttpStatus.OK);
     }
 }
 

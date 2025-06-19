@@ -27,5 +27,6 @@ public class Constrants {
     public static final String CONTRACT_NOT_FOUND = "Không tìm thấy hợp đồng !";
     public static final String WATER_NOT_FOUND = "Không tìm thấy hợp đồng !";
     public static final String ELECTRICITY_NOT_FOUND = "Không tìm thấy hợp đồng !";
+    public static final String ELECTRICTIY_NO_HAVE = "Chưa có điện trong tháng vui lòng cập nhật điện mới nhất";
 
 }
