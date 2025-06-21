@@ -18,4 +18,6 @@ public interface RoomService {
     RoomDetailProjection findTotalPriceRoom(String id);
 
     List<FindAllImageProjection> findAllImagesForRoom(String id);
+
+    List<FindAllRoomDTO> findAllHouseForRentAndCustomer(String idHouseForRent, String idCustomer);
 }

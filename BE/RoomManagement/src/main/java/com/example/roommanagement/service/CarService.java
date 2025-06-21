@@ -12,4 +12,5 @@ public interface CarService {
     CreateCarDTO create(CreateCarDTO createCarDTO);
     UpdateCarDTO update(String id , UpdateCarDTO updateCarDTO);
     BaseCarDTO detail(String id);
+    void delete(String id);
 }

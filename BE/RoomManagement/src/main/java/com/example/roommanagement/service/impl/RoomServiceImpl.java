@@ -217,6 +217,11 @@ public class RoomServiceImpl implements RoomService {
 
     }
 
+    @Override
+    public List<FindAllRoomDTO> findAllHouseForRentAndCustomer(String idHouseForRent , String idCustomer) {
+        return roomRepository.findAllRoomsByHouseForRentAndCustomer(idHouseForRent, idCustomer);
+    }
+
 
     @Autowired
     private RoomRepository roomRepository;

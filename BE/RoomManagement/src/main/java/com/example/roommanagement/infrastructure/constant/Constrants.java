@@ -14,7 +14,9 @@ public class Constrants {
     public static final String FIND_PHONE_NULL = "Vui lòng nhập số điện thoại cần tìm";
     public static final String CCCD_EXISTS = "Căn cước đã tồn tại !";
     public static final String GET_SUCCESS = "Get Success!";
-    public static final String NAME_EXISTS = "Tên đã tồn tại !";
+    public static final String NAME_EXISTS = "Tên phòng đã tồn tại! Vui lòng nhập tên khác";
+    public static final String ROOM_EXISTS = "Phòng trọ đã có hợp đồng vui lòng không thêm phòng trọ này !";
+    public static final String ROOM_EXISTS_WATER_ELECTRICITY = "Phòng trọ đã được thêm dịch vụ! Vui lòng không thêm phòng trọ này !";
     public static final String ID_DUPLICATE = "Phòng đã có dịch vụ !";
     public static final String NOT_FOUND_ID_BILL = "Không tìm thấy phòng này !";
     public static final String FIND_NULL = "Vui lòng nhập thông tin cần tim !";

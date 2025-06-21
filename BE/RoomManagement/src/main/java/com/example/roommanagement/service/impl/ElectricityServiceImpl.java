@@ -44,7 +44,7 @@ public class ElectricityServiceImpl implements ElectricityService {
             throw new BusinessException( Constrants.NUMBER_FIRST_LAST );
         }
         if (electricityRepository.existsByRoom_Id(createElectricityDTO.getRoom().getId())) {
-            throw new BusinessException(Constrants.HAVE_ROOM);
+            throw new BusinessException(Constrants.ROOM_EXISTS_WATER_ELECTRICITY);
         }
         BigDecimal totalPrice = quantityData.multiply(unitPrice);
         Electricity electricity = Electricity.builder()
@@ -86,7 +86,7 @@ public class ElectricityServiceImpl implements ElectricityService {
         }
         if (!updateElectricityDTO.getRoom().getId().equals(electricity.get().getRoom().getId())) {
             if (electricityRepository.existsByRoom_Id(updateElectricityDTO.getRoom().getId())) {
-                throw new BusinessException(Constrants.HAVE_ROOM);
+                throw new BusinessException(Constrants.ROOM_EXISTS_WATER_ELECTRICITY);
             }
         }
         BigDecimal numberFirst = updateElectricityDTO.getNumberFirst();

@@ -46,7 +46,7 @@ public class WaterServiceImpl implements WaterService {
         Integer mother = dateNow.getMonthValue() ;
         Integer year = dateNow.getYear();
         if (waterRepository.existsByRoom_Id(createWaterDTO.getRoom().getId())) {
-            throw new BusinessException("Phòng đã tồn tại !");
+            throw new BusinessException(Constrants.ROOM_EXISTS_WATER_ELECTRICITY);
         }
         if(numberQuantity.compareTo(BigDecimal.ZERO) < 0) {
             throw new BusinessException( Constrants.NUMBER_FIRST_LAST );
@@ -89,7 +89,7 @@ public class WaterServiceImpl implements WaterService {
         }
         if (!optionalWater.get().getRoom().getId().equals(updateWaterDTO.getRoom().getId())) {
             if (waterRepository.existsByRoom_Id(updateWaterDTO.getRoom().getId())) {
-                throw new BusinessException("Phòng đã tồn tại !");
+                throw new BusinessException(Constrants.ROOM_EXISTS_WATER_ELECTRICITY);
             }
         }
         BigDecimal numberFirst = updateWaterDTO.getNumberFirst();

@@ -50,12 +50,15 @@ public class ContractServiceImpl implements ContractService {
 
     @Override
     public CreateContractDTO create(CreateContractDTO createContractDTO) {
+        if (contractRepository.existsByRoom_Id(createContractDTO.getRoomId())) {
+            throw new BusinessException(Constrants.ROOM_EXISTS);
+        }
         Room room = roomRepository.findById(createContractDTO.getRoomId())
                 .orElseThrow(() -> new BusinessException(Constrants.ROOM_FOUND));
         Admin admin = adminRepository.findById(createContractDTO.getAdminId())
                 .orElseThrow(() -> new BusinessException(Constrants.ADMIN_FOUND));
-        HouseForRent houseForRent = houseForRentRepository.findById(createContractDTO.getHouseForRentId()).
-                orElseThrow(() -> new BusinessException(Constrants.HOUSE_FOR_RENT_FOUND));
+
+
         Customer customer = customerRepository.findById(createContractDTO.getCustomerId()).
                 orElseThrow(() -> new BusinessException(Constrants.CUSTOMER_FOUND));
         Contract contract = Contract.builder()
@@ -67,7 +70,7 @@ public class ContractServiceImpl implements ContractService {
                 .status(createContractDTO.getStatus())
                 .description(createContractDTO.getDescription())
                 .room(room)
-                .houseForRent(houseForRent)
+                .houseForRent(room.getHouseForRent())
                 .admin(admin)
                 .customer(customer)
                 .build();
@@ -89,6 +92,9 @@ public class ContractServiceImpl implements ContractService {
     @Override
     public UpdateContractDTO update(String id, UpdateContractDTO updateContractDTO) {
         Optional<Contract> contract = contractRepository.findById(id);
+        if (contractRepository.existsByRoom_Id(updateContractDTO.getRoomId())) {
+            throw new BusinessException(Constrants.ROOM_EXISTS);
+        }
         System.out.println("Check id " + id);
         if (!contract.isPresent()) {
             throw new BusinessException(Constrants.NOT_FOUND);

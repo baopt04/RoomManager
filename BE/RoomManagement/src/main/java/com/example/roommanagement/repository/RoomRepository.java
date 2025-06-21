@@ -37,6 +37,31 @@ Boolean existsByName(String name);
     List<FindAllRoomDTO> findRoom();
 
     @Query(value = """
+    SELECT 
+        ROW_NUMBER() OVER (ORDER BY r.last_modified_date DESC) AS stt,
+        r.id AS id,
+        r.code AS code,
+        r.name AS name,
+        r.price AS price,
+        r.acreage AS acreage,
+        r.people_Max AS peopleMax,
+        r.decription AS description,
+        r.type AS type,
+        r.status AS status,
+        r.id_customer AS customer,
+        r.id_house_for_rent AS houseForRent
+    FROM Room r
+    WHERE 
+        (:houseForRentId IS NULL OR r.id_house_for_rent = :houseForRentId)
+        AND (:customerId IS NULL OR r.id_customer = :customerId)
+    """, nativeQuery = true)
+    List<FindAllRoomDTO> findAllRoomsByHouseForRentAndCustomer(
+            @Param("houseForRentId") String houseForRentId,
+            @Param("customerId") String customerId
+    );
+
+
+    @Query(value = """
             SELECT 
              ROW_NUMBER() over(order by r.last_modified_date desc ) as stt ,
              r.id as id ,

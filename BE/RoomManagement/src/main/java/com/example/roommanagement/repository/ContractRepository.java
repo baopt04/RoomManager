@@ -13,7 +13,7 @@ import java.util.Optional;
 @Repository
 public interface ContractRepository extends JpaRepository<Contract, String> {
     Optional<Contract> findById(String id);
-
+    boolean existsByRoom_Id(String roomId);
     @Query(value = """
             SELECT 
              ROW_NUMBER() over (order by r.last_modified_date desc ) as stt ,

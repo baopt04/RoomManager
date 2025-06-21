@@ -63,4 +63,13 @@ public class RoomController {
         List<FindAllImageProjection> reponse = roomService.findAllImagesForRoom(id);
         return new ResponseEntity<>(reponse, HttpStatus.OK);
     }
+    @GetMapping("/findAllHouseForRent")
+    public ResponseEntity<List<FindAllRoomDTO>> findAllHouseForRent(
+            @RequestParam(required = false) String idHouseForRent,
+            @RequestParam(required = false) String idCustomer) {
+
+        List<FindAllRoomDTO> response = roomService.findAllHouseForRentAndCustomer(idHouseForRent, idCustomer);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
 }
