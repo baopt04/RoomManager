@@ -2,6 +2,7 @@ package com.example.roommanagement.repository;
 
 import com.example.roommanagement.dto.request.contract.FindAllContractDTO;
 import com.example.roommanagement.entity.Contract;
+import com.example.roommanagement.infrastructure.constant.StatusContract;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -39,5 +40,6 @@ SELECT c.id FROM Contract c where c.id_room =:id_room
     List<Object[]> findIdContract(@Param("id_room")String id_room);
 
     Optional<Contract> findByRoomId(String roomId);
+    List<Contract>  findByStatus(StatusContract statusContract);
 
 }

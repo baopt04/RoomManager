@@ -5,6 +5,7 @@ import com.example.roommanagement.dto.respon.AdminRespon;
 import com.example.roommanagement.entity.Admin;
 import com.example.roommanagement.infrastructure.error.Reponse;
 import com.example.roommanagement.service.AdminSerive;
+import com.example.roommanagement.service.impl.RoomHistoryScheduler;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -70,5 +71,13 @@ public class AdminController {
     public ResponseEntity<Reponse<FindAllAdminDTO>> findByNumberPhone(@RequestParam String numberPhone) {
         Reponse<FindAllAdminDTO> reponse = adminSerive.getOneNumberPhone(numberPhone);
         return ResponseEntity.ok(reponse);
+    }
+    @Autowired
+    private RoomHistoryScheduler roomHistoryScheduler;
+
+    @GetMapping("/run-scheduler")
+    public ResponseEntity<String> runSchedulerNow() {
+        roomHistoryScheduler.generateRoomHistory();
+        return ResponseEntity.ok("Scheduler executed!");
     }
 }

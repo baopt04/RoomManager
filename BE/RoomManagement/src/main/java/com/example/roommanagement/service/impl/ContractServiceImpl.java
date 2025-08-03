@@ -4,6 +4,8 @@ import com.example.roommanagement.dto.request.contract.*;
 import com.example.roommanagement.entity.*;
 import com.example.roommanagement.infrastructure.cloudinary.UploadImageService;
 import com.example.roommanagement.infrastructure.constant.Constrants;
+import com.example.roommanagement.infrastructure.constant.StatusContract;
+import com.example.roommanagement.infrastructure.constant.StatusRoomHistory;
 import com.example.roommanagement.infrastructure.error.BusinessException;
 import com.example.roommanagement.infrastructure.error.Reponse;
 import com.example.roommanagement.repository.*;
@@ -11,12 +13,18 @@ import com.example.roommanagement.service.ContractService;
 import com.example.roommanagement.util.Generate;
 import org.hibernate.sql.Update;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.core.Local;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -42,7 +50,8 @@ public class ContractServiceImpl implements ContractService {
     private CustomerRepository customerRepository;
     @Autowired
     private AsyncImageService asyncImageService;
-
+    @Autowired
+    private RoomHistoryRepository roomHistoryRepository;
     @Override
     public List<FindAllContractDTO> findAll() {
         return contractRepository.findAllContracts();
@@ -58,6 +67,12 @@ public class ContractServiceImpl implements ContractService {
         Admin admin = adminRepository.findById(createContractDTO.getAdminId())
                 .orElseThrow(() -> new BusinessException(Constrants.ADMIN_FOUND));
 
+        Date startDate = createContractDTO.getDateStart();
+        Date endDate = createContractDTO.getNextDueDate();
+        Calendar start = Calendar.getInstance();
+        start.setTime(startDate);
+        Calendar end = Calendar.getInstance();
+        end.setTime(endDate);
 
         Customer customer = customerRepository.findById(createContractDTO.getCustomerId()).
                 orElseThrow(() -> new BusinessException(Constrants.CUSTOMER_FOUND));
@@ -75,6 +90,22 @@ public class ContractServiceImpl implements ContractService {
                 .customer(customer)
                 .build();
         contractRepository.save(contract);
+       while (start.before(end)) {
+           Calendar nextMonth =(Calendar) start.clone();
+           nextMonth.add(Calendar.MONTH, 1);
+           RoomHistory history = RoomHistory.builder()
+                   .price(room.getPrice()) // hoặc từ DTO
+                   .startDate(start.getTime())
+                   .endDate(nextMonth.getTime())
+                   .room(room)
+                   .customer(customer)
+                   .status(StatusRoomHistory.DANG_CHO_THUE)
+                   .isPaid(true)
+                   .build();
+
+           roomHistoryRepository.save(history);
+           start = nextMonth;
+       }
         if (createContractDTO.getImages() != null && !createContractDTO.getImages().isEmpty()) {
             List<ImageUploadDTO> imageUploadDTOS = createContractDTO.getImages().stream().map(file -> {
                 try {
@@ -229,24 +260,8 @@ public class ContractServiceImpl implements ContractService {
         return dto;
     }
 
+
+
 }
-//@Async
-//    @Override
-//    public void uploadImage(List<MultipartFile> files, Contract contract) {
-//    System.out.println("Upload ảnh đang chạy trên thread: " + Thread.currentThread().getName());
-//
-//    for (MultipartFile file : files) {
-//            try {
-//                String urlImage = uploadImageService.uploadImage(file);
-//                Image image = Image.builder()
-//                        .name(urlImage)
-//                        .contract(contract)
-//                        .room(contract.getRoom())
-//                        .build();
-//                imageRepository.save(image);
-//            }catch (Exception e){
-//                System.out.println("Lỗi khi update anh " + e.getMessage());
-//            }
-//        }
-//    }
+
 

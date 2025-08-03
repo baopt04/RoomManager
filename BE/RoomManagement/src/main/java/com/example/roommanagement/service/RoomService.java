@@ -2,6 +2,7 @@ package com.example.roommanagement.service;
 
 import com.example.roommanagement.dto.request.image.FindAllImageProjection;
 import com.example.roommanagement.dto.request.room.*;
+import com.example.roommanagement.dto.request.statistical.RoomRevenueProjection;
 import com.example.roommanagement.entity.Image;
 import com.example.roommanagement.entity.Room;
 import com.example.roommanagement.infrastructure.error.Reponse;
@@ -20,4 +21,7 @@ public interface RoomService {
     List<FindAllImageProjection> findAllImagesForRoom(String id);
 
     List<FindAllRoomDTO> findAllHouseForRentAndCustomer(String idHouseForRent, String idCustomer);
+    List<FindAllRoomHistoryProjection> findAllRoomHistory(String idRoom);
+    List<RoomStatusCountProjection> getAllStatusRoom();
+
 }

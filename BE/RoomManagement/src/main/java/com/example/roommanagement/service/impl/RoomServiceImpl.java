@@ -10,10 +10,7 @@ import com.example.roommanagement.entity.Room;
 import com.example.roommanagement.infrastructure.constant.Constrants;
 import com.example.roommanagement.infrastructure.error.BusinessException;
 import com.example.roommanagement.infrastructure.error.Reponse;
-import com.example.roommanagement.repository.CustomerRepository;
-import com.example.roommanagement.repository.HouseForRentRepository;
-import com.example.roommanagement.repository.ImageRepository;
-import com.example.roommanagement.repository.RoomRepository;
+import com.example.roommanagement.repository.*;
 import com.example.roommanagement.service.RoomService;
 import com.example.roommanagement.util.Generate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -222,6 +219,16 @@ public class RoomServiceImpl implements RoomService {
         return roomRepository.findAllRoomsByHouseForRentAndCustomer(idHouseForRent, idCustomer);
     }
 
+    @Override
+    public List<FindAllRoomHistoryProjection> findAllRoomHistory(String idRoom) {
+        return roomHistoryRepository.findAllRoomHistoryProjection(idRoom);
+    }
+
+    @Override
+    public List<RoomStatusCountProjection> getAllStatusRoom() {
+        return roomRepository.getAllStatusRoom();
+    }
+
 
     @Autowired
     private RoomRepository roomRepository;
@@ -235,4 +242,6 @@ public class RoomServiceImpl implements RoomService {
     private CustomerRepository customerRepository;
     @Autowired
     private HouseForRentRepository houseForRentRepository;
+    @Autowired
+    private RoomHistoryRepository roomHistoryRepository;
 }

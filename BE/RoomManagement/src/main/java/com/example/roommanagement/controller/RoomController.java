@@ -71,5 +71,14 @@ public class RoomController {
         List<FindAllRoomDTO> response = roomService.findAllHouseForRentAndCustomer(idHouseForRent, idCustomer);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
+    @GetMapping("/findAllRoomHistory")
+    public ResponseEntity<List<FindAllRoomHistoryProjection>> findAllRoomHistory(@RequestParam("idRoom")String idRoom) {
+        List<FindAllRoomHistoryProjection> response = roomService.findAllRoomHistory(idRoom);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+    @GetMapping("/getAllStatus")
+    public ResponseEntity<List<RoomStatusCountProjection>> getAllStatus() {
+        List<RoomStatusCountProjection> response = roomService.getAllStatusRoom();
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 }
