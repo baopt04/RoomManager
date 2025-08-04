@@ -6,8 +6,7 @@ import java.util.List;
 
 public interface StatisticalService {
     FindAllStatisticalProjection getTotalPriceStatisical();
-    List<RoomRevenueProjection> getTotalPriceStatisicalMother();
-    TotalRevenueProjection getTotalRevenueStatisical();
-    List<RoomMonthlyDebtProjection> getRoomMonthlyDebtDetails();
+    TotalRevenueProjection getTotalPriceMonth();
     List<MonthlyTotalDTO> getTotalPriceForMonth();
+    List<SearchRoomProjection> searchRoomHistoryByIdRoom(String roomId);
 }

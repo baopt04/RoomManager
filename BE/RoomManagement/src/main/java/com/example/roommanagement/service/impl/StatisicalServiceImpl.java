@@ -18,22 +18,18 @@ private StatisticalRepository statisticalRepository;
     }
 
     @Override
-    public List<RoomRevenueProjection> getTotalPriceStatisicalMother() {
-        return statisticalRepository.getRoomRevenueDetails();
+    public TotalRevenueProjection getTotalPriceMonth() {
+        return statisticalRepository.getTotalRevenueForCurrentMonth();
     }
 
-    @Override
-    public TotalRevenueProjection getTotalRevenueStatisical() {
-        return statisticalRepository.getTotalRevenue();
-    }
-
-    @Override
-    public List<RoomMonthlyDebtProjection> getRoomMonthlyDebtDetails() {
-        return statisticalRepository.getMonthlyRevenueSummary();
-    }
 
     @Override
     public List<MonthlyTotalDTO> getTotalPriceForMonth() {
         return statisticalRepository.findMonthlyTotals();
+    }
+
+    @Override
+    public List<SearchRoomProjection> searchRoomHistoryByIdRoom(String roomId) {
+        return statisticalRepository.findRoomDetailsByRoomId(roomId);
     }
 }

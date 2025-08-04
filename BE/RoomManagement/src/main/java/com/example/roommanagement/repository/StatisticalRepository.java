@@ -4,6 +4,7 @@ import com.example.roommanagement.dto.request.statistical.*;
 import com.example.roommanagement.entity.RoomHistory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,96 +47,50 @@ public interface StatisticalRepository extends JpaRepository<RoomHistory , Strin
     """, nativeQuery = true)
     FindAllStatisticalProjection getTotalSystemRevenue();
 
-
-    @Query(value = """
+ // Query by current month now
+ @Query(value = """
     SELECT 
-        r.id AS roomId,
-        r.name AS roomName,
-        r.price AS roomPrice,
-        
-        COALESCE(SUM(w.total_price), 0) AS totalWater,
-        COALESCE(SUM(e.total_price), 0) AS totalElectricity,
-        COALESCE(SUM(s.price), 0) AS totalService,
-        
-        (r.price 
-         + COALESCE(SUM(w.total_price), 0) 
-         + COALESCE(SUM(e.total_price), 0) 
-         + COALESCE(SUM(s.price), 0)) AS totalAll
-
+        MONTH(CURDATE()) AS monthNow,
+        COALESCE(SUM(r.price), 0) AS totalRoomPrice,
+        COALESCE(SUM(w.totalWater), 0) AS totalWater,
+        COALESCE(SUM(e.totalElectricity), 0) AS totalElectricity,
+        COALESCE(SUM(s.totalService), 0) AS totalService,
+        (
+            COALESCE(SUM(r.price), 0) 
+            + COALESCE(SUM(w.totalWater), 0) 
+            + COALESCE(SUM(e.totalElectricity), 0) 
+            + COALESCE(SUM(s.totalService), 0)
+        ) AS totalAll
     FROM room r
-    LEFT JOIN water w ON w.id_room = r.id
-    LEFT JOIN electricity e ON e.id_room = r.id
-    LEFT JOIN room_services rs ON rs.id_room = r.id
-    LEFT JOIN service s ON rs.id_service = s.id
-
+    LEFT JOIN (
+        SELECT id_room, SUM(total_price) AS totalWater
+        FROM water
+        WHERE mother = MONTH(CURDATE()) AND year = YEAR(CURDATE())
+        GROUP BY id_room
+    ) w ON w.id_room = r.id
+    LEFT JOIN (
+        SELECT id_room, SUM(total_price) AS totalElectricity
+        FROM electricity
+        WHERE mother = MONTH(CURDATE()) AND year = YEAR(CURDATE())
+        GROUP BY id_room
+    ) e ON e.id_room = r.id
+    LEFT JOIN (
+        SELECT rs.id_room, SUM(s.price) AS totalService
+        FROM room_services rs
+        JOIN service s ON rs.id_service = s.id
+        GROUP BY rs.id_room
+    ) s ON s.id_room = r.id
     WHERE r.status = 'DANG_CHO_THUE'
-
-    GROUP BY r.id, r.name, r.price
     """, nativeQuery = true)
-    List<RoomRevenueProjection> getRoomRevenueDetails();
-
-    @Query(value = """
-        SELECT 
-            COALESCE(SUM(r.price), 0) AS totalRoomPrice,
-            COALESCE(SUM(w.total_price), 0) AS totalWater,
-            COALESCE(SUM(e.total_price), 0) AS totalElectricity,
-            COALESCE(SUM(s.price), 0) AS totalService,
-            (COALESCE(SUM(r.price), 0) 
-            + COALESCE(SUM(w.total_price), 0) 
-            + COALESCE(SUM(e.total_price), 0) 
-            + COALESCE(SUM(s.price), 0)) AS totalAll
-        FROM room r
-        LEFT JOIN water w ON w.id_room = r.id
-        LEFT JOIN electricity e ON e.id_room = r.id
-        LEFT JOIN room_services rs ON rs.id_room = r.id
-        LEFT JOIN service s ON rs.id_service = s.id
-        WHERE r.status = 'DANG_CHO_THUE'
-        """, nativeQuery = true)
-    TotalRevenueProjection getTotalRevenue();
-
-    @Query(value = """
-    SELECT
-        COALESCE(e.mother, w.mother, MONTH(r.last_modified_date)) AS month,
-        COALESCE(e.year, w.year, YEAR(r.last_modified_date)) AS year,
-
-        COALESCE(SUM(DISTINCT r.price), 0) AS total_room,
-        COALESCE(SUM(DISTINCT e.total_price), 0) AS total_electricity,
-        COALESCE(SUM(DISTINCT w.total_price), 0) AS total_water,
-        COALESCE(SUM(DISTINCT s.price), 0) AS total_service,
-
-        COALESCE(SUM(DISTINCT r.price), 0) +
-        COALESCE(SUM(DISTINCT e.total_price), 0) +
-        COALESCE(SUM(DISTINCT w.total_price), 0) +
-        COALESCE(SUM(DISTINCT s.price), 0) AS total_all
-
-    FROM room r
-
-    LEFT JOIN electricity e 
-        ON r.id = e.id_room AND e.status = 'CHUA_THANH_TOAN'
-
-    LEFT JOIN water w 
-        ON r.id = w.id_room AND w.status = 'CHUA_THANH_TOAN'
-
-    LEFT JOIN room_services rs 
-        ON r.id = rs.id_room 
-        AND MONTH(rs.last_modified_date) = COALESCE(e.mother, w.mother) 
-        AND YEAR(rs.last_modified_date) = COALESCE(e.year, w.year)
-
-    LEFT JOIN service s 
-        ON rs.id_service = s.id
-
-    WHERE r.status = 'DANG_CHO_THUE'
-
-    GROUP BY
-        COALESCE(e.mother, w.mother, MONTH(r.last_modified_date)),
-        COALESCE(e.year, w.year, YEAR(r.last_modified_date))
-
-    ORDER BY year, month
-    """, nativeQuery = true)
-    List<RoomMonthlyDebtProjection> getMonthlyRevenueSummary();
+ TotalRevenueProjection getTotalRevenueForCurrentMonth();
 
 
-//  Truy vấn theo tháng tổng tiền
+
+
+
+
+
+//  Query by current list for month totals
     @Query(
             value = """
         SELECT 
@@ -190,5 +145,23 @@ public interface StatisticalRepository extends JpaRepository<RoomHistory , Strin
     )
     List<MonthlyTotalDTO> findMonthlyTotals();
 
-
+// Query history for water and electricity and service and room
+@Query(value = """
+    SELECT 
+        r.id AS roomId,
+        w.id AS waterId,
+        e.id AS electricityId,
+        rh.id AS roomHistoryId,
+        s.id AS serviceId,
+        s.name AS serviceName,
+        s.price AS servicePrice
+    FROM room r
+    LEFT JOIN water w ON r.id = w.id_room
+    LEFT JOIN electricity e ON r.id = e.id_room
+    LEFT JOIN room_history rh ON r.id = rh.id_room
+    LEFT JOIN room_services rs ON r.id = rs.id_room
+    LEFT JOIN service s ON rs.id_service = s.id
+    WHERE r.id = :roomId
+""", nativeQuery = true)
+List<SearchRoomProjection> findRoomDetailsByRoomId(@Param("roomId") String roomId);
 }
