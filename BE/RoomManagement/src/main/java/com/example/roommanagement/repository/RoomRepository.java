@@ -3,6 +3,8 @@ package com.example.roommanagement.repository;
 import com.example.roommanagement.dto.request.room.*;
 import com.example.roommanagement.entity.Customer;
 import com.example.roommanagement.entity.Room;
+import com.example.roommanagement.infrastructure.constant.StatusCustomer;
+import com.example.roommanagement.infrastructure.constant.StatusRoom;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,9 +16,28 @@ import java.util.Optional;
 @Repository
 public interface RoomRepository extends JpaRepository<Room, String> {
     Optional<Room> findById(String id);
+    boolean existsByCustomer_IdAndStatus(String idCustomer, StatusRoom status);
 
     Boolean existsByName(String name);
 
+    @Query(value = """
+            SELECT 
+            ROW_NUMBER() over(order by r.last_modified_date desc ) as stt ,
+                        r.id as id, 
+            r.code as code ,
+            r.name as name , 
+            r.price as price , 
+            r.acreage as acreage ,
+            r.people_Max as peopleMax ,
+            r.decription as description ,
+            r.type as type , 
+            r.status as status ,
+            r.id_customer as customer ,
+            r.id_house_for_rent as houseForRent
+            FROM Room r join customer c on c.id = r.id_customer 
+                        where c.id = :idCustomer
+            """, nativeQuery = true)
+    List<FindAllRoomDTO> findByCustomer_Id(@Param("idCustomer") String idCustomer);
     @Query(value = """
             SELECT 
             ROW_NUMBER() over(order by r.last_modified_date desc ) as stt ,

@@ -3,6 +3,7 @@ package com.example.roommanagement.controller;
 import com.example.roommanagement.dto.request.image.FindAllImageProjection;
 import com.example.roommanagement.dto.request.room.*;
 import com.example.roommanagement.entity.Image;
+import com.example.roommanagement.entity.Room;
 import com.example.roommanagement.infrastructure.error.Reponse;
 import com.example.roommanagement.service.RoomService;
 import org.hibernate.annotations.processing.Find;
@@ -79,6 +80,11 @@ public class RoomController {
     @GetMapping("/getAllStatus")
     public ResponseEntity<List<RoomStatusCountProjection>> getAllStatus() {
         List<RoomStatusCountProjection> response = roomService.getAllStatusRoom();
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+    @GetMapping("/findByIdCustomer/{idCustomer}")
+    public ResponseEntity<List<FindAllRoomDTO>> getByIdCustomer(@PathVariable String idCustomer) {
+        List<FindAllRoomDTO> response = roomService.findAllRoomByCustomer(idCustomer);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

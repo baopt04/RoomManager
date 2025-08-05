@@ -6,9 +6,12 @@ import com.example.roommanagement.dto.request.customer.FindAllCustomerDTO;
 import com.example.roommanagement.dto.request.customer.UpdateCustomerDTO;
 import com.example.roommanagement.entity.Customer;
 import com.example.roommanagement.infrastructure.constant.Constrants;
+import com.example.roommanagement.infrastructure.constant.StatusCustomer;
+import com.example.roommanagement.infrastructure.constant.StatusRoom;
 import com.example.roommanagement.infrastructure.error.BusinessException;
 import com.example.roommanagement.infrastructure.error.Reponse;
 import com.example.roommanagement.repository.CustomerRepository;
+import com.example.roommanagement.repository.RoomRepository;
 import com.example.roommanagement.service.CustomerService;
 import com.example.roommanagement.util.Generate;
 import org.hibernate.sql.Update;
@@ -24,14 +27,16 @@ public class CustomerServiceImpl implements CustomerService {
     private CustomerRepository customerRepository;
     @Autowired
     private Generate generate;
+    @Autowired
+    private RoomRepository roomRepository;
 
     @Override
     public CreateCustomerDTO create(CreateCustomerDTO createCustomerDTO) {
         if (customerRepository.existsByEmail(createCustomerDTO.getEmail())) {
-          throw new BusinessException( Constrants.EMAIL_EXISTS);
+            throw new BusinessException(Constrants.EMAIL_EXISTS);
         }
         if (customerRepository.existsByNumberPhone(createCustomerDTO.getNumberPhone())) {
-           throw new BusinessException( Constrants.NUMBER_PHONE_EXISTS);
+            throw new BusinessException(Constrants.NUMBER_PHONE_EXISTS);
         }
         if (customerRepository.existsByCccd(createCustomerDTO.getCccd())) {
             throw new BusinessException(Constrants.CCCD_EXISTS);
@@ -44,6 +49,7 @@ public class CustomerServiceImpl implements CustomerService {
                 .code(generate.generateCodeCustomer())
                 .gender(createCustomerDTO.getGender())
                 .dateOfBirth(createCustomerDTO.getDateOfBirth())
+                .status(StatusCustomer.DANG_HOAT_DONG)
                 .build();
         customerRepository.save(customer);
         return createCustomerDTO;
@@ -51,11 +57,13 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public UpdateCustomerDTO update(String id, UpdateCustomerDTO updateCustomerDTO) {
-
+        if (roomRepository.existsByCustomer_IdAndStatus(id, StatusRoom.DANG_CHO_THUE)) {
+            throw new BusinessException(Constrants.CUSTOMER_AND_ROOM_STATUS);
+        }
         Optional<Customer> customer = customerRepository.findById(id);
 
         if (!customer.isPresent()) {
-          throw new BusinessException(Constrants.NOT_FOUND);
+            throw new BusinessException(Constrants.NOT_FOUND);
         }
         Customer customer1 = customer.get();
         if (!customer1.getEmail().equals(updateCustomerDTO.getEmail())) {
@@ -65,12 +73,12 @@ public class CustomerServiceImpl implements CustomerService {
         }
         if (!customer1.getNumberPhone().equals(updateCustomerDTO.getNumberPhone())) {
             if (customerRepository.existsByNumberPhone(updateCustomerDTO.getNumberPhone())) {
-                throw new BusinessException( Constrants.NUMBER_PHONE_EXISTS);
+                throw new BusinessException(Constrants.NUMBER_PHONE_EXISTS);
             }
         }
         if (!customer1.getCccd().equals(updateCustomerDTO.getCccd())) {
             if (customerRepository.existsByCccd(updateCustomerDTO.getCccd())) {
-                throw new BusinessException( Constrants.CCCD_EXISTS);
+                throw new BusinessException(Constrants.CCCD_EXISTS);
             }
 
         }
@@ -80,6 +88,7 @@ public class CustomerServiceImpl implements CustomerService {
         customer1.setGender(updateCustomerDTO.getGender());
         customer1.setDateOfBirth(updateCustomerDTO.getDateOfBirth());
         customer1.setCccd(updateCustomerDTO.getCccd());
+        customer1.setStatus(updateCustomerDTO.getStatus());
         customerRepository.save(customer1);
         return updateCustomerDTO;
     }
@@ -92,13 +101,13 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public FindAllCustomerDTO getOneByEmail(String email) {
         if (email == null || email.isEmpty()) {
-            throw new BusinessException( Constrants.FIND_EMAIL_NULL);
+            throw new BusinessException(Constrants.FIND_EMAIL_NULL);
         }
         FindAllCustomerDTO respon = customerRepository.getOneByEmail(email);
         if (respon == null) {
-            throw new BusinessException( Constrants.NOT_FOUND);
+            throw new BusinessException(Constrants.NOT_FOUND);
         }
-       return respon;
+        return respon;
     }
 
     @Override
@@ -119,14 +128,15 @@ public class CustomerServiceImpl implements CustomerService {
                 () -> new RuntimeException(Constrants.NOT_FOUND)
         );
         BaseCustomerDTO respon = new BaseCustomerDTO(
-                customer.getId() ,
-                customer.getCode() ,
-                customer.getName() ,
-                customer.getEmail() ,
-                customer.getNumberPhone() ,
-                customer.getGender() ,
-                customer.getCccd() ,
-                customer.getDateOfBirth()
+                customer.getId(),
+                customer.getCode(),
+                customer.getName(),
+                customer.getEmail(),
+                customer.getNumberPhone(),
+                customer.getGender(),
+                customer.getCccd(),
+                customer.getDateOfBirth(),
+                customer.getStatus()
         );
         return respon;
     }

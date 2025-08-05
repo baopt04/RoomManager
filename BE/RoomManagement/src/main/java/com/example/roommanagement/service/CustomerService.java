@@ -11,7 +11,7 @@ import java.util.List;
 public interface CustomerService {
     CreateCustomerDTO create(CreateCustomerDTO createCustomerDTO);
 
-    UpdateCustomerDTO update(String id, UpdateCustomerDTO updateCustomerDTO);
+    UpdateCustomerDTO update(String id, UpdateCustomerDTO updateCustomerDTO );
 
     List<FindAllCustomerDTO> findAll();
 

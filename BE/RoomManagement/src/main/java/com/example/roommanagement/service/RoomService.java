@@ -12,16 +12,14 @@ import java.util.List;
 public interface RoomService {
     List<FindAllRoomDTO> findAllRooms();
     CreateRoomDTO createRoom(CreateRoomDTO createRoomDTO);
-    UpdateRoomDTO updateRoom(String id ,UpdateRoomDTO updateRoomDTO);
+    UpdateRoomDTO updateRoom(String id ,UpdateRoomDTO updateRoomDTO  );
     FindAllRoomDTO findCustomerAndHouseForRent(String customer ,String houseForRent);
     BaseRoomDTO detailRoom(String id);
     List<FindAllRoomProjection> findAllRoomNoPayment(Integer mother , Integer year);
     RoomDetailProjection findTotalPriceRoom(String id);
-
     List<FindAllImageProjection> findAllImagesForRoom(String id);
-
     List<FindAllRoomDTO> findAllHouseForRentAndCustomer(String idHouseForRent, String idCustomer);
     List<FindAllRoomHistoryProjection> findAllRoomHistory(String idRoom);
     List<RoomStatusCountProjection> getAllStatusRoom();
-
+    List<FindAllRoomDTO> findAllRoomByCustomer(String idCustomer);
 }

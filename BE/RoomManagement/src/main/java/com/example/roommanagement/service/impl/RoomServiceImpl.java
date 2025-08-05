@@ -78,12 +78,15 @@ public class RoomServiceImpl implements RoomService {
                 throw new BusinessException(Constrants.NAME_EXISTS);
             }
         }
+
         Customer customer = customerRepository.findById(updateRoomDTO.getCustomerId()).orElseThrow(
                 () -> new BusinessException(Constrants.CUSTOMER_FOUND)
         );
         HouseForRent houseForRent = houseForRentRepository.findById(updateRoomDTO.getHouseForRentId()).orElseThrow(
                 () -> new BusinessException(Constrants.HOUSE_FOR_RENT_FOUND)
         );
+
+
 
         Room room = optionalRoom.get();
         room.setName(updateRoomDTO.getName());
@@ -227,6 +230,11 @@ public class RoomServiceImpl implements RoomService {
     @Override
     public List<RoomStatusCountProjection> getAllStatusRoom() {
         return roomRepository.getAllStatusRoom();
+    }
+
+    @Override
+    public List<FindAllRoomDTO> findAllRoomByCustomer(String idCustomer) {
+        return roomRepository.findByCustomer_Id(idCustomer);
     }
 
 

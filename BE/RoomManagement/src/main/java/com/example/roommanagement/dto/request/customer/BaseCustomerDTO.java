@@ -1,5 +1,6 @@
 package com.example.roommanagement.dto.request.customer;
 
+import com.example.roommanagement.infrastructure.constant.StatusCustomer;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -30,5 +31,6 @@ public class BaseCustomerDTO {
     @Size(min = 12 , message = "Vui lòng nhập từ 12 số")
     private String cccd;
     private Date dateOfBirth;
+    private StatusCustomer status;
 
 }
