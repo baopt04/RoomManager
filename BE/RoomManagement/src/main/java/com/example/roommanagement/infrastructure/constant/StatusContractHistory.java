@@ -1,7 +1,7 @@
 package com.example.roommanagement.infrastructure.constant;
 
-public enum StatusRoom {
-    TRONG ,
-    DANG_CHO_THUE ,
+public enum StatusContractHistory {
+    TAO ,
+    CAP_NHAT ,
     DUNG_KINH_DOANH
 }

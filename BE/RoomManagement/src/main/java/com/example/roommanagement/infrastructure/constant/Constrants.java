@@ -31,5 +31,10 @@ public class Constrants {
     public static final String ELECTRICITY_NOT_FOUND = "Không tìm thấy hợp đồng !";
     public static final String ELECTRICTIY_NO_HAVE = "Chưa có điện trong tháng vui lòng cập nhật điện mới nhất";
     public static final String CUSTOMER_AND_ROOM_STATUS = "Khách hàng đang thuê phòng không thể thay đổi trạng thái!";
+    public static final String MainTENANCE_NOT_FOUND = "Không tìm thấy bảo trì !";
+    public static final String MainTENANCE_STATUS = "Không được phép xóa ở trạng thái đang xử lý hoặc sửa chữa!";
+    public static final String ROOM_CONTRACT_STATUS = "Phòng đang cho thuê không thể dừng kinh doanh!";
+    public static final String CONTRACT_ROOM_STATUS = "Hợp đồng đang dừng kinh doanh vui lòng cập nhật lại hợp đồng!";
+
 
 }

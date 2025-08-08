@@ -13,4 +13,5 @@ public interface MaintencanceService {
     CreateMaintenanceDTO create(CreateMaintenanceDTO createMaintenanceDTO);
     UpdateMaintenanceDTO update(String id ,UpdateMaintenanceDTO updateMaintenanceDTO);
     BaseMaintenanceDTO detail(String id);
+    void deleteById(String id);
 }

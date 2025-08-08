@@ -3,11 +3,10 @@ package com.example.roommanagement.service.impl;
 import com.example.roommanagement.dto.request.contract.ImageUploadDTO;
 import com.example.roommanagement.dto.request.image.FindAllImageProjection;
 import com.example.roommanagement.dto.request.room.*;
-import com.example.roommanagement.entity.Customer;
-import com.example.roommanagement.entity.HouseForRent;
-import com.example.roommanagement.entity.Image;
-import com.example.roommanagement.entity.Room;
+import com.example.roommanagement.entity.*;
 import com.example.roommanagement.infrastructure.constant.Constrants;
+import com.example.roommanagement.infrastructure.constant.StatusContract;
+import com.example.roommanagement.infrastructure.constant.StatusRoom;
 import com.example.roommanagement.infrastructure.error.BusinessException;
 import com.example.roommanagement.infrastructure.error.Reponse;
 import com.example.roommanagement.repository.*;
@@ -70,6 +69,7 @@ public class RoomServiceImpl implements RoomService {
     @Override
     public UpdateRoomDTO updateRoom(String id, UpdateRoomDTO updateRoomDTO) {
         Optional<Room> optionalRoom = roomRepository.findById(id);
+        Optional<Contract> optionalContract = contractRepository.findByRoomId(id);
         if (!optionalRoom.isPresent()) {
             throw new BusinessException(Constrants.NOT_FOUND);
         }
@@ -78,6 +78,10 @@ public class RoomServiceImpl implements RoomService {
                 throw new BusinessException(Constrants.NAME_EXISTS);
             }
         }
+        StatusContract statusContract = optionalContract.get().getStatus();
+        if (statusContract  == StatusContract.DUNG_KINH_DOANH) {
+            throw new BusinessException(Constrants.CONTRACT_ROOM_STATUS);
+        }
 
         Customer customer = customerRepository.findById(updateRoomDTO.getCustomerId()).orElseThrow(
                 () -> new BusinessException(Constrants.CUSTOMER_FOUND)
@@ -85,8 +89,14 @@ public class RoomServiceImpl implements RoomService {
         HouseForRent houseForRent = houseForRentRepository.findById(updateRoomDTO.getHouseForRentId()).orElseThrow(
                 () -> new BusinessException(Constrants.HOUSE_FOR_RENT_FOUND)
         );
-
-
+        StatusRoom statusRoom = updateRoomDTO.getStatus();
+        if (statusRoom == StatusRoom.DANG_CHO_THUE) {
+            statusRoom = StatusRoom.DANG_CHO_THUE;
+        }else if (statusRoom == StatusRoom.TRONG) {
+            statusRoom = StatusRoom.TRONG;
+        }else {
+            statusRoom = StatusRoom.DUNG_KINH_DOANH;
+        }
 
         Room room = optionalRoom.get();
         room.setName(updateRoomDTO.getName());
@@ -95,10 +105,11 @@ public class RoomServiceImpl implements RoomService {
         room.setPeopleMax(updateRoomDTO.getPeopleMax());
         room.setDecription(updateRoomDTO.getDecription());
         room.setType(updateRoomDTO.getType());
-        room.setStatus(updateRoomDTO.getStatus());
+        room.setStatus(statusRoom);
         room.setHouseForRent(houseForRent);
         room.setCustomer(customer);
         roomRepository.save(room);
+
         List<Image> oldImages = imageRepository.findByRoomId(id);
         if (updateRoomDTO.getImages() != null && !updateRoomDTO.getImages().isEmpty()) {
             // updload file mới (kèm theo ảnh cũ cần giu )
@@ -252,4 +263,6 @@ public class RoomServiceImpl implements RoomService {
     private HouseForRentRepository houseForRentRepository;
     @Autowired
     private RoomHistoryRepository roomHistoryRepository;
+    @Autowired
+    private ContractRepository contractRepository;
 }

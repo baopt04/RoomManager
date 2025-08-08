@@ -3,6 +3,7 @@ package com.example.roommanagement.repository;
 import com.example.roommanagement.dto.request.room.*;
 import com.example.roommanagement.entity.Customer;
 import com.example.roommanagement.entity.Room;
+import com.example.roommanagement.infrastructure.constant.StatusContract;
 import com.example.roommanagement.infrastructure.constant.StatusCustomer;
 import com.example.roommanagement.infrastructure.constant.StatusRoom;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -183,6 +184,7 @@ public interface RoomRepository extends JpaRepository<Room, String> {
                 FROM room r
             """, nativeQuery = true)
     List<RoomStatusCountProjection> getAllStatusRoom();
-
+    @Query("SELECT c.status FROM Contract c WHERE c.room.id = :roomId")
+    StatusContract getContractStatus(@Param("roomId") String roomId);
 
 }

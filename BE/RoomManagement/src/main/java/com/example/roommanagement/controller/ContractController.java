@@ -1,12 +1,10 @@
 package com.example.roommanagement.controller;
 
-import com.example.roommanagement.dto.request.contract.CreateContractDTO;
-import com.example.roommanagement.dto.request.contract.DetailContractDTO;
-import com.example.roommanagement.dto.request.contract.FindAllContractDTO;
-import com.example.roommanagement.dto.request.contract.UpdateContractDTO;
+import com.example.roommanagement.dto.request.contract.*;
 import com.example.roommanagement.dto.request.image.BaseImageDTO;
 import com.example.roommanagement.infrastructure.error.Reponse;
 import com.example.roommanagement.repository.ImageRepository;
+import com.example.roommanagement.service.ContractHistoryService;
 import com.example.roommanagement.service.ContractService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +20,8 @@ import java.util.List;
 public class ContractController {
     @Autowired
     private ContractService contractService;
+    @Autowired
+    private ContractHistoryService contractHistoryService;
     @Autowired
     private ImageRepository imageRepository;
 
@@ -52,6 +52,12 @@ public class ContractController {
         DetailContractDTO detailContractDTO = contractService.detail(id);
        return new ResponseEntity<>(detailContractDTO, HttpStatus.OK);
     }
+    @GetMapping("/history/{id}")
+    public ResponseEntity<List<ContractHistoryProjection>> getHistory(@PathVariable String id) {
+        List<ContractHistoryProjection> history = contractHistoryService.getAllContractHistory(id);
+        return new ResponseEntity<>(history, HttpStatus.OK);
+    }
+
 //    @GetMapping("/images")
 //    public ResponseEntity<List<BaseImageDTO>> getAllImages() {
 //        List<BaseImageDTO> list = imageRepository.getAllByI();

@@ -3,8 +3,10 @@ package com.example.roommanagement.repository;
 import com.example.roommanagement.dto.request.maintenance.FindAllMaintencanceDTO;
 import com.example.roommanagement.entity.Maintenance;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,4 +30,8 @@ public interface MaintenaceRepository extends JpaRepository<Maintenance, String>
              FROM Maintenance m
             """, nativeQuery = true)
     List<FindAllMaintencanceDTO> findAllMaintencance();
+    @Transactional
+    @Modifying
+    void deleteById(String id);
+
 }

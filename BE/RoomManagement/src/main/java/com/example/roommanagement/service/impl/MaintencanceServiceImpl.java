@@ -6,6 +6,7 @@ import com.example.roommanagement.dto.request.maintenance.FindAllMaintencanceDTO
 import com.example.roommanagement.dto.request.maintenance.UpdateMaintenanceDTO;
 import com.example.roommanagement.entity.Maintenance;
 import com.example.roommanagement.infrastructure.constant.Constrants;
+import com.example.roommanagement.infrastructure.constant.StatusMaintenance;
 import com.example.roommanagement.infrastructure.error.BusinessException;
 import com.example.roommanagement.infrastructure.error.Reponse;
 import com.example.roommanagement.repository.MaintenaceRepository;
@@ -83,5 +84,17 @@ public class MaintencanceServiceImpl implements MaintencanceService {
                 detail.getRoom()
         );
         return baseMaintenanceDTO;
+    }
+
+    @Override
+    public void deleteById(String id) {
+        Optional<Maintenance> maintenance = maintenaceRepository.findById(id);
+        if (!maintenance.isPresent()) {
+            throw new BusinessException(Constrants.MainTENANCE_NOT_FOUND);
+        }
+        if(maintenance.get().getStatus() == StatusMaintenance.DANG_SUA_CHUA || maintenance.get().getStatus() == StatusMaintenance.HOAN_THANH) {
+            throw new BusinessException(Constrants.MainTENANCE_STATUS);
+        }
+        maintenaceRepository.deleteById(id);
     }
 }

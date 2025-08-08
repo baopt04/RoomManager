@@ -3,9 +3,7 @@ package com.example.roommanagement.service.impl;
 import com.example.roommanagement.dto.request.contract.*;
 import com.example.roommanagement.entity.*;
 import com.example.roommanagement.infrastructure.cloudinary.UploadImageService;
-import com.example.roommanagement.infrastructure.constant.Constrants;
-import com.example.roommanagement.infrastructure.constant.StatusContract;
-import com.example.roommanagement.infrastructure.constant.StatusRoomHistory;
+import com.example.roommanagement.infrastructure.constant.*;
 import com.example.roommanagement.infrastructure.error.BusinessException;
 import com.example.roommanagement.infrastructure.error.Reponse;
 import com.example.roommanagement.repository.*;
@@ -52,6 +50,8 @@ public class ContractServiceImpl implements ContractService {
     private AsyncImageService asyncImageService;
     @Autowired
     private RoomHistoryRepository roomHistoryRepository;
+    @Autowired
+    private ContractHistoryRepository contractHistoryRepository;
     @Override
     public List<FindAllContractDTO> findAll() {
         return contractRepository.findAllContracts();
@@ -90,6 +90,21 @@ public class ContractServiceImpl implements ContractService {
                 .customer(customer)
                 .build();
         contractRepository.save(contract);
+        ContractHistory contractHistory = ContractHistory.builder()
+                .dateStart(createContractDTO.getDateStart())
+                .dateEnd(createContractDTO.getDateEnd())
+                .contractDeponsit(createContractDTO.getContractDeponsit())
+                .nextDueDate(createContractDTO.getNextDueDate())
+                .status(createContractDTO.getStatus())
+                .description(createContractDTO.getDescription())
+                .history_type(StatusContractHistory.TAO)
+                .room(room)
+                .houseForRent(room.getHouseForRent())
+                .admin(admin)
+                .customer(customer)
+                .contract(contract)
+                .build();
+        contractHistoryRepository.save(contractHistory);
        while (start.before(end)) {
            Calendar nextMonth =(Calendar) start.clone();
            nextMonth.add(Calendar.MONTH, 1);
@@ -123,13 +138,14 @@ public class ContractServiceImpl implements ContractService {
     @Override
     public UpdateContractDTO update(String id, UpdateContractDTO updateContractDTO) {
         Optional<Contract> contract = contractRepository.findById(id);
-        if (contractRepository.existsByRoom_Id(updateContractDTO.getRoomId())) {
+        Optional<ContractHistory> contractHistory = contractHistoryRepository.findByRoomId(id);
+        if (contractRepository.existsByRoom_IdAndIdNot(updateContractDTO.getRoomId() , id )) {
             throw new BusinessException(Constrants.ROOM_EXISTS);
         }
-        System.out.println("Check id " + id);
         if (!contract.isPresent()) {
             throw new BusinessException(Constrants.NOT_FOUND);
         }
+
         Room room = roomRepository.findById(updateContractDTO.getRoomId())
                 .orElseThrow(() -> new RuntimeException(Constrants.ROOM_FOUND));
         Admin admin = adminRepository.findById(updateContractDTO.getAdminId())
@@ -138,22 +154,59 @@ public class ContractServiceImpl implements ContractService {
                 orElseThrow(() -> new RuntimeException(Constrants.HOUSE_FOR_RENT_FOUND));
         Customer customer = customerRepository.findById(updateContractDTO.getCustomerId()).
                 orElseThrow(() -> new RuntimeException(Constrants.CUSTOMER_FOUND));
-        System.out.println("Check room " + updateContractDTO.getRoomId());
-        System.out.println("Check house " + updateContractDTO.getHouseForRentId());
-        System.out.println("Check admin " + updateContractDTO.getAdminId());
-        System.out.println("Check customer " + updateContractDTO.getCustomerId());
+        StatusRoom statusRoom = room.getStatus();
+        if (statusRoom == StatusRoom.DANG_CHO_THUE) {
+            throw new BusinessException(Constrants.ROOM_CONTRACT_STATUS);
+        }
+        StatusContract statusContract = updateContractDTO.getStatus();
+        StatusContractHistory statusContractHistory;
+        if (statusContract == StatusContract.KICH_HOAT){
+         statusContract = StatusContract.KICH_HOAT;
+         statusContractHistory = StatusContractHistory.CAP_NHAT;
+            System.out.println("Chay 1" + updateContractDTO.getStatus());
+        }else if (statusContract == StatusContract.NGUNG_KICH_HOAT){
+            statusContract = StatusContract.NGUNG_KICH_HOAT;
+            statusContractHistory = StatusContractHistory.CAP_NHAT;
+            System.out.println("Chay 2" + updateContractDTO.getStatus());
+        }else {
+            statusContract = StatusContract.DUNG_KINH_DOANH;
+            statusContractHistory = StatusContractHistory.DUNG_KINH_DOANH;
+            System.out.println("Chay 3" + updateContractDTO.getStatus());
+
+        }
 
         Contract con = contract.get();
         con.setDateStart(updateContractDTO.getDateStart());
         con.setDateEnd(updateContractDTO.getDateEnd());
         con.setContractDeponsit(updateContractDTO.getContractDeponsit());
         con.setNextDueDate(updateContractDTO.getNextDueDate());
-        con.setStatus(updateContractDTO.getStatus());
+        con.setStatus(statusContract);
+        System.out.println("Check status" + statusContract);
         con.setRoom(room);
         con.setHouseForRent(houseForRent);
         con.setAdmin(admin);
         con.setCustomer(customer);
+        ContractHistory contractHistoryBuilder = ContractHistory.builder()
+                .dateStart(updateContractDTO.getDateStart())
+                .dateEnd(updateContractDTO.getDateEnd())
+                .contractDeponsit(updateContractDTO.getContractDeponsit())
+                .nextDueDate(updateContractDTO.getNextDueDate())
+                .status(updateContractDTO.getStatus())
+                .history_type(statusContractHistory)
+                .description(updateContractDTO.getDescription())
+                .room(room)
+                .houseForRent(room.getHouseForRent())
+                .admin(admin)
+                .customer(customer)
+                .contract(con)
+                .build();
+
         contractRepository.save(con);
+        contractHistoryRepository.save(contractHistoryBuilder);
+        room.setStatus(StatusRoom.DANG_CHO_THUE);
+        roomRepository.save(room);
+
+
         List<Image> oldImages = imageRepository.findByContractId(id);
 
 // CASE 1: Có upload file mới (có thể kèm theo ảnh cũ cần giữ)
