@@ -9,11 +9,14 @@ import org.hibernate.annotations.processing.Find;
 import java.util.List;
 
 public interface AdminSerive {
-    Reponse<Admin> create(CreateAdminDTO createAdminDTO);
-    Reponse<Admin> update(UpdateAdminDTO updateAdminDTO , String id);
+ CreateAdminDTO create(CreateAdminDTO createAdminDTO);
+    UpdateAdminDTO update(UpdateAdminDTO updateAdminDTO , String id);
     List<Admin> findAll();
     List<FindAllAdminDTO> findAllAdminRespon();
-    Reponse<SignIn> signIn(SignIn signIn);
+   SignIn signIn(SignIn signIn);
    Reponse<FindAllAdminDTO> getOneEmail(String email);
    Reponse<FindAllAdminDTO> getOneNumberPhone(String phone);
+   Admin changePassword(String email , ChangePassword changePassword);
+    AdminProjection detail(String id);
+    String lockerAdmin(String id , LockerAdminDTO lockerAdminDTO);
 }

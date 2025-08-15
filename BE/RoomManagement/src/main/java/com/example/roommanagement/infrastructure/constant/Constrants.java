@@ -35,6 +35,10 @@ public class Constrants {
     public static final String MainTENANCE_STATUS = "Không được phép xóa ở trạng thái đang xử lý hoặc sửa chữa!";
     public static final String ROOM_CONTRACT_STATUS = "Phòng đang cho thuê không thể dừng kinh doanh!";
     public static final String CONTRACT_ROOM_STATUS = "Hợp đồng đang dừng kinh doanh vui lòng cập nhật lại hợp đồng!";
-
-
+    public static final String PASSWORD_CHANGE = "Mật khẩu cũ không đúng vui lòng thử lại!";
+    public static final String LOCKER_ADMIN = "Khóa thành công !";
+    public static final String UNLOCKER_ADMIN = "Mở khóa thành công!";
+    public static final String LOCKER_ADMIN_LOGIN = "Tài khoản của bạn đã bị khóa vui lòng liên hệ người quản trị để mở khóa!";
+    public static final String LOGIN_FAIL = "Email hoặc mật khẩu không đúng";
+    public static final String EMAIL_FOUND = "Không tìm thấy email!";
 }

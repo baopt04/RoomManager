@@ -16,4 +16,6 @@ public class FindAllAdminDTO {
     private String email;
     private String numberPhone;
     private String role;
+    private String status;
+    private String description;
 }

@@ -17,3 +17,5 @@ public interface BillService {
     FindAllBillProjection detailBill(String id);
     List<BillDetailProjection> detailBillDetail(String id);
 }
+
+

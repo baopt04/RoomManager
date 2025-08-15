@@ -1,5 +1,6 @@
 package com.example.roommanagement.repository;
 
+import com.example.roommanagement.dto.request.admin.AdminProjection;
 import com.example.roommanagement.dto.request.admin.BaseAdminDTO;
 import com.example.roommanagement.dto.request.admin.FindAllAdminDTO;
 import com.example.roommanagement.dto.request.admin.SearchAdminDTO;
@@ -31,7 +32,9 @@ public interface AdminRepository extends JpaRepository<Admin, String> {
               ad.name as name,
               ad.email as email, 
               ad.number_phone as numberPhone,
-              ad.role as role 
+              ad.role as role ,
+              ad.status as status ,
+              ad.description as description
               FROM Admin ad
             """, nativeQuery = true)
     List<FindAllAdminDTO> getAllAdmins();
@@ -60,4 +63,6 @@ public interface AdminRepository extends JpaRepository<Admin, String> {
              FROM Admin ad WHERE ad.number_phone =:numberPhone
             """, nativeQuery = true)
     FindAllAdminDTO getOneAdminByNumberPhone(@Param("numberPhone") String numberPhone);
+
+    Optional<AdminProjection> findProjectedById(String id);
 }

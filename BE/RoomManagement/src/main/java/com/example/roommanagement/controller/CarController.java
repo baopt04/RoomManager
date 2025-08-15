@@ -22,6 +22,7 @@ public class CarController {
         List<FindAllCarDTO> list = carService.findAllCars();
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
+
     @PostMapping("/create")
     public ResponseEntity<CreateCarDTO> create(@RequestBody CreateCarDTO createCarDTO) {
         CreateCarDTO createCarDTO1 = carService.create(createCarDTO);

@@ -49,4 +49,5 @@ public class CustomerController {
         BaseCustomerDTO baseCustomerDTO = customerService.detail(id);
         return new ResponseEntity<>(baseCustomerDTO , HttpStatus.OK);
     }
+
 }
