@@ -1,0 +1,15 @@
+.form-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px; 
+    margin-bottom: 16px; 
+    flex-wrap: wrap; 
+  }
+  
+  .form-item {
+    flex: 1;
+    margin-bottom: 30px; 
+  }
+  :where(.css-dev-only-do-not-override-1a3rktk).ant-form-vertical .ant-form-item:not(.ant-form-item-horizontal) .ant-form-item-label >label{
+    margin-bottom: 5px;
+  }
