@@ -17,7 +17,8 @@ public class SignIn{
   private  String password;
   private String name;
  private String role;
- private   String token;
+ private   String accessToken;
+
 
 
 }

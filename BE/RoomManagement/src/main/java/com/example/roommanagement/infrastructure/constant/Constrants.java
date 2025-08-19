@@ -41,4 +41,6 @@ public class Constrants {
     public static final String LOCKER_ADMIN_LOGIN = "Tài khoản của bạn đã bị khóa vui lòng liên hệ người quản trị để mở khóa!";
     public static final String LOGIN_FAIL = "Email hoặc mật khẩu không đúng";
     public static final String EMAIL_FOUND = "Không tìm thấy email!";
+    public static final String TOKEN_EXPIRATION = "RefreshToken đã hết hạn . Vui lòng đăng nhập lại!";
+    public static final String REFRESH_TOKEN_FOUND = "RefrehToken không tồm tại ";
 }

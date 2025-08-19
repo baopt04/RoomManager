@@ -1,9 +1,7 @@
 package com.example.roommanagement.service.impl;
 
 import com.example.roommanagement.dto.request.admin.*;
-import com.example.roommanagement.dto.respon.AdminRespon;
 import com.example.roommanagement.entity.Admin;
-import com.example.roommanagement.entity.Contract;
 import com.example.roommanagement.infrastructure.constant.Constrants;
 import com.example.roommanagement.infrastructure.constant.StatusAdmin;
 import com.example.roommanagement.infrastructure.error.BusinessException;
@@ -11,10 +9,13 @@ import com.example.roommanagement.infrastructure.error.Reponse;
 import com.example.roommanagement.repository.AdminRepository;
 import com.example.roommanagement.service.AdminSerive;
 import com.example.roommanagement.service.EmailService;
+import com.example.roommanagement.service.RefreshTokenService;
 import com.example.roommanagement.util.Generate;
 import jakarta.mail.MessagingException;
-import org.hibernate.validator.internal.util.Contracts;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,6 +40,8 @@ public class AdminServiceImpl implements AdminSerive {
     private JwtUtils jwtUtils;
     @Autowired
     private AuthenticationManager authenticationManager;
+    @Autowired
+    private RefreshTokenService refreshTokenService;
 
     @Override
     public CreateAdminDTO create(CreateAdminDTO createAdminDTO) {
@@ -107,7 +110,7 @@ public class AdminServiceImpl implements AdminSerive {
     }
 
     @Override
-    public SignIn signIn(SignIn signIn) {
+    public ResponseEntity<SignIn> signIn(SignIn signIn) {
         var user = adminRepository.findAdminByEmail(signIn.getEmail())
                 .orElseThrow(() -> new BusinessException(Constrants.EMAIL_FOUND));
                 if (user.getStatusAdmin() == StatusAdmin.BI_KHOA) {
@@ -121,8 +124,20 @@ public class AdminServiceImpl implements AdminSerive {
                 }catch (RuntimeException e) {
                     throw new RuntimeException(Constrants.LOGIN_FAIL);
                 }
-                String token = jwtUtils.generateToken(user);
-    return new SignIn(user.getEmail() , null , user.getName() , user.getRole().toString() , token);
+                String accessToken = jwtUtils.generateAccessToken(user);
+                String refreshToken = jwtUtils.generateRefreshToken(user);
+        refreshTokenService.createRefreshToken(user.getId() , refreshToken);
+        ResponseCookie cookie = ResponseCookie.from("refreshToken" , refreshToken)
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .maxAge(7 * 24 *60 * 60) // 7 ngày
+                .sameSite("Lax")
+                .build();
+        SignIn response = new SignIn(user.getEmail() , null , user.getName() , user.getRole().toString() , accessToken );
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(response);
     }
 
 
