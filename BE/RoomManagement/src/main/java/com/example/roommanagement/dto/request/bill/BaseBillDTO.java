@@ -3,6 +3,7 @@ package com.example.roommanagement.dto.request.bill;
 import com.example.roommanagement.entity.*;
 import com.example.roommanagement.infrastructure.constant.StatusBill;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -38,5 +39,7 @@ public class BaseBillDTO {
     private String customerId;
     private String contractId;
     private Admin admin;
+    @JsonProperty(defaultValue = "false")
+    private Boolean isHistory;
 
 }

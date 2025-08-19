@@ -3,7 +3,9 @@ package com.example.roommanagement.service.impl;
 import com.example.roommanagement.dto.request.contract.ImageUploadDTO;
 import com.example.roommanagement.entity.Contract;
 import com.example.roommanagement.entity.Image;
+import com.example.roommanagement.entity.Room;
 import com.example.roommanagement.infrastructure.cloudinary.UploadImageService;
+import com.example.roommanagement.infrastructure.constant.TypeImages;
 import com.example.roommanagement.repository.ImageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -32,6 +34,25 @@ public class AsyncImageService {
                         .name(urlImage)
                         .contract(contract)
                         .room(contract.getRoom())
+                        .type(TypeImages.CONTRACT)
+                        .build();
+
+                imageRepository.save(image);
+            } catch (Exception e) {
+                System.err.println("Lỗi khi upload ảnh: " + e.getMessage());
+            }
+        }
+    }
+    @Async
+    @Transactional
+    public void uploadImagesRoom(List<ImageUploadDTO> imageUploadDTOs, Room room) {
+        for (ImageUploadDTO imageDTO : imageUploadDTOs) {
+            try {
+                String urlImage = uploadImageService.uploadImage(imageDTO.getFileName(), imageDTO.getContent());
+                Image image = Image.builder()
+                        .name(urlImage)
+                        .room(room)
+                        .type(TypeImages.ROOM)
                         .build();
 
                 imageRepository.save(image);
@@ -50,6 +71,25 @@ public class AsyncImageService {
                         .name(urlImage)
                         .contract(contract)
                         .room(contract.getRoom())
+                        .type(TypeImages.CONTRACT)
+                        .build();
+
+                imageRepository.save(image);
+            } catch (Exception e) {
+                System.err.println("Lỗi khi upload ảnh: " + e.getMessage());
+            }
+        }
+    }
+    @Transactional
+    public void updateImagesForUpdateRoom(List<ImageUploadDTO> imageUploadDTOs, Room room) {
+        for (ImageUploadDTO imageDTO : imageUploadDTOs) {
+            try {
+                String urlImage = uploadImageService.uploadImage(imageDTO.getFileName(), imageDTO.getContent());
+
+                Image image = Image.builder()
+                        .name(urlImage)
+                        .room(room)
+                        .type(TypeImages.ROOM)
                         .build();
 
                 imageRepository.save(image);

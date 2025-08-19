@@ -15,6 +15,7 @@ public interface CarRepository extends JpaRepository<Car , Long> {
     Optional<Car> findById(String id);
     boolean existsByLicensePlate(String licensePlate);
     boolean existsByCode(String code);
+    void deleteById(String id);
     @Query(value = """
             select row_number() over (order by c.last_modified_date desc) as stt ,
             c.id as id , 

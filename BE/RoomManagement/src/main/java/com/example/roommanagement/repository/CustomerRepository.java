@@ -31,7 +31,8 @@ public interface CustomerRepository extends JpaRepository<Customer, String> {
             ct.number_phone as numberPhone,
             ct.gender as gender , 
             ct.citizen_identification as cccd ,
-            ct.date_of_birth as date 
+            ct.date_of_birth as date ,
+            ct.status as status
             from Customer ct 
             """, nativeQuery = true)
     List<FindAllCustomerDTO> findAllCustomers();

@@ -12,6 +12,7 @@ import com.example.roommanagement.service.CarService;
 import com.example.roommanagement.util.Generate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -88,5 +89,15 @@ public class CarServiceImpl implements CarService {
                  car.getCustomer()
          );
          return baseCarDTO;
+    }
+    @Transactional
+    @Override
+    public void delete(String id) {
+     Optional<Car> optionalCar = carRepository.findById(id);
+     if (!optionalCar.isEmpty()){
+            carRepository.deleteById(id);
+        } else {
+            throw new BusinessException(Constrants.CAR_NOT_FOUND);
+     }
     }
 }

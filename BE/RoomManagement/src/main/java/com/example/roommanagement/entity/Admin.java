@@ -1,6 +1,7 @@
 package com.example.roommanagement.entity;
 
 import com.example.roommanagement.infrastructure.constant.Role;
+import com.example.roommanagement.infrastructure.constant.StatusAdmin;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -28,6 +29,11 @@ public class Admin extends BaseEntity implements UserDetails {
     @Column(name = "role")
 @Enumerated(EnumType.STRING)
     private Role role;
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    private StatusAdmin statusAdmin;
+    @Column(name = "description")
+    private String description;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

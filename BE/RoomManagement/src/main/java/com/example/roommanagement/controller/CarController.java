@@ -22,6 +22,7 @@ public class CarController {
         List<FindAllCarDTO> list = carService.findAllCars();
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
+
     @PostMapping("/create")
     public ResponseEntity<CreateCarDTO> create(@RequestBody CreateCarDTO createCarDTO) {
         CreateCarDTO createCarDTO1 = carService.create(createCarDTO);
@@ -36,5 +37,10 @@ public class CarController {
     public ResponseEntity<BaseCarDTO> detail(@PathVariable String id) {
         BaseCarDTO baseCarDTO = carService.detail(id);
         return new ResponseEntity<>(baseCarDTO, HttpStatus.OK);
+    }
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> delete(@PathVariable String id) {
+        carService.delete(id);
+        return new ResponseEntity<>("Delete success", HttpStatus.OK);
     }
 }

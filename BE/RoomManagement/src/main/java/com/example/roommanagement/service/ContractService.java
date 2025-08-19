@@ -12,5 +12,4 @@ public interface ContractService {
     CreateContractDTO create(CreateContractDTO createContractDTO);
     UpdateContractDTO update(String id ,UpdateContractDTO updateContractDTO);
     DetailContractDTO detail(String id);
-//    void uploadImage(List<MultipartFile> files , Contract contract);
 }

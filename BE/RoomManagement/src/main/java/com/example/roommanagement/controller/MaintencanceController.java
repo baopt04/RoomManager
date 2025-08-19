@@ -4,6 +4,7 @@ import com.example.roommanagement.dto.request.maintenance.BaseMaintenanceDTO;
 import com.example.roommanagement.dto.request.maintenance.CreateMaintenanceDTO;
 import com.example.roommanagement.dto.request.maintenance.FindAllMaintencanceDTO;
 import com.example.roommanagement.dto.request.maintenance.UpdateMaintenanceDTO;
+import com.example.roommanagement.entity.Maintenance;
 import com.example.roommanagement.infrastructure.error.Reponse;
 import com.example.roommanagement.service.MaintencanceService;
 import jakarta.validation.Valid;
@@ -39,5 +40,10 @@ public class MaintencanceController {
     public ResponseEntity<BaseMaintenanceDTO> detail(@PathVariable String id) {
         BaseMaintenanceDTO reponse = maintencanceService.detail(id);
         return new ResponseEntity<>(reponse, HttpStatus.OK);
+    }
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> delete(@PathVariable String id) {
+        maintencanceService.deleteById(id);
+        return new ResponseEntity<>("Xóa thành công", HttpStatus.OK);
     }
 }

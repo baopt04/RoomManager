@@ -6,8 +6,10 @@ import com.example.roommanagement.infrastructure.constant.StatusRoom;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @NoArgsConstructor
 @Data
@@ -21,7 +23,10 @@ public class BaseRoomDTO {
     private String decription;
     private String type;
     private StatusRoom status;
-    private Customer customer;
-    private HouseForRent houseForRent;
+    private String customerId;
+    private String houseForRentId;
+    private List<MultipartFile> images;
+    private List<String> imageUrls;
+
 
 }

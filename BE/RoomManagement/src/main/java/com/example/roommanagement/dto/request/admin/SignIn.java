@@ -15,6 +15,10 @@ public class SignIn{
  private  String email;
  @NotNull(message = "Vui lòng nhập password !")
   private  String password;
-  private   String token;
-  private String role;
+  private String name;
+ private String role;
+ private   String accessToken;
+
+
+
 }

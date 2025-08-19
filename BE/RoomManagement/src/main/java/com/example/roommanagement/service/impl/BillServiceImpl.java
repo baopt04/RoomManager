@@ -9,6 +9,7 @@ import com.example.roommanagement.infrastructure.error.Reponse;
 import com.example.roommanagement.repository.*;
 import com.example.roommanagement.service.BillService;
 import com.example.roommanagement.service.EmailService;
+import com.example.roommanagement.service.RoomHistoryService;
 import com.example.roommanagement.util.Generate;
 import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
@@ -20,10 +21,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class BillServiceImpl implements BillService {
@@ -49,6 +47,8 @@ public class BillServiceImpl implements BillService {
     private EmailService emailService;
     @Autowired
     private PaymentHistoryRepository paymentHistoryRepository;
+    @Autowired
+    private RoomHistoryRepository roomHistoryRepository;
 
     @Override
     public List<FindAllBillProjection> findAllBills() {
@@ -189,7 +189,29 @@ public class BillServiceImpl implements BillService {
                                 .build()
                 )
         );
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(new Date());
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
 
+        Date startDate = calendar.getTime();
+
+        calendar.add(Calendar.MONTH, 1);
+        Date endDate = calendar.getTime();
+        if (!roomHistoryRepository.existsByRoom_IdAndStartDateAndEndDate(optionalRoom.get().getId(), startDate, endDate) || request.getIsHistory()) {
+            RoomHistory roomHistory = RoomHistory.builder()
+                    .room(optionalRoom.get())
+                    .customer(optionalCustomer.get())
+                    .startDate(startDate)
+                    .endDate(endDate)
+                    .price(request.getTotalRoom())
+                    .status(StatusRoomHistory.DANG_CHO_THUE)
+                    .isPaid(false)
+                    .build();
+            roomHistoryRepository.save(roomHistory);
+        }
 
         try {
             if (emailCustomer != null) {
@@ -322,6 +344,7 @@ public class BillServiceImpl implements BillService {
                 .isRefund(false)
                 .build();
         paymentHistoryRepository.save(paymentHistory);
+
         System.out.println("Check email customer" + emailCustomer);
         try {
             if (emailCustomer != null) {

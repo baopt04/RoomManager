@@ -2,6 +2,8 @@ package com.example.roommanagement.repository;
 
 import com.example.roommanagement.dto.request.contract.FindAllContractDTO;
 import com.example.roommanagement.entity.Contract;
+import com.example.roommanagement.infrastructure.constant.StatusContract;
+import com.example.roommanagement.infrastructure.constant.StatusRoom;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,7 +15,8 @@ import java.util.Optional;
 @Repository
 public interface ContractRepository extends JpaRepository<Contract, String> {
     Optional<Contract> findById(String id);
-
+    boolean existsByRoom_Id(String roomId);
+    boolean existsByRoom_IdAndIdNot(String roomId, String id);
     @Query(value = """
             SELECT 
              ROW_NUMBER() over (order by r.last_modified_date desc ) as stt ,
@@ -39,5 +42,11 @@ SELECT c.id FROM Contract c where c.id_room =:id_room
     List<Object[]> findIdContract(@Param("id_room")String id_room);
 
     Optional<Contract> findByRoomId(String roomId);
+    List<Contract>  findByStatus(StatusContract statusContract);
+
+    @Query("SELECT c.room.status FROM Contract c WHERE c.room.id = :roomId")
+    StatusRoom getRoomStatusByRoomId(@Param("roomId") String roomId);
+
+
 
 }

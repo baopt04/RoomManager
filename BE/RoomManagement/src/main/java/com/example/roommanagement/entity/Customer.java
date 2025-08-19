@@ -1,8 +1,7 @@
 package com.example.roommanagement.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import com.example.roommanagement.infrastructure.constant.StatusCustomer;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,5 +26,8 @@ public class Customer  extends BaseEntity{
     private String cccd;
     @Column(name = "date_of_birth")
     private Date dateOfBirth;
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    private StatusCustomer status;
 
 }

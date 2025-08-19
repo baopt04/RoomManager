@@ -24,4 +24,5 @@ public class BaseAdminDTO {
     @NotNull(message = "Vui lòng chọn  quyền hạn")
     private Role role;
 
+
 }

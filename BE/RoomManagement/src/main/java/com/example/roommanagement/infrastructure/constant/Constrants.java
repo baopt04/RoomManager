@@ -14,7 +14,9 @@ public class Constrants {
     public static final String FIND_PHONE_NULL = "Vui lòng nhập số điện thoại cần tìm";
     public static final String CCCD_EXISTS = "Căn cước đã tồn tại !";
     public static final String GET_SUCCESS = "Get Success!";
-    public static final String NAME_EXISTS = "Tên đã tồn tại !";
+    public static final String NAME_EXISTS = "Tên phòng đã tồn tại! Vui lòng nhập tên khác";
+    public static final String ROOM_EXISTS = "Phòng trọ đã có hợp đồng vui lòng không thêm phòng trọ này !";
+    public static final String ROOM_EXISTS_WATER_ELECTRICITY = "Phòng trọ đã được thêm dịch vụ! Vui lòng không thêm phòng trọ này !";
     public static final String ID_DUPLICATE = "Phòng đã có dịch vụ !";
     public static final String NOT_FOUND_ID_BILL = "Không tìm thấy phòng này !";
     public static final String FIND_NULL = "Vui lòng nhập thông tin cần tim !";
@@ -27,5 +29,18 @@ public class Constrants {
     public static final String CONTRACT_NOT_FOUND = "Không tìm thấy hợp đồng !";
     public static final String WATER_NOT_FOUND = "Không tìm thấy hợp đồng !";
     public static final String ELECTRICITY_NOT_FOUND = "Không tìm thấy hợp đồng !";
-
+    public static final String ELECTRICTIY_NO_HAVE = "Chưa có điện trong tháng vui lòng cập nhật điện mới nhất";
+    public static final String CUSTOMER_AND_ROOM_STATUS = "Khách hàng đang thuê phòng không thể thay đổi trạng thái!";
+    public static final String MainTENANCE_NOT_FOUND = "Không tìm thấy bảo trì !";
+    public static final String MainTENANCE_STATUS = "Không được phép xóa ở trạng thái đang xử lý hoặc sửa chữa!";
+    public static final String ROOM_CONTRACT_STATUS = "Phòng đang cho thuê không thể dừng kinh doanh!";
+    public static final String CONTRACT_ROOM_STATUS = "Hợp đồng đang dừng kinh doanh vui lòng cập nhật lại hợp đồng!";
+    public static final String PASSWORD_CHANGE = "Mật khẩu cũ không đúng vui lòng thử lại!";
+    public static final String LOCKER_ADMIN = "Khóa thành công !";
+    public static final String UNLOCKER_ADMIN = "Mở khóa thành công!";
+    public static final String LOCKER_ADMIN_LOGIN = "Tài khoản của bạn đã bị khóa vui lòng liên hệ người quản trị để mở khóa!";
+    public static final String LOGIN_FAIL = "Email hoặc mật khẩu không đúng";
+    public static final String EMAIL_FOUND = "Không tìm thấy email!";
+    public static final String TOKEN_EXPIRATION = "RefreshToken đã hết hạn . Vui lòng đăng nhập lại!";
+    public static final String REFRESH_TOKEN_FOUND = "RefrehToken không tồm tại ";
 }

@@ -18,5 +18,6 @@ public class FindAllCustomerDTO  {
     private Boolean gender;
     private String cccd;
     private Date dateOfBirth;
+    private String status;
 
 }
