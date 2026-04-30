@@ -4,7 +4,7 @@ import { message } from "antd";
 import HostService from "../../services/HostService";
 import HouseForRentService from "../../services/HouseForRentService";
 const { Option } = Select;
-const ModalCreate = ({ visible, onClose, houseId }) => {
+const ModalCreate = ({ visible, onClose, onSuccess }) => {
     const token = localStorage.getItem("token");
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
@@ -25,29 +25,39 @@ const ModalCreate = ({ visible, onClose, houseId }) => {
 
     }, [visible, token]);
     const handleAddHouse = async (values) => {
-        setLoading(true);
-        try {
-            const payload = {
-                ...values,
-                host: { id: values.host },
-            };
-            await HouseForRentService.createHouseForRent(token, payload); // Send request to create house
-
-            message.success("Thêm nhà cho thuê thành công!");
-            window.location.reload();
-            onClose();
-        } catch (error) {
-            console.log("Error in catch:", error);
-            if (error.response && error.response.data) {
-                const messageError = error.response.data.message;
-                if (messageError.includes("Tên đã tồn tại")) {
-                    message.error("Tên nhà đã tồn tại, vui lòng sử dụng tên khác.");
+        Modal.confirm({
+            title: 'Xác nhận thêm nhà cho thuê',
+            content: 'Bạn có chắc chắn muốn thêm nhà cho thuê mới này không?',
+            okText: 'Xác nhận',
+            cancelText: 'Hủy',
+            onOk: async () => {
+                setLoading(true);
+                try {
+                    const payload = {
+                        ...values,
+                        host: { id: values.host },
+                    };
+                    await HouseForRentService.createHouseForRent(token, payload);
+                    message.success("Thêm nhà cho thuê thành công!");
+                    if (onSuccess) onSuccess();
+                    onClose();
+                } catch (error) {
+                    console.log("Error in catch:", error);
+                    if (error.response && error.response.data) {
+                        const messageError = error.response.data.message;
+                        if (messageError.includes("Tên đã tồn tại")) {
+                            message.error("Tên nhà đã tồn tại, vui lòng sử dụng tên khác.");
+                        } else {
+                            message.error(messageError || "Dữ liệu không hợp lệ!");
+                        }
+                    } else {
+                        message.error("Không thể kết nối đến server, vui lòng kiểm tra lại.");
+                    }
+                } finally {
+                    setLoading(false);
                 }
-            } else {
-                message.error("Không thể kết nối đến server, vui lòng kiểm tra lại.");
             }
-            setLoading(false);
-        };
+        });
     };
     const handleCancel = () => {
         form.resetFields();
@@ -59,6 +69,12 @@ const ModalCreate = ({ visible, onClose, houseId }) => {
             visible={visible}
             onCancel={handleCancel}
             footer={null}
+            styles={{
+                content: {
+                    borderRadius: "20px",
+                    overflow: "hidden"
+                }
+            }}
         >
             <Form
                 form={form}
@@ -70,8 +86,8 @@ const ModalCreate = ({ visible, onClose, houseId }) => {
                     label="Tên nhà thuê"
                     name="name"
                     rules={[{ required: true, message: "Vui lòng nhập tên nhà thuê" },
-                    { pattern: /^[\p{L}\d\s]+$/u, message: "Tên nhà thuê chỉ được chứa chữ cái, số và khoảng trắng" },
-                    { max: 200, message: "Tên nhà thuê không được vượt quá 50 ký tự" },
+                    // { pattern: /^[\p{L}\d\s]+$/u, message: "Tên nhà thuê chỉ được chứa chữ cái, số và khoảng trắng" },
+                    { max: 100, message: "Tên nhà thuê không được vượt quá 100 ký tự" },
                     { min: 2, message: "Tên nhà thuê phải có ít nhất 2 ký tự" }
                     ]}
                 >

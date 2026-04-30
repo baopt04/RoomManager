@@ -38,5 +38,20 @@ public class StatisicalController {
         List<SearchRoomProjection> response = statisticalService.searchRoomHistoryByIdRoom(roomId);
         return ResponseEntity.ok(response);
     }
+    @GetMapping("/all-room")
+    public ResponseEntity<List<RoomStatisticalProjection>> findAllRoomStatistical() {
+        List<RoomStatisticalProjection> response = statisticalService.findAllRoomStatistical();
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("/all-customer")
+    public ResponseEntity<List<CustomerStatisticalProjection>> findAllCustomerStatistical() {
+        List<CustomerStatisticalProjection> response = statisticalService.findAllCustomerStatistical();
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("/revenue-by-room")
+    public ResponseEntity<List<RevenueStatisticalProjection>> findAllRevenueStatistical() {
+        List<RevenueStatisticalProjection> response = statisticalService.findAllRevenueStatistical();
+        return ResponseEntity.ok(response);
+    }
 
 }

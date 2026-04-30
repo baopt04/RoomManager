@@ -5,8 +5,6 @@ import ElectricityService from "../../services/ElectricityService";
 import RoomService from "../../services/RoomService";
 import StatisticalService from "../../services/StatisticalService";
 import CustomerService from "../../services/CustomerService";
-import { li } from "framer-motion/client";
-import { render } from "@testing-library/react";
 const { TabPane } = Tabs;
 const ModalSearchStatistical = ({ visible, onClose, roomId }) => {
     const [listDataWater, setListDataWater] = useState([]);

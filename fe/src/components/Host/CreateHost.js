@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Form, Input, Button, Radio } from "antd";
+import { Form, Input, Button, Radio, Modal } from "antd";
+import { ArrowLeftOutlined } from "@ant-design/icons";
 import "./CreateHost.css";
 import { useNavigate } from "react-router-dom"; 
 import HostService from "../../services/HostService";
@@ -7,31 +8,44 @@ import { message } from "antd";
 const CreateHost = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const token = localStorage.getItem("token");
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   const handleSubmit = async (values) => {
-    setLoading(true);
-    try {
-      await HostService.createHost(token, values);
-      message.success("Thêm chủ nhà thành công!");
-      navigate("/host");
-    }catch (error) {
-      console.error("Lỗi từ catch:", error);
-    
-      if (error.response && error.response.data) {
-        const messageFromServer = error.response.data.message;
-    
-        if (messageFromServer.includes("Số điện thoại")) {
-          message.error("Số điện thoại đã tồn tại, vui lòng sử dụng số khác.");
-        } else if (messageFromServer.includes("Email đã tồn tại")) {
-          message.error("Email đã tồn tại, vui lòng sử dụng email khác.");
-        } else {
-          message.error(messageFromServer || "Dữ liệu không hợp lệ!");
+    Modal.confirm({
+      title: 'Xác nhận thêm chủ nhà',
+      content: 'Bạn có chắc chắn muốn thêm chủ nhà mới này không?',
+      okText: 'Xác nhận',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        setLoading(true);
+        try {
+          await HostService.createHost(token, values);
+          message.success("Thêm chủ nhà thành công!");
+          navigate("/host-management");
+        } catch (error) {
+          console.error("Lỗi từ catch:", error);
+          if (error.response && error.response.data) {
+            const messageFromServer = error.response.data.message;
+            if (messageFromServer.includes("Số điện thoại")) {
+              message.error("Số điện thoại đã tồn tại, vui lòng sử dụng số khác.");
+            } else if (messageFromServer.includes("Email đã tồn tại")) {
+              message.error("Email đã tồn tại, vui lòng sử dụng email khác.");
+            } else {
+              message.error(messageFromServer || "Dữ liệu không hợp lệ!");
+            }
+          } else {
+            message.error("Không thể kết nối đến server, vui lòng kiểm tra lại.");
+          }
+        } finally {
+          setLoading(false);
         }
-      } else {
-        message.error("Không thể kết nối đến server, vui lòng kiểm tra lại.");
       }
-    }
-    setLoading(false);    
+    });
   };
   
   
@@ -40,11 +54,21 @@ const CreateHost = () => {
   
 const navigate = useNavigate();
   const handleReturn = () => {
-    navigate("/host"); 
+    navigate("/host-management"); 
   };
   return (
     <div className="create-host-container">
-      <h2 style={{ textAlign: 'center', fontSize: '30px' , marginBottom: "20px" }}>Thêm chủ nhà mới</h2>
+      <div style={{ marginBottom: 16 }}>
+        <Button
+          type="text"
+          icon={<ArrowLeftOutlined />}
+          onClick={handleReturn}
+          style={{ paddingLeft: 0, fontWeight: 500 }}
+        >
+          Quay lại
+        </Button>
+      </div>
+      <h2 style={{ textAlign: 'center', fontSize: isMobile ? '28px' : '30px' , marginBottom: "20px", marginTop: 0 }}>Thêm chủ nhà mới</h2>
       <Form
         form={form}
         layout="vertical"
@@ -100,8 +124,8 @@ const navigate = useNavigate();
             className="form-item"
           >
             <Radio.Group>
-              <Radio value={1}>Nam</Radio>
-              <Radio value={0}>Nữ</Radio>
+              <Radio value={true}>Nam</Radio>
+              <Radio value={false}>Nữ</Radio>
             </Radio.Group>
           </Form.Item>
         </div>
@@ -109,9 +133,6 @@ const navigate = useNavigate();
         <div className="form-submit">
           <Button type="primary" htmlType="submit" loading={loading}>
             Thêm chủ nhà mới
-          </Button>
-          <Button type="primary" danger  style={{ marginLeft: "10px" }} onClick={handleReturn}>
-            Quay lại
           </Button>
         </div>
 

@@ -16,7 +16,7 @@ import java.util.Optional;
 public interface WaterRepository extends JpaRepository<Water, String> {
     Optional<Water> findById(String id);
 boolean existsByRoom_Id(String id);
-    Optional<Water> findByRoomId(String roomId);
+    Optional<Water> findTopByRoomIdOrderByLastModifiedDateDesc(String roomId);
 
     @Query(value = """
             SELECT 

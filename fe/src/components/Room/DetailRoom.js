@@ -2,13 +2,9 @@ import React, { useState, useEffect, use } from "react";
 import { Form, Input, Button, Select, InputNumber, message, Upload } from "antd";
 import { data, useNavigate, useParams } from "react-router-dom";
 import RoomService from "../../services/RoomService";
-import { UploadOutlined } from "@ant-design/icons";
-import { div, th, u } from "framer-motion/client";
-import { For } from "@chakra-ui/react";
 import "./CreateRoom.css";
 import HouseForRentService from "../../services/HouseForRentService";
 import CustomerService from "../../services/CustomerService";
-import { useLocation } from "react-router-dom";
 const DetailRoom = () => {
     const navigate = useNavigate();
     const [form] = Form.useForm();
@@ -75,8 +71,8 @@ const DetailRoom = () => {
         fetchHouseDetail();
 
     }, [token, roomId, form])
-  
- 
+
+
     return (
         <div className="create-room-container">
             <h2 style={{ textAlign: 'center ', fontSize: '30px' }}>Cập nhật phòng trọ</h2>
@@ -200,17 +196,16 @@ const DetailRoom = () => {
                         <Upload
                             listType="picture-card"
                             fileList={fileList}
-                            // onChange={updateImage}
                             beforeUpload={() => false}
                             multiple
                             style={{ display: "flex", gap: 16 }}
                         >
-                         
+
                         </Upload>
                     </Form.Item>
                 </div>
                 <div className="form-submit">
-                  
+
                     <Button type="primary" danger style={{ marginLeft: "10px" }} onClick={() => { form.resetFields(); }}>
                         Quay lại
                     </Button>

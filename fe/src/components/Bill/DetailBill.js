@@ -1,228 +1,222 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, Row, Col, Typography, Divider, Select, DatePicker, Button, message } from "antd";
+import {
+    Descriptions,
+    Card,
+    Row,
+    Col,
+    Typography,
+    Divider,
+    Button,
+    message,
+    Tag,
+    Space,
+    Flex,
+    Empty
+} from "antd";
 import RoomService from "../../services/RoomService";
 import CustomerService from "../../services/CustomerService";
 import ContractService from "../../services/ContractService";
 import SaleService from "../../services/SaleService";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+    ArrowLeftOutlined,
+    HomeOutlined,
+    UserOutlined,
+    CalendarOutlined,
+    FileTextOutlined,
+    DollarCircleOutlined
+} from "@ant-design/icons";
 import dayjs from "dayjs";
-const { Title } = Typography;
+
+const { Title, Text } = Typography;
 
 const DetailBill = () => {
-    const [form] = Form.useForm();
     const { billId } = useParams();
-    const [listContract, setListContract] = useState([]);
-    const [listCustomer, setListCustomer] = useState([]);
-    const [listRoom, setListRoom] = useState([]);
-    const token = localStorage.getItem('token');
-    const [totalRoom, setTotalRoom] = useState(0);
-    const [totalElectricity, setTotalElectricity] = useState(0);
-    const [totalWater, setTotalWater] = useState(0);
-    const [totalService, setTotalService] = useState(0);
-    const [totalPay, setTotalPay] = useState(0);
+    const navigate = useNavigate();
+    const [billData, setBillData] = useState(null);
+    const [customerName, setCustomerName] = useState("");
+    const [roomName, setRoomName] = useState("");
     const [listImageRoom, setListImageRoom] = useState([]);
-    useEffect(() => {
-        const detailContract = async () => {
-            try {
-                const response = await ContractService.getAllcontract(token);
-                setListContract(response)
-            } catch (error) {
-                message.error("Lỗi không lấy được contract")
-            }
-        }
-        detailContract();
-    }, [token])
+    const token = localStorage.getItem('token');
 
     useEffect(() => {
-        const detailCustomer = async () => {
-            try {
-                const response = await CustomerService.getAllCustomers(token);
-                setListCustomer(response);
-            } catch (error) {
-                message.error("Lỗi không lấy được customer")
-            }
-        }
-        detailCustomer();
-
-    }, [token])
-
-    useEffect(() => {
-        const detailRooom = async () => {
-            try {
-                const response = await RoomService.getAllRooms(token);
-                setListRoom(response)
-            } catch (error) {
-                message.error("Lỗi không lấy được room")
-            }
-        }
-        detailRooom();
-    }, [token])
-
-   
-
-    useEffect(() => {
-        const detailBill = async () => {
+        const fetchDetails = async () => {
             try {
                 const response = await SaleService.detailBill(token, billId);
-                form.setFieldsValue({
-                    totalRoom: formatVND(response.totalRoom),
-                    electricityUsage: formatVND(response.electricityUsage),
-                    totalPriceElectricity: formatVND(response.totalPriceElectricity),
-                    waterUsage: formatVND(response.waterUsage),
-                    totalPriceWater: formatVND(response.totalPriceWater),
-                    totalRoomService: formatVND(response.totalRoomService),
-                    dueDate: dayjs(response.dueDate),
-                    description: response.description,
-                    customerId: response.customer,
-                    roomId: response.room
-                })
+                setBillData(response);
 
-                setTotalRoom(response.totalRoom);
-                setTotalElectricity(response.totalPriceElectricity);
-                setTotalWater(response.totalPriceWater);
-                setTotalService(response.totalRoomService);
-                const totalPay =
-                    Number(response.totalRoom) +
-                    Number(response.totalPriceElectricity) +
-                    Number(response.totalPriceWater) +
-                    Number(response.totalRoomService);
-                setTotalPay(totalPay);
+                // Fetch related names
+                const [customers, rooms] = await Promise.all([
+                    CustomerService.getAllCustomers(token),
+                    RoomService.getAllRooms(token)
+                ]);
+
+                const customer = customers.find(c => c.id === response.customer);
+                const room = rooms.find(r => r.id === response.room);
+
+                setCustomerName(customer?.name || "N/A");
+                setRoomName(room?.name || "N/A");
+
                 if (response.room) {
-                    detailImageRoom(response.room);
-                }else {
-                    message.error("Lỗi không lấy được ảnh")
+                    const images = await RoomService.detailImage(token, response.room);
+                    setListImageRoom(images);
                 }
             } catch (error) {
-                message.error("Không lấy được dữ liệu")
+                message.error("Không lấy được dữ liệu hóa đơn");
             }
-        }
-         const detailImageRoom = async (id) => {
-        try {
-            const reponse = await RoomService.detailImage(token, id);
-            setListImageRoom(reponse);
-            console.log("Check list image" , reponse);
-            
-        } catch (error) {
-            message.error("Lỗi không lấy được ảnh")
-        }
-    }
-        detailBill();
-    }, [billId , token , form])
+        };
+        fetchDetails();
+    }, [billId, token]);
+
     const formatVND = (value) => {
-        if (isNaN(value)) return "0";
-        return Number(value).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
-    }
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value || 0);
+    };
+
+    if (!billData) return <div style={{ padding: 40, textAlign: 'center' }}>Đang tải...</div>;
+
+    const totalPay = (billData.totalRoom || 0) +
+        (billData.totalPriceElectricity || 0) +
+        (billData.totalPriceWater || 0) +
+        (billData.totalRoomService || 0);
+
     return (
-        <div style={{ maxWidth: 1500, margin: "0 auto", padding: 24, background: "#fff", borderRadius: 8 }}>
-            <Title level={3} style={{ textAlign: "center" }}>Chi tiết hóa đơn</Title>
-            
-            <Form
-                form={form}
-                layout="vertical"
-            // onFinish={onFinish}
-            >
-                <Row gutter={16}>
-                    <Col span={12}>
-                        <Form.Item name="roomId" label="Phòng trọ" rules={[{ required: true, message: "Vui lòng chọn phòng trọ" }]}>
-                            <Select placeholder="Chọn phòng trọ" disabled>
-                                {listRoom.map(room => (
-                                    <Select.Option key={room.id} value={room.id}>
-                                        {room.name}
-                                    </Select.Option>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: '24px' }}>
+            <Flex justify="space-between" align="center" style={{ marginBottom: 24 }}>
+                <Space direction="vertical" size={0}>
+                    <Space style={{ marginBottom: 8 }}>
+                        <Button
+                            icon={<ArrowLeftOutlined />}
+                            onClick={() => navigate(-1)}
+                            type="text"
+                        >
+                            Quay lại
+                        </Button>
+                        <Tag color="blue" style={{ borderRadius: 4 }}>Hóa đơn</Tag>
+                    </Space>
+                    <Title level={3} style={{ margin: 0, fontWeight: 700 }}>
+                        Chi tiết hóa đơn {billData.code}
+                    </Title>
+                </Space>
+                <Tag
+                    color={billData.status !== "CHUA_THANH_TOAN" ? "green" : "red"}
+                    style={{ padding: '4px 16px', borderRadius: 20, fontSize: 14 }}
+                >
+                    {billData.status !== "CHUA_THANH_TOAN" ? 'Đã thanh toán' : 'Chưa thanh toán'}
+                </Tag>
+            </Flex>
+
+            <Row gutter={24}>
+                <Col lg={16} md={24}>
+                    <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 2px 10px rgba(0,0,0,0.03)', marginBottom: 24 }}>
+                        <Descriptions title="Thông tin cơ bản" column={2} bordered size="middle">
+                            <Descriptions.Item label={<Space><HomeOutlined /> Phòng trọ</Space>} span={2}>
+                                <Text strong>{roomName}</Text>
+                            </Descriptions.Item>
+                            <Descriptions.Item label={<Space><UserOutlined /> Khách hàng</Space>} span={2}>
+                                {customerName}
+                            </Descriptions.Item>
+                            <Descriptions.Item label={<Space><CalendarOutlined /> Hạn thanh toán</Space>}>
+                                {dayjs(billData.dueDate).format("DD/MM/YYYY")}
+                            </Descriptions.Item>
+                            <Descriptions.Item label={<Space><FileTextOutlined /> Ghi chú</Space>}>
+                                {billData.description || "—"}
+                            </Descriptions.Item>
+                        </Descriptions>
+
+                        <Divider style={{ margin: '24px 0' }} />
+
+                        <Descriptions title="Chi tiết sử dụng" column={2} bordered size="middle">
+                            <Descriptions.Item label="Số điện sử dụng">
+                                {billData.electricityUsage} kWh
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Tiền điện">
+                                {formatVND(billData.totalPriceElectricity)}
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Số nước sử dụng">
+                                {billData.waterUsage} m³
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Tiền nước">
+                                {formatVND(billData.totalPriceWater)}
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Tiền phòng">
+                                {formatVND(billData.totalRoom)}
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Tiền dịch vụ">
+                                {formatVND(billData.totalRoomService)}
+                            </Descriptions.Item>
+                        </Descriptions>
+                    </Card>
+
+                    <Card bordered={false} title="Ảnh phòng trọ" style={{ borderRadius: 12, boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
+                        {listImageRoom && listImageRoom.length > 0 ? (
+                            <Row gutter={[12, 12]}>
+                                {listImageRoom.map((img, idx) => (
+                                    <Col key={idx} xs={12} sm={8} md={6}>
+                                        <img
+                                            src={img.name || img}
+                                            alt="room"
+                                            style={{ width: '100%', height: 120, objectFit: "cover", borderRadius: 8, cursor: 'pointer' }}
+                                        />
+                                    </Col>
                                 ))}
-                            </Select>
-                        </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                        <Form.Item name="totalRoom" label="Tiền phòng trọ">
-                            <Input placeholder="Nhập tiền phòng" disabled />
-                        </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                        <Form.Item name="electricityUsage" label="Số điện sử dụng">
-                            <Input placeholder="Nhập số điện" disabled />
-                        </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                        <Form.Item name="totalPriceElectricity" label="Tiền điện">
-                            <Input placeholder="Nhập tiền điện"disabled />
-                        </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                        <Form.Item name="waterUsage" label="Số nước sử dụng">
-                            <Input placeholder="Nhập số nước"disabled />
-                        </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                        <Form.Item name="totalPriceWater" label="Tiền nước">
-                            <Input placeholder="Nhập tiền nước"disabled />
-                        </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                        <Form.Item name="totalRoomService" label="Tiền dịch vụ">
-                            <Input placeholder="Nhập tiền dịch vụ" disabled/>
-                        </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                        <Form.Item name="customerId" label="Khách hàng thanh toán">
-                            <Select placeholder="Chọn khách hàng" disabled>
-                                {listCustomer.map(customer => (
-                                    <Select.Option key={customer.id} value={customer.id}>
-                                        {customer.name}
-                                    </Select.Option>
-                                ))}
-                            </Select>
-                        </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                        <Form.Item name="dueDate" label="Hạn thanh toán">
-                            <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" placeholder="Chọn hạn thanh toán" disabled/>
-                        </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                        <Form.Item name="description" label="Ghi chú">
-                            <Input placeholder="Nhập ghi chú"disabled />
-                        </Form.Item>
-                    </Col>
-               
-                   
-                </Row>
-                <Divider />
-                     <h2 style={{textAlign:"center" , marginBottom: "30px"}}>Ảnh phòng trọ</h2>
-                       <div style={{ marginBottom: 24 , display :'flex' , justifyContent : 'center'}}>
-                {listImageRoom && listImageRoom.length > 0 ? (
-                    <Row gutter={16}>
-                        {listImageRoom.map((img, idx) => (
-                            <Col key={idx}>
-                                <img src={img.name || img} alt="room" style={{ width: 150, height: 100, objectFit: "cover", borderRadius: 8 }} />
-                            </Col>
-                        ))}
-                    </Row>
-                ) : (
-                    <div>Không có ảnh phòng trọ</div>
-                )}
-            </div> 
-                <div>
-                    <div style={{ textAlign: "right", fontWeight: "bold", fontSize: 18 }}>
-                        Tổng tiền phòng: {formatVND(totalRoom)}  <span style={{ color: "red" }}>VND</span>
-                    </div>
-                    <div style={{ textAlign: "right", fontWeight: "bold", fontSize: 18 }}>
-                        Tổng tiền điện: {formatVND(totalElectricity)} <span style={{ color: "red" }}>VND</span>
-                    </div>
-                    <div style={{ textAlign: "right", fontWeight: "bold", fontSize: 18 }}>
-                        Tổng tiền nước:  {formatVND(totalWater)}  <span style={{ color: "red" }}>VND</span>
-                    </div>
-                    <div style={{ textAlign: "right", fontWeight: "bold", fontSize: 18 }}>
-                        Tổng tiền dịch vụ: {formatVND(totalService)} <span style={{ color: "red" }}>VND</span>
-                    </div>
-                    <div style={{ textAlign: "right", fontWeight: "bold", fontSize: 18 }}>
-                        Tổng tiền cần thanh toán: {formatVND(totalPay)}  <span style={{ color: "red" }}>VND</span>
-                    </div>
-                </div>
-                <div style={{ textAlign: "center", marginTop: 24 }}>
-                    <Button type="primary" htmlType="submit">Quay lại </Button>
-                </div>
-            </Form>
+                            </Row>
+                        ) : (
+                            <Empty description="Không có ảnh" />
+                        )}
+                    </Card>
+                </Col>
+
+                <Col lg={8} md={24}>
+                    <Card
+                        bordered={false}
+                        style={{
+                            borderRadius: 12,
+                            boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                            background: '#fafafa',
+                            position: 'sticky',
+                            top: 24
+                        }}
+                    >
+                        <Title level={4} style={{ marginBottom: 24 }}>Tổng thanh toán</Title>
+
+                        <Flex justify="space-between" style={{ marginBottom: 12 }}>
+                            <Text type="secondary">Tiền phòng</Text>
+                            <Text strong>{formatVND(billData.totalRoom)}</Text>
+                        </Flex>
+                        <Flex justify="space-between" style={{ marginBottom: 12 }}>
+                            <Text type="secondary">Tiền điện</Text>
+                            <Text strong>{formatVND(billData.totalPriceElectricity)}</Text>
+                        </Flex>
+                        <Flex justify="space-between" style={{ marginBottom: 12 }}>
+                            <Text type="secondary">Tiền nước</Text>
+                            <Text strong>{formatVND(billData.totalPriceWater)}</Text>
+                        </Flex>
+                        <Flex justify="space-between" style={{ marginBottom: 12 }}>
+                            <Text type="secondary">Tiền dịch vụ</Text>
+                            <Text strong>{formatVND(billData.totalRoomService)}</Text>
+                        </Flex>
+
+                        <Divider style={{ margin: '16px 0' }} />
+
+                        <Flex justify="space-between" align="center">
+                            <Text strong style={{ fontSize: 16 }}>Tổng cộng</Text>
+                            <Title level={3} style={{ margin: 0, color: '#f5222d', fontWeight: 700 }}>
+                                {formatVND(totalPay)}
+                            </Title>
+                        </Flex>
+
+                        <Button
+                            type="primary"
+                            block
+                            size="large"
+                            style={{ marginTop: 24, borderRadius: 8, height: 48 }}
+                            onClick={() => navigate(`/bill-management/update/${billId}`)}
+                        >
+                            Chỉnh sửa hóa đơn
+                        </Button>
+                    </Card>
+                </Col>
+            </Row>
         </div>
     );
 };

@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8
+    container_name: mysql-db
+    restart: always
+    command: --lower_case_table_names=1
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: roommanager
+    ports:
+      - "3307:3306"
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./BE/RoomManagement
+      dockerfile: Dockerfile.dev   # Dockerfile dev cho backend
+    container_name: room-backend
+    depends_on:
+      - mysql
+    volumes:
+      - ./BE/RoomManagement/src:/app/src
+      - ./BE/RoomManagement/target:/app/target
+      - ./BE/RoomManagement/.mvnw:/app/.mvnw
+      - ./BE/RoomManagement/mvnw.cmd:/app/mvnw.cmd
+      - ./BE/RoomManagement/pom.xml:/app/pom.xml
+    command: ./mvnw spring-boot:run
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/roommanager?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 1234
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+      SPRING_JPA_SHOW_SQL: "true"
+      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: "true"
+      SPRING_JPA_PROPERTIES_HIBERNATE_GLOBALLY_QUOTED_IDENTIFIERS: "true"
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./FE
+      dockerfile: Dockerfile.dev  # Dockerfile dev cho frontend
+    container_name: room-frontend
+    volumes:
+      - ./FE/src:/app/src
+      - ./FE/public:/app/public
+      - ./FE/package.json:/app/package.json
+      - ./FE/package-lock.json:/app/package-lock.json
+      - /app/node_modules    # tránh ghi đè node_modules khi mount
+    command: npm start
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

@@ -3,7 +3,7 @@ import { Modal, Form, Input, Button, Radio, Select, InputNumber } from "antd";
 import { message } from "antd";
 import CustomerService from "../../services/CustomerService";
 const { Option } = Select;
-const ModalUpdateCustomer = ({ visible, onClose, id }) => {
+const ModalUpdateCustomer = ({ visible, onClose, id, onSuccess }) => {
     const token = localStorage.getItem("token");
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
@@ -27,31 +27,38 @@ const ModalUpdateCustomer = ({ visible, onClose, id }) => {
         }
         fetchCustomer()
     }, [token, id])
-    const UpdateCustomer = async (values) => {
-        setLoading(true);
-        try {
-            await CustomerService.updateCustomer(token, id, values);
-            message.success("Cập nhật khách hàng thành công!");
-            window.location.reload();
-            onClose();
-        } catch (error) {
-            if (error.response) {
-                const data = error.response.data;
-
-                if (typeof data.message === "string") {
-                    message.error(data.message);
+    const UpdateCustomer = (values) => {
+        Modal.confirm({
+            title: "Xác nhận cập nhật khách hàng",
+            content: "Bạn có chắc chắn muốn cập nhật thông tin khách hàng này không?",
+            okText: "Xác nhận",
+            cancelText: "Hủy",
+            onOk: async () => {
+                setLoading(true);
+                try {
+                    await CustomerService.updateCustomer(token, id, values);
+                    message.success("Cập nhật khách hàng thành công!");
+                    if (onSuccess) {
+                        await onSuccess();
+                    }
+                    onClose();
+                } catch (error) {
+                    if (error.response) {
+                        const data = error.response.data;
+                        if (typeof data.message === "string") {
+                            message.error(data.message);
+                        } else if (typeof data === "object") {
+                            Object.values(data).forEach((msg) => {
+                                message.error(msg);
+                            });
+                        }
+                    } else {
+                        message.error("Không thể kết nối đến server, vui lòng kiểm tra lại.");
+                    }
+                    setLoading(false);
                 }
-                else if (typeof data === "object") {
-                    Object.values(data).forEach((msg) => {
-                        message.error(msg);
-                    });
-                }
-
-            } else {
-                message.error("Không thể kết nối đến server, vui lòng kiểm tra lại.");
-            }
-            setLoading(false);
-        };
+            },
+        });
     };
     const handleCancel = () => {
         form.resetFields();
@@ -59,7 +66,7 @@ const ModalUpdateCustomer = ({ visible, onClose, id }) => {
     }
     return (
         <Modal
-            title="Thêm khách hàng"
+            title="Cập nhật khách hàng"
             visible={visible}
             onCancel={handleCancel}
             footer={null}

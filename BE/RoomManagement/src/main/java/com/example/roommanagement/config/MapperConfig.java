@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.ErrorResponse;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -40,5 +41,10 @@ public class MapperConfig {
         ErrorRepsponse error = new ErrorRepsponse(500, "Lỗi hệ thống: " + ex.getMessage()) {
         };
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ErrorRepsponse> handleMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex) {
+        ErrorRepsponse error = new ErrorRepsponse(415, "Định dạng dữ liệu không được hỗ trợ (Yêu cầu JSON)");
+        return new ResponseEntity<>(error, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
     }
 }

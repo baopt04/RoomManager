@@ -26,7 +26,7 @@ public interface HostRepository extends JpaRepository<Host, String> {
             ht.email as email ,
             ht.number_phone as numberPhone ,
             ht.gender as gender
-             FROM Host ht 
+             FROM host ht 
             """, nativeQuery = true)
     List<FindAllHostDTO> findAllHosts();
 
@@ -39,7 +39,7 @@ public interface HostRepository extends JpaRepository<Host, String> {
             ht.email as email ,
             ht.number_phone as numberPhone ,
             ht.gender as gender
-             FROM Host ht 
+             FROM host ht 
                         where ht.email = :email
             """, nativeQuery = true)
     FindAllHostDTO getOneHostByEmail(String email);
@@ -53,7 +53,7 @@ public interface HostRepository extends JpaRepository<Host, String> {
             ht.email as email ,
             ht.number_phone as numberPhone ,
             ht.gender as gender
-             FROM Host ht 
+             FROM host ht 
                         where ht.number_phone = :numberPhone
             """, nativeQuery = true)
     FindAllHostDTO getOneHostByNumberPhone(String numberPhone);

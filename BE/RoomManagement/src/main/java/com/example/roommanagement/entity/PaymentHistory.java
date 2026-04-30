@@ -33,7 +33,7 @@ public class PaymentHistory extends BaseEntity{
 
     @Column
     @Enumerated(EnumType.STRING)
-    private StatusMethod method; // Ví dụ: "Tiền mặt", "Chuyển khoản", "Momo"
+    private StatusMethod method;
 
     @Column(columnDefinition = "TEXT")
     private String description;

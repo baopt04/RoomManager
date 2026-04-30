@@ -5,7 +5,7 @@ import AdminService from "../../services/AdminService";
 const { Title, Text } = Typography;
 const { Option } = Select;
 
-const ModalUpdateAdmin = ({ visible, onclose, id }) => {
+const ModalUpdateAdmin = ({ visible, onclose, id, onSuccess }) => {
     const [loading, setLoading] = useState(false);
     const [form] = Form.useForm();
     const token = localStorage.getItem('token')
@@ -47,9 +47,9 @@ const ModalUpdateAdmin = ({ visible, onclose, id }) => {
             const response = await AdminService.updateAdmin(token, values, id);
             console.log("Check update admin", response);
             message.success("Cập nhật thành công!")
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
+            if (onSuccess) {
+                await onSuccess();
+            }
             onclose();
         } catch (error) {
             if (error.response) {
@@ -65,7 +65,6 @@ const ModalUpdateAdmin = ({ visible, onclose, id }) => {
     }
     return (
         <Modal
-            // title='Thêm admin mới '
             visible={visible}
             onCancel={close}
             footer={null}

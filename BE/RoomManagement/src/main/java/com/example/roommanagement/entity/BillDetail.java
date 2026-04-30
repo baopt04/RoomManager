@@ -23,7 +23,7 @@ public class BillDetail extends BaseEntity {
 
    @Column(name = "type")
    @Enumerated(EnumType.STRING)
-    private TypeBillDetail type; // ví dụ: "Nước", "Điện", "Dịch vụ", "Khác"
+    private TypeBillDetail type;
 
     @Column(columnDefinition = "TEXT")
     private String description;

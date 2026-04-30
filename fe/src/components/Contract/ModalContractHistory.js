@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { Modal, Form, InputNumber, Button, Select, Table, message, Space } from "antd";
 import ContractService from "../../services/ContractService";
 import RoomService from "../../services/RoomService";
-import { div, title } from "framer-motion/client";
 
 
 const ModalContractHistory = ({ visible, onClose, id }) => {
@@ -10,6 +9,13 @@ const ModalContractHistory = ({ visible, onClose, id }) => {
     const [listHistory, setListHistory] = useState([]);
     const [dataRoom, setDataRoom] = useState([]);
     const [dataContract, setDataContract] = useState([]);
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 768);
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
 
     const columns = [
         {
@@ -164,12 +170,16 @@ const ModalContractHistory = ({ visible, onClose, id }) => {
             title="Chi tiết lịch hợp đồng"
             onCancel={onclose}
             footer={null}
-            width={1200}>
+            width={isMobile ? "92%" : 1200}
+            style={{ top: isMobile ? 16 : 40 }}
+            bodyStyle={{ padding: isMobile ? 12 : 24 }}>
             <Table
                 columns={columns}
                 dataSource={listHistory}
                 rowKey="id"
-                pagination={{ pageSize: 10 }}
+                pagination={{ pageSize: 10, showSizeChanger: !isMobile }}
+                scroll={{ x: 1200 }}
+                size={isMobile ? "small" : "middle"}
             />
         </Modal>
     )

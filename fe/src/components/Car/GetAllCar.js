@@ -1,31 +1,33 @@
 import React, { useState, useEffect } from "react";
-import { 
-    Table, 
-    Input, 
-    Button, 
-    Space, 
-    Modal, 
-    Card, 
-    Typography, 
-    Tag, 
-    Row, 
-    Col, 
+import {
+    Table,
+    Input,
+    Button,
+    Space,
+    Modal,
+    Card,
+    Typography,
+    Tag,
+    Row,
+    Col,
     Statistic,
     Tooltip,
     Avatar,
     Divider
 } from "antd";
-import { 
-    SearchOutlined, 
-    PlusOutlined, 
-    EditOutlined, 
+import {
+    SearchOutlined,
+    PlusOutlined,
+    EditOutlined,
     DeleteOutlined,
     CarOutlined,
     HomeOutlined,
     UserOutlined,
     ReloadOutlined,
-    ExportOutlined
+    ExportOutlined,
+    RocketOutlined,
 } from "@ant-design/icons";
+import { FaMotorcycle, FaBicycle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import RoomService from "../../services/RoomService";
 import CarService from "../../services/CarService";
@@ -43,6 +45,18 @@ const GetAllCar = () => {
     const navigate = useNavigate();
     const [keyWord, setKeyWord] = useState('');
     const [filterData, setFilterData] = useState([]);
+
+    const mapCarData = (cars, rooms, customers) => (
+        cars.map(item => {
+            const room = rooms.find(r => r.id === item.room);
+            const customer = customers.find(c => c.id === item.customer);
+            return {
+                ...item,
+                roomName: room ? room.name : "Chưa có dữ liệu",
+                customerName: customer ? customer.name : "Chưa có khách hàng"
+            };
+        })
+    );
 
     // Fetch all cars
     useEffect(() => {
@@ -105,21 +119,11 @@ const GetAllCar = () => {
     const handleSearch = (value) => {
         setKeyWord(value);
         if (!value.trim()) {
-            // Reset to original data if search is empty
-            const mapped = dataCar.map(item => {
-                const room = dataRoom.find(r => r.id === item.room);
-                const customer = dataCustomer.find(c => c.id === item.customer);
-                return {
-                    ...item,
-                    roomName: room ? room.name : "Chưa có dữ liệu",
-                    customerName: customer ? customer.name : "Chưa có khách hàng"
-                };
-            });
-            setFilterData(mapped);
+            setFilterData(mapCarData(dataCar, dataRoom, dataCustomer));
             return;
         }
 
-        const filtered = filterData.filter((item) =>
+        const filtered = mapCarData(dataCar, dataRoom, dataCustomer).filter((item) =>
             Object.values(item).some((val) =>
                 val &&
                 val.toString().toLowerCase().includes(value.toLowerCase())
@@ -138,11 +142,10 @@ const GetAllCar = () => {
             onOk: async () => {
                 try {
                     await CarService.deleteCar(token, record.id);
-                    setDataCar(dataCar.filter(item => item.id !== record.id));
+                    setDataCar((prev) => prev.filter(item => item.id !== record.id));
                     Modal.success({
                         content: "Xóa xe thành công!",
                     });
-                    window.location.reload();
                 } catch (error) {
                     console.error("Error deleting car:", error);
                     Modal.error({
@@ -161,46 +164,58 @@ const GetAllCar = () => {
         navigate(`/car-management/updateCar/${record.id}`);
     };
 
-    const getCarTypeColor = (type) => {
-        const typeColors = {
-            'Xe máy': 'blue',
-            'Xe đạp': 'green',
-            'Ô tô': 'red',
-            'Xe điện': 'orange'
-        };
-        return typeColors[type] || 'default';
+    const CAR_TYPE_MAP = {
+        'XE_MAY': { label: 'Xe máy', color: 'blue', icon: <FaMotorcycle /> },
+        'XE_O_TO': { label: 'Ô tô', color: 'volcano', icon: <CarOutlined /> },
+        'XE_DAP': { label: 'Xe đạp', color: 'green', icon: <FaBicycle /> },
+        'XE_DAP_DIEN': { label: 'Xe điện', color: 'orange', icon: <FaMotorcycle /> }
+    };
+
+    const COLOR_HEX_MAP = {
+        'Trắng': '#FFFFFF',
+        'Đen': '#000000',
+        'Xám': '#808080',
+        'Bạc': '#C0C0C0',
+        'Đỏ': '#FF0000',
+        'Xanh dương': '#0000FF',
+        'Xanh lá': '#008000',
+        'Vàng': '#FFFF00',
+        'Nâu': '#A52A2A',
     };
 
     const columns = [
         {
-            title: '#',
+            title: 'STT',
             dataIndex: "stt",
             key: "stt",
-            width: 60,
+            width: 80,
             align: 'center',
             sorter: (a, b) => a.stt - b.stt
         },
         {
             title: "Thông tin xe",
             key: "carInfo",
-            render: (_, record) => (
-                <Space direction="vertical" size={0}>
-                    <Space>
-                        <Avatar 
-                            size={32} 
-                            icon={<CarOutlined />}
-                            style={{ backgroundColor: '#1890ff' }}
-                        />
-                        <div>
-                            <Text strong>{record.code}</Text>
-                            <br />
-                            <Text type="secondary" style={{ fontSize: '12px' }}>
-                                {record.licensePlate}
-                            </Text>
-                        </div>
+            render: (_, record) => {
+                const typeInfo = CAR_TYPE_MAP[record.carType] || { icon: <CarOutlined />, color: '#1890ff' };
+                return (
+                    <Space direction="vertical" size={0}>
+                        <Space>
+                            <Avatar
+                                size={32}
+                                icon={typeInfo.icon}
+                                style={{ backgroundColor: typeInfo.color === 'volcano' ? '#f5222d' : (typeInfo.color === 'blue' ? '#1890ff' : (typeInfo.color === 'green' ? '#52c41a' : '#faad14')) }}
+                            />
+                            <div>
+                                <Text strong>{record.code}</Text>
+                                <br />
+                                <Text type="secondary" style={{ fontSize: '12px' }}>
+                                    {record.licensePlate}
+                                </Text>
+                            </div>
+                        </Space>
                     </Space>
-                </Space>
-            ),
+                );
+            },
             width: 150,
         },
         {
@@ -229,14 +244,17 @@ const GetAllCar = () => {
         },
         {
             title: "Loại xe",
-            dataIndex: "type",
-            key: "type",
-            render: (type) => (
-                <Tag color={getCarTypeColor(type)}>
-                    {type}
-                </Tag>
-            ),
-            sorter: (a, b) => a.type.localeCompare(b.type)
+            dataIndex: "carType",
+            key: "carType",
+            render: (carType) => {
+                const typeInfo = CAR_TYPE_MAP[carType] || { label: carType, color: 'default' };
+                return (
+                    <Tag color={typeInfo.color}>
+                        {typeInfo.label}
+                    </Tag>
+                );
+            },
+            sorter: (a, b) => (a.carType || '').localeCompare(b.carType || '')
         },
         {
             title: "Chi tiết",
@@ -247,18 +265,16 @@ const GetAllCar = () => {
                         <Text strong>Hãng: </Text>
                         <Text>{record.brandCar}</Text>
                     </div>
-                    <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <Text strong>Màu: </Text>
-                        <Tag 
-                            color={record.color.toLowerCase()} 
-                            style={{ 
-                                color: ['yellow', 'white', 'light'].some(c => 
-                                    record.color.toLowerCase().includes(c)
-                                ) ? '#000' : '#fff' 
-                            }}
-                        >
-                            {record.color}
-                        </Tag>
+                        <div style={{
+                            width: '14px',
+                            height: '14px',
+                            borderRadius: '50%',
+                            background: record.color?.startsWith('#') ? record.color : (COLOR_HEX_MAP[record.color] || '#d9d9d9'),
+                            border: '1px solid #d9d9d9'
+                        }} />
+                        <Text>{record.color?.startsWith('#') ? 'Màu tùy chọn' : record.color}</Text>
                     </div>
                 </div>
             ),
@@ -269,24 +285,22 @@ const GetAllCar = () => {
             fixed: 'right',
             width: 150,
             render: (_, record) => (
-                <Space size="small">
+                <Space size={4}>
                     <Tooltip title="Chỉnh sửa">
-                        <Button 
-                            type="primary" 
+                        <Button
+                            type="text"
                             size="small"
                             icon={<EditOutlined />}
                             onClick={() => editCar(record)}
-                            ghost
                         />
                     </Tooltip>
                     <Tooltip title="Xóa xe">
-                        <Button 
-                            type="primary" 
+                        <Button
+                            type="text"
                             size="small"
                             danger
                             icon={<DeleteOutlined />}
                             onClick={() => deleteCar(record)}
-                            ghost
                         />
                     </Tooltip>
                 </Space>
@@ -296,131 +310,98 @@ const GetAllCar = () => {
 
     const carStats = {
         total: dataCar.length,
-        motorcycle: dataCar.filter(car => car.type === 'Xe máy').length,
-        bicycle: dataCar.filter(car => car.type === 'Xe đạp').length,
-        car: dataCar.filter(car => car.type === 'Ô tô').length,
-        electric: dataCar.filter(car => car.type === 'Xe điện').length,
+        motorcycle: dataCar.filter(car => car.carType === 'XE_MAY').length,
+        bicycle: dataCar.filter(car => car.carType === 'XE_DAP').length,
+        car: dataCar.filter(car => car.carType === 'XE_O_TO').length,
+        electric: dataCar.filter(car => car.carType === 'XE_DAP_DIEN').length,
     };
 
     return (
-        <div style={{ 
-            padding: '24px', 
-            backgroundColor: '#f5f5f5',
-            minHeight: '100vh'
-        }}>
-            <Card 
-                style={{ 
-                    borderRadius: '12px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                }}
-            >
-                {/* Header */}
-                <div style={{ 
-                    textAlign: 'center', 
-                    marginBottom: '32px',
-                    padding: '20px 0'
-                }}>
-                    <Title level={2} style={{ 
-                        margin: 0, 
-                        color: '#1890ff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px'
-                    }}>
-                        <CarOutlined />
+        <div>
+            <div className="page-header">
+                <div>
+                    <Title level={4} style={{ margin: 0, fontWeight: 600 }}>
                         Quản lý xe phòng trọ
                     </Title>
-                    <Text type="secondary">
-                        Quản lý thông tin xe của khách thuê trọ
+                    <Text type="secondary" style={{ fontSize: '13px' }}>
+                        Danh sách và quản lý thông tin xe của khách thuê trọ
                     </Text>
                 </div>
+                <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={addCar}
+                >
+                    Thêm xe mới
+                </Button>
+            </div>
 
-                <Divider />
-
-                {/* Statistics */}
-                <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
-                    <Col xs={12} sm={6}>
-                        <Card size="small" style={{ textAlign: 'center', borderLeft: '4px solid #1890ff' }}>
-                            <Statistic 
-                                title="Tổng số xe" 
-                                value={carStats.total}
-                                valueStyle={{ color: '#1890ff', fontSize: '20px' }}
-                            />
-                        </Card>
-                    </Col>
-                    <Col xs={12} sm={6}>
-                        <Card size="small" style={{ textAlign: 'center', borderLeft: '4px solid #52c41a' }}>
-                            <Statistic 
-                                title="Xe máy" 
-                                value={carStats.motorcycle}
-                                valueStyle={{ color: '#52c41a', fontSize: '20px' }}
-                            />
-                        </Card>
-                    </Col>
-                    <Col xs={12} sm={6}>
-                        <Card size="small" style={{ textAlign: 'center', borderLeft: '4px solid #faad14' }}>
-                            <Statistic 
-                                title="Xe đạp" 
-                                value={carStats.bicycle}
-                                valueStyle={{ color: '#faad14', fontSize: '20px' }}
-                            />
-                        </Card>
-                    </Col>
-                    <Col xs={12} sm={6}>
-                        <Card size="small" style={{ textAlign: 'center', borderLeft: '4px solid #f5222d' }}>
-                            <Statistic 
-                                title="Ô tô" 
-                                value={carStats.car}
-                                valueStyle={{ color: '#f5222d', fontSize: '20px' }}
-                            />
-                        </Card>
-                    </Col>
-                </Row>
-
-                {/* Search and Actions */}
-                <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
-                    <Col xs={24} sm={12} md={16}>
-                        <Search
-                            placeholder="Tìm kiếm theo mã xe, biển số, phòng, khách hàng..."
-                            allowClear
-                            enterButton={
-                                <Button type="primary" icon={<SearchOutlined />}>
-                                    Tìm kiếm
-                                </Button>
-                            }
-                            size="large"
-                            onSearch={handleSearch}
-                            style={{ width: '100%' }}
+            <Row gutter={16} className="stat-row">
+                <Col xs={12} sm={6}>
+                    <Card size="small">
+                        <Statistic
+                            title="Tổng số xe"
+                            value={carStats.total}
+                            prefix={<CarOutlined style={{ color: '#1890ff' }} />}
                         />
-                    </Col>
-                    <Col xs={24} sm={12} md={8}>
-                        <Space style={{ width: '100%' }}>
-                            <Button 
-                                icon={<ReloadOutlined />}
-                                size="large"
-                                onClick={() => window.location.reload()}
-                                style={{ borderRadius: '8px' }}
-                            >
-                                Làm mới
-                            </Button>
-                            <Button 
-                                type="primary"
-                                size="large"
-                                icon={<PlusOutlined />}
-                                onClick={addCar}
-                                style={{
-                                    borderRadius: '8px',
-                                    fontWeight: 'bold'
-                                }}
-                            >
-                                Thêm xe mới
-                            </Button>
-                        </Space>
-                    </Col>
-                </Row>
+                    </Card>
+                </Col>
+                <Col xs={12} sm={6}>
+                    <Card size="small">
+                        <Statistic
+                            title="Xe máy"
+                            value={carStats.motorcycle}
+                            prefix={<CarOutlined style={{ color: '#52c41a' }} />}
+                        />
+                    </Card>
+                </Col>
+                <Col xs={12} sm={6}>
+                    <Card size="small">
+                        <Statistic
+                            title="Xe đạp"
+                            value={carStats.bicycle}
+                            prefix={<CarOutlined style={{ color: '#faad14' }} />}
+                        />
+                    </Card>
+                </Col>
+                <Col xs={12} sm={6}>
+                    <Card size="small">
+                        <Statistic
+                            title="Ô tô"
+                            value={carStats.car}
+                            prefix={<CarOutlined style={{ color: '#f5222d' }} />}
+                        />
+                    </Card>
+                </Col>
+            </Row>
 
-                {/* Table */}
+            <Card size="small" style={{ marginBottom: 16 }}>
+                <div className="filter-bar">
+                    <Input
+                        placeholder="Tìm kiếm..."
+                        prefix={<SearchOutlined style={{ color: '#9ca3af' }} />}
+                        allowClear
+                        value={keyWord}
+                        onChange={(e) => handleSearch(e.target.value)}
+                        onPressEnter={() => handleSearch(keyWord)}
+                        style={{ width: 240 }}
+                    />
+                    <Button icon={<SearchOutlined />} onClick={() => handleSearch(keyWord)}>
+                        Tìm
+                    </Button>
+                    <Button
+                        icon={<ReloadOutlined />}
+                        onClick={() => {
+                            setKeyWord('');
+                            setFilterData(mapCarData(dataCar, dataRoom, dataCustomer));
+                        }}
+                    >
+                        Làm mới
+                    </Button>
+                </div>
+            </Card>
+
+            <Card size="small">
                 <Table
                     columns={columns}
                     dataSource={filterData}
@@ -434,30 +415,11 @@ const GetAllCar = () => {
                     }}
                     scroll={{ x: 1200 }}
                     rowKey="id"
-                    style={{
-                        backgroundColor: 'white',
-                        borderRadius: '8px'
-                    }}
-                    rowClassName={(record, index) => 
-                        index % 2 === 0 ? 'table-row-light' : 'table-row-dark'
-                    }
+                    size="middle"
                 />
             </Card>
 
-            {/* Custom CSS */}
             <style jsx>{`
-                .table-row-light {
-                    background-color: #fafafa;
-                }
-                .table-row-dark {
-                    background-color: white;
-                }
-                .ant-table-tbody > tr > td {
-                    border-bottom: 1px solid #f0f0f0;
-                }
-                .ant-table-tbody > tr:hover > td {
-                    background: #e6f7ff !important;
-                }
                 .ant-statistic-content-value {
                     font-weight: bold;
                 }

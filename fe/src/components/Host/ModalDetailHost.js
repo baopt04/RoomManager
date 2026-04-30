@@ -1,30 +1,29 @@
-import React , {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import { Modal, Form, Input, Button, Radio } from "antd";
 import HostService from "../../services/HostService";
-import { message } from "antd";
 const ModalDetailHost = ({ visible, onClose, hostId }) => {
-const [form] = Form.useForm();
-const [loading, setLoading] = useState(false);
-const [hostData , setHostData] = useState(null);
-const token = localStorage.getItem("token");
+  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
+  const [hostData, setHostData] = useState(null);
+  const token = localStorage.getItem("token");
 
-     useEffect(() => {
-        const fetchHostData = async () => {
-            try {
-                const data = await HostService.detailHost(token, hostId);
-                setHostData(data); 
-                form.setFieldsValue(data); 
-            } catch (error) {
-                console.error("Lỗi khi lấy thông tin chủ nhà:", error);
-            }
-        };
-        if (hostId) {
-            fetchHostData();
-        }
-    }, [hostId , form , token]); 
-   
+  useEffect(() => {
+    const fetchHostData = async () => {
+      try {
+        const data = await HostService.detailHost(token, hostId);
+        setHostData(data);
+        form.setFieldsValue(data);
+      } catch (error) {
+        console.error("Lỗi khi lấy thông tin chủ nhà:", error);
+      }
+    };
+    if (hostId) {
+      fetchHostData();
+    }
+  }, [hostId, form, token]);
 
-return (
+
+  return (
     <Modal
       title="Chi tiết thông tin chủ nhà"
       visible={visible}
@@ -52,7 +51,7 @@ return (
             { type: "email", message: "Vui lòng nhập đúng định dạng email!" },
           ]}
         >
-          <Input placeholder="Nhập email" disabled/>
+          <Input placeholder="Nhập email" disabled />
         </Form.Item>
 
         <Form.Item
@@ -60,7 +59,7 @@ return (
           name="numberPhone"
           rules={[{ required: true, message: "Vui lòng nhập số điện thoại!" }]}
         >
-          <Input placeholder="Nhập số điện thoại" disabled/>
+          <Input placeholder="Nhập số điện thoại" disabled />
         </Form.Item>
 
         <Form.Item
@@ -81,7 +80,7 @@ return (
             disabled={loading}
             type="primary"
           >
-          Quay lại
+            Quay lại
           </Button>
         </Form.Item>
       </Form>

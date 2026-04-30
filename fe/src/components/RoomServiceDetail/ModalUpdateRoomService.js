@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Form, Input, Button, Radio, Select, InputNumber } from "antd";
 import { message } from "antd";
-import HostService from "../../services/HostService";
-import HouseForRentService from "../../services/HouseForRentService";
 import Services from "../../services/Services";
 import RoomServiceDetail from "../../services/RoomServiceDetail";
 import RoomService from "../../services/RoomService";
-const { Option } = Select; // Import Option from Select
+const { Option } = Select;
 const ModalUpdateRoomService = ({ visible, onClose, serviceId }) => {
     const token = localStorage.getItem("token");
     const [form] = Form.useForm();
@@ -47,7 +45,6 @@ const ModalUpdateRoomService = ({ visible, onClose, serviceId }) => {
             try {
                 const response = await RoomService.getAllRooms(token);
                 setDataRoom(response)
-                console.log("Response data:", response);
             }
             catch (error) {
                 console.error("Failed to fetch room data:", error);
@@ -64,11 +61,9 @@ const ModalUpdateRoomService = ({ visible, onClose, serviceId }) => {
                 room: { id: values.room }
             }
             await RoomServiceDetail.updateRoomServiceDetail(token, serviceId, values);
-            window.location.reload();
             message.success("Cập nhật dịch vụ thành công!");
             onClose();
         } catch (error) {
-            console.log("Error in catch:", error);
             if (error.response && error.response.data) {
                 const messageError = error.response.data?.message;
                 if (messageError) {
@@ -96,7 +91,7 @@ const ModalUpdateRoomService = ({ visible, onClose, serviceId }) => {
                 layout="vertical"
                 onFinish={handleUpdateService}
             >
-               
+
                 <Form.Item
                     label="Tên phòng trọ"
                     name="room"
@@ -110,7 +105,7 @@ const ModalUpdateRoomService = ({ visible, onClose, serviceId }) => {
                         ))}
                     </Select>
                 </Form.Item>
- <Form.Item
+                <Form.Item
                     label="Tên dịch vụ"
                     name="service"
                     rules={[{ required: true, message: "Vui lòng chọn tên dịch vụ" }]}

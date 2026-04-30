@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 public interface RoomDetailProjection {
     String getRoomId();
     String getRoomName();
+    String getRoomSlug();
     BigDecimal getRoomPrice();
 
     Integer getTotalElectricUsage();

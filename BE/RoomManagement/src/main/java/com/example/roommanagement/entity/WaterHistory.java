@@ -28,7 +28,7 @@ public class WaterHistory extends BaseEntity {
     private BigDecimal numberLast;
 
     @Column(name = "used_number", precision = 10, scale = 2, insertable = false, updatable = false)
-    private BigDecimal usedNumber; // Generated column in DB
+    private BigDecimal usedNumber;
 
     @Column(name = "unit_price", nullable = false, precision = 10, scale = 2)
     private BigDecimal unitPrice;

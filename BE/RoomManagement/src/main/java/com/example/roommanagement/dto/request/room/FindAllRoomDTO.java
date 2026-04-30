@@ -15,6 +15,7 @@ public class FindAllRoomDTO {
     private String id;
     private String code;
     private String name;
+    private String slug;
     private BigDecimal price;
     private String acreage;
     private Integer peopleMax;

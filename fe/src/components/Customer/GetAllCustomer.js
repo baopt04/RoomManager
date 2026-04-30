@@ -1,30 +1,27 @@
 import React, { useEffect, useState } from "react";
-import { 
-    Table, 
-    Input, 
-    Button, 
-    Space, 
-    Card, 
-    Tag, 
+import {
+    Table,
+    Input,
+    Button,
+    Space,
+    Card,
+    Tag,
     Tooltip,
     Row,
     Col,
     Typography,
-    Divider,
-    Badge,
     Statistic,
     Avatar
 } from "antd";
-import { 
-    SearchOutlined, 
-    PlusOutlined, 
-    EditOutlined, 
-    ReloadOutlined, 
+import {
+    SearchOutlined,
+    PlusOutlined,
+    EditOutlined,
+    ReloadOutlined,
     HomeOutlined,
     UserOutlined,
     PhoneOutlined,
     IdcardOutlined,
-    CalendarOutlined,
     TeamOutlined,
     CheckCircleOutlined,
     StopOutlined
@@ -37,7 +34,6 @@ import { useNavigate } from "react-router-dom";
 const { Title, Text } = Typography;
 
 const GetAllCustomer = () => {
-    // States
     const [dataCustomer, setDataCustomer] = useState([]);
     const token = localStorage.getItem("token");
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -49,37 +45,34 @@ const GetAllCustomer = () => {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    // Fetch customers
-    useEffect(() => {
-        const fetchCustomer = async () => {
-            setLoading(true);
-            try {
-                const response = await CustomerService.getAllCustomers(token);
-                const mappedData = response.map((item, index) => ({
-                    ...item,
-                    key: item.id,
-                    stt: index + 1
-                }));
-                setDataCustomer(mappedData);
-                setFilterData(mappedData);
-                setOriginalData(mappedData);
-            } catch (error) {
-                console.error("Failed to fetch customers:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const fetchCustomer = async () => {
+        setLoading(true);
+        try {
+            const response = await CustomerService.getAllCustomers(token);
+            const mappedData = response.map((item, index) => ({
+                ...item,
+                key: item.id,
+                stt: index + 1
+            }));
+            setDataCustomer(mappedData);
+            setFilterData(mappedData);
+            setOriginalData(mappedData);
+        } catch (error) {
+            console.error("Failed to fetch customers:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchCustomer();
     }, [token]);
 
-    // Search functionality
     const searchCustomer = () => {
         if (!keyWord.trim()) {
             setFilterData(originalData);
             return;
         }
-        
         const filter = originalData.filter((item) =>
             Object.values(item).some((value) =>
                 value?.toString().trim().toLowerCase().includes(keyWord.toLowerCase())
@@ -88,13 +81,11 @@ const GetAllCustomer = () => {
         setFilterData(filter);
     };
 
-    // Reset search
     const resetSearch = () => {
         setKeyWord("");
         setFilterData(originalData);
     };
 
-    // Modal handlers
     const handleAdd = () => {
         setIsModalVisible(true);
     };
@@ -104,16 +95,14 @@ const GetAllCustomer = () => {
         setIsModalUpdate(true);
     };
 
-    // Navigate to room management
     const changeSearchRoom = (customerId) => {
         navigate('/room-management');
         localStorage.setItem("search", true);
         localStorage.setItem("customerIdSearch", customerId);
     };
 
-    // Format date
     const formatDate = (dateString) => {
-        if (!dateString) return "Chưa có ngày sinh";
+        if (!dateString) return "—";
         const date = new Date(dateString);
         return new Intl.DateTimeFormat('vi-VN', {
             day: "2-digit",
@@ -122,35 +111,6 @@ const GetAllCustomer = () => {
         }).format(date);
     };
 
-    // Render status
-    const renderStatus = (status) => {
-        return status === 'DANG_HOAT_DONG' ? (
-            <Tag color="success" icon={<CheckCircleOutlined />}>
-                Đang hoạt động
-            </Tag>
-        ) : (
-            <Tag color="error" icon={<StopOutlined />}>
-                Ngừng hoạt động
-            </Tag>
-        );
-    };
-
-    // Render gender
-    const renderGender = (gender) => {
-        return gender === true ? (
-            <Tag color="blue">Nam</Tag>
-        ) : (
-            <Tag color="pink">Nữ</Tag>
-        );
-    };
-
-    // Calculate statistics
-    const activeCustomers = filterData.filter(customer => customer.status === 'DANG_HOAT_DONG').length;
-    const inactiveCustomers = filterData.length - activeCustomers;
-    const maleCustomers = filterData.filter(customer => customer.gender === true).length;
-    const femaleCustomers = filterData.length - maleCustomers;
-
-    // Age calculation
     const calculateAge = (dateOfBirth) => {
         if (!dateOfBirth) return 0;
         const today = new Date();
@@ -163,16 +123,15 @@ const GetAllCustomer = () => {
         return age;
     };
 
-    const averageAge = filterData.length > 0 ? 
-        Math.round(filterData.reduce((sum, customer) => sum + calculateAge(customer.dateOfBirth), 0) / filterData.length) : 0;
+    const activeCustomers = filterData.filter(customer => customer.status === 'DANG_HOAT_DONG').length;
+    const inactiveCustomers = filterData.length - activeCustomers;
 
-    // Table columns
     const columns = [
         {
             title: "STT",
             dataIndex: "stt",
             key: "stt",
-            width: 60,
+            width: 50,
             align: "center",
             sorter: (a, b) => a.stt - b.stt
         },
@@ -180,50 +139,36 @@ const GetAllCustomer = () => {
             title: "Mã KH",
             dataIndex: "code",
             key: "code",
-            width: 100,
+            width: 150,
             sorter: (a, b) => a.code.localeCompare(b.code),
-            render: (code) => <Text strong>{code}</Text>
+            render: (code) => <Text style={{ fontSize: '13px' }}>{code}</Text>
         },
         {
-            title: "Thông tin cá nhân",
+            title: "Khách hàng",
             key: "personalInfo",
-            width: 200,
+            width: 250,
             render: (_, record) => (
-                <div>
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
-                        <Avatar 
-                            size="small" 
-                            icon={<UserOutlined />} 
-                            style={{ 
-                                backgroundColor: record.gender ? '#1890ff' : '#eb2f96',
-                                marginRight: 8 
-                            }}
-                        />
-                        <Text strong>{record.name}</Text>
+                <Space>
+                    <Avatar
+                        size={28}
+                        icon={<UserOutlined />}
+                        style={{ background: record.gender ? '#1677ff' : '#eb2f96' }}
+                    />
+                    <div>
+                        <div style={{ fontWeight: 500, fontSize: '13px' }}>{record.name}</div>
+                        <Text type="secondary" style={{ fontSize: '12px' }}>{record.numberPhone}</Text>
                     </div>
-                    <div style={{ fontSize: '12px', color: '#666' }}>
-                        <PhoneOutlined style={{ marginRight: 4 }} />
-                        {record.numberPhone}
-                    </div>
-                </div>
+                </Space>
             )
         },
         {
             title: "Ngày sinh",
             dataIndex: "dateOfBirth",
             key: "dateOfBirth",
-            width: 120,
-            align: "center",
+            width: 110,
             sorter: (a, b) => new Date(a.dateOfBirth) - new Date(b.dateOfBirth),
             render: (dateOfBirth) => (
-                <div>
-                    <div>{formatDate(dateOfBirth)}</div>
-                    {dateOfBirth && (
-                        <Text type="secondary" style={{ fontSize: '12px' }}>
-                            ({calculateAge(dateOfBirth)} tuổi)
-                        </Text>
-                    )}
-                </div>
+                <Text style={{ fontSize: '13px' }}>{formatDate(dateOfBirth)}</Text>
             )
         },
         {
@@ -231,31 +176,22 @@ const GetAllCustomer = () => {
             dataIndex: "cccd",
             key: "cccd",
             width: 130,
-            sorter: (a, b) => a.cccd.localeCompare(b.cccd),
-            render: (cccd) => (
-                <Text code>
-                    <IdcardOutlined style={{ marginRight: 4 }} />
-                    {cccd}
-                </Text>
-            )
+            render: (cccd) => <Text style={{ fontSize: '13px' }}>{cccd}</Text>
         },
         {
             title: "Giới tính",
             dataIndex: "gender",
             key: "gender",
-            width: 90,
+            width: 85,
             align: "center",
             filters: [
                 { text: "Nam", value: true },
                 { text: "Nữ", value: false }
             ],
             onFilter: (value, record) => record.gender === value,
-            sorter: (a, b) => {
-                const genderA = a.gender === true ? 'Nam' : 'Nữ';
-                const genderB = b.gender === true ? 'Nam' : 'Nữ';
-                return genderA.localeCompare(genderB);
-            },
-            render: renderGender
+            render: (gender) => (
+                <Tag color={gender ? "blue" : "pink"}>{gender ? "Nam" : "Nữ"}</Tag>
+            )
         },
         {
             title: "Trạng thái",
@@ -268,38 +204,24 @@ const GetAllCustomer = () => {
                 { text: "Ngừng hoạt động", value: "NGUNG_HOAT_DONG" }
             ],
             onFilter: (value, record) => record.status === value,
-            render: renderStatus
+            render: (status) => (
+                <Tag color={status === 'DANG_HOAT_DONG' ? "green" : "default"}>
+                    {status === 'DANG_HOAT_DONG' ? 'Hoạt động' : 'Ngừng HĐ'}
+                </Tag>
+            )
         },
         {
-            title: "Thao tác",
+            title: "Hành động",
             key: "action",
-            width: 160,
-            fixed: "right",
+            width: 120,
             render: (_, record) => (
-                <Space size="small">
-                    <Tooltip title="Chỉnh sửa">
-                        <Button
-                            type="primary"
-                            icon={<EditOutlined />}
-                            size="small"
-                            onClick={() => handleEdit(record.id)}
-                        />
+                <Space size={4}>
+                    <Tooltip title="Sửa">
+                        <Button type="text" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record.id)} />
                     </Tooltip>
                     {record.status === "DANG_HOAT_DONG" && (
-                        <Tooltip title="Xem phòng thuê">
-                            <Button
-                                type="default"
-                                icon={<HomeOutlined />}
-                                size="small"
-                                style={{ 
-                                    backgroundColor: '#52c41a', 
-                                    borderColor: '#52c41a', 
-                                    color: 'white' 
-                                }}
-                                onClick={() => changeSearchRoom(record.id)}
-                            >
-                                Phòng
-                            </Button>
+                        <Tooltip title="Xem phòng">
+                            <Button type="text" size="small" icon={<HomeOutlined />} onClick={() => changeSearchRoom(record.id)} />
                         </Tooltip>
                     )}
                 </Space>
@@ -308,121 +230,51 @@ const GetAllCustomer = () => {
     ];
 
     return (
-        <div style={{ padding: "24px", backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
-            {/* Header */}
-            <Card style={{ marginBottom: "24px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-                <Title level={2} style={{ textAlign: "center", margin: 0, color: "#1890ff" }}>
-                    <TeamOutlined style={{ marginRight: "8px" }} />
-                    Danh sách khách hàng
-                </Title>
-            </Card>
+        <div>
+            <div className="page-header">
+                <div>
+                    <Title level={4} style={{ margin: 0, fontWeight: 600 }}>Quản lý khách hàng</Title>
+                    <Text type="secondary" style={{ fontSize: '13px' }}>Danh sách khách hàng trong hệ thống</Text>
+                </div>
+                <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>Thêm khách hàng</Button>
+            </div>
 
-            {/* Statistics */}
-            <Row gutter={[16, 16]} style={{ marginBottom: "24px" }}>
-                <Col xs={12} sm={6}>
-                    <Card>
-                        <Statistic
-                            title="Tổng khách hàng"
-                            value={filterData.length}
-                            valueStyle={{ color: '#1890ff' }}
-                            prefix={<TeamOutlined />}
-                        />
+            <Row gutter={16} className="stat-row">
+                <Col xs={24} sm={8}>
+                    <Card size="small">
+                        <Statistic title="Tổng khách hàng" value={filterData.length} prefix={<TeamOutlined style={{ color: '#1677ff' }} />} />
                     </Card>
                 </Col>
-                <Col xs={12} sm={6}>
-                    <Card>
-                        <Statistic
-                            title="Đang hoạt động"
-                            value={activeCustomers}
-                            valueStyle={{ color: '#3f8600' }}
-                            suffix={`/ ${filterData.length}`}
-                            prefix={<CheckCircleOutlined />}
-                        />
+                <Col xs={24} sm={8}>
+                    <Card size="small">
+                        <Statistic title="Đang hoạt động" value={activeCustomers} prefix={<CheckCircleOutlined style={{ color: '#52c41a' }} />} />
                     </Card>
                 </Col>
-                <Col xs={12} sm={6}>
-                    <Card>
-                        <Statistic
-                            title="Tuổi trung bình"
-                            value={averageAge}
-                            valueStyle={{ color: '#722ed1' }}
-                            suffix="tuổi"
-                            prefix={<CalendarOutlined />}
-                        />
-                    </Card>
-                </Col>
-                <Col xs={12} sm={6}>
-                    <Card>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <Statistic
-                                title="Nam/Nữ"
-                                value={maleCustomers}
-                                valueStyle={{ color: '#1890ff', fontSize: '16px' }}
-                                suffix={`/${femaleCustomers}`}
-                            />
-                        </div>
+                <Col xs={24} sm={8}>
+                    <Card size="small">
+                        <Statistic title="Ngừng hoạt động" value={inactiveCustomers} prefix={<StopOutlined style={{ color: '#ff4d4f' }} />} />
                     </Card>
                 </Col>
             </Row>
 
-            {/* Search and Actions */}
-            <Card style={{ marginBottom: "24px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-                <Row gutter={[16, 16]} align="middle">
-                    <Col xs={24} md={12} lg={10}>
-                        <Space.Compact style={{ width: "100%" }}>
-                            <Input
-                                placeholder="Tìm kiếm khách hàng..."
-                                value={keyWord}
-                                onChange={(e) => setKeyWord(e.target.value)}
-                                onPressEnter={searchCustomer}
-                                prefix={<SearchOutlined />}
-                            />
-                            <Button 
-                                type="primary" 
-                                icon={<SearchOutlined />}
-                                onClick={searchCustomer}
-                            >
-                                Tìm
-                            </Button>
-                            <Button 
-                                icon={<ReloadOutlined />}
-                                onClick={resetSearch}
-                                title="Reset"
-                            />
-                        </Space.Compact>
-                    </Col>
-                    <Col xs={24} md={12} lg={14}>
-                        <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                            <Button
-                                type="primary"
-                                icon={<PlusOutlined />}
-                                size="large"
-                                onClick={handleAdd}
-                                style={{ 
-                                    background: "linear-gradient(135deg, #1890ff 0%, #096dd9 100%)",
-                                    border: "none",
-                                    boxShadow: "0 4px 12px rgba(24, 144, 255, 0.3)"
-                                }}
-                            >
-                                Thêm khách hàng
-                            </Button>
-                        </div>
-                    </Col>
-                </Row>
-
-                <Divider style={{ margin: "16px 0" }} />
-                
-                <Row gutter={[16, 16]}>
-                    <Col>
-                        <Text type="secondary">
-                            Hiển thị: <Text strong>{filterData.length}</Text> khách hàng
-                        </Text>
-                    </Col>
-                </Row>
+            {/* Filter */}
+            <Card size="small" style={{ marginBottom: 16 }}>
+                <div className="filter-bar">
+                    <Input
+                        placeholder="Tìm kiếm khách hàng..."
+                        value={keyWord}
+                        onChange={(e) => setKeyWord(e.target.value)}
+                        onPressEnter={searchCustomer}
+                        prefix={<SearchOutlined style={{ color: '#9ca3af' }} />}
+                        style={{ width: 280 }}
+                        allowClear
+                    />
+                    <Button icon={<SearchOutlined />} onClick={searchCustomer}>Tìm</Button>
+                    <Button icon={<ReloadOutlined />} onClick={resetSearch}>Làm mới</Button>
+                </div>
             </Card>
 
-            {/* Table */}
-            <Card style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+            <Card size="small">
                 <Table
                     columns={columns}
                     dataSource={filterData}
@@ -430,12 +282,9 @@ const GetAllCustomer = () => {
                     pagination={{
                         pageSize: 10,
                         showSizeChanger: true,
-                        showQuickJumper: true,
-                        showTotal: (total, range) => 
-                            `${range[0]}-${range[1]} của ${total} khách hàng`,
+                        showTotal: (total) => `${total} khách hàng`,
                     }}
                     scroll={{ x: 1000 }}
-                    bordered
                     size="middle"
                     rowKey="id"
                 />
@@ -445,11 +294,13 @@ const GetAllCustomer = () => {
             <ModalCreateCustomer
                 visible={isModalVisible}
                 onClose={() => setIsModalVisible(false)}
+                onSuccess={fetchCustomer}
             />
             <ModalUpdateCustomer
                 visible={isModalUpdate}
                 onClose={() => setIsModalUpdate(false)}
                 id={selectId}
+                onSuccess={fetchCustomer}
             />
         </div>
     );

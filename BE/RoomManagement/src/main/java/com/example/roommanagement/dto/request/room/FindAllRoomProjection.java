@@ -10,6 +10,7 @@ public interface FindAllRoomProjection {
     String getCode();
 
     String getName();
+    String getSlug();
 
     BigDecimal getPrice();
 

@@ -28,13 +28,13 @@ public class ElectricityHistory extends BaseEntity {
     private BigDecimal numberLast;
 
     @Column(name = "used_number", precision = 10, scale = 2, insertable = false, updatable = false)
-    private BigDecimal usedNumber; // Generated column in DB
+    private BigDecimal usedNumber;
 
     @Column(name = "unit_price", nullable = false, precision = 10, scale = 2)
     private BigDecimal unitPrice;
 
     @Column(name = "total_price")
-    private BigDecimal totalPrice; // Generated column in DB
+    private BigDecimal totalPrice;
 
     @Column(nullable = false)
     private int month;

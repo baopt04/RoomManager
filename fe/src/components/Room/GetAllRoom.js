@@ -11,7 +11,6 @@ import {
     Col,
     Statistic,
     Tooltip,
-    Divider,
     Select
 } from "antd";
 import {
@@ -49,6 +48,7 @@ const GetAllRoom = () => {
     const [roomRenting, setRoomRenting] = useState(0);
     const [isModalDetail, setIsModalDetail] = useState(false);
     const [selectIdRoom, setSelectIdRoom] = useState(null);
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
     useEffect(() => {
         fetchRoomData();
@@ -56,6 +56,12 @@ const GetAllRoom = () => {
         fetchCustomer();
         fetchRoomStatus();
     }, [token]);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 768);
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
 
     const fetchRoomData = async () => {
         try {
@@ -140,10 +146,10 @@ const GetAllRoom = () => {
 
     const columns = [
         {
-            title: "#",
+            title: "STT",
             dataIndex: "stt",
             align: "center",
-            width: 60,
+            width: 50,
             render: (_, __, index) => index + 1
         },
         {
@@ -176,10 +182,7 @@ const GetAllRoom = () => {
             title: "Trạng thái",
             dataIndex: "status",
             render: (status) => (
-                <Tag
-                    color={status === "DANG_CHO_THUE" ? "green" : "red"}
-                    style={{ fontWeight: "bold" }}
-                >
+                <Tag color={status === "DANG_CHO_THUE" ? "green" : "default"}>
                     {status === "DANG_CHO_THUE" ? "Đang cho thuê" : "Trống"}
                 </Tag>
             )
@@ -189,35 +192,36 @@ const GetAllRoom = () => {
             dataIndex: "houseForRent",
             render: (id) => {
                 const house = dataHouseForRent.find((h) => h.id === id)?.name;
-                return house || "Chưa có nhà thuê";
+                return house || <Text type="secondary">—</Text>;
             }
         },
         {
             title: "Hành động",
             key: "actions",
+            width: 140,
             render: (_, record) => (
-                <Space>
-                    <Tooltip title="Sửa phòng">
+                <Space size={4}>
+                    <Tooltip title="Sửa">
                         <Button
-                            type="primary"
+                            type="text"
                             size="small"
                             icon={<EditOutlined />}
                             onClick={() => handleUpdate(record)}
                         />
                     </Tooltip>
-                    <Tooltip title="Xem chi tiết">
+                    <Tooltip title="Chi tiết">
                         <Button
+                            type="text"
                             size="small"
-                            style={{ backgroundColor: "#fa8c16", color: "white" }}
                             icon={<EyeFilled />}
                             onClick={() => detailRoom(record)}
                         />
                     </Tooltip>
                     <Tooltip title="Lịch sử">
                         <Button
+                            type="text"
                             size="small"
-                            style={{ backgroundColor: "#722ed1", color: "white" }}
-                            icon={<EyeFilled />}
+                            icon={<EyeFilled style={{ color: '#8b5cf6' }} />}
                             onClick={() => detailRoomHistory(record.id)}
                         />
                     </Tooltip>
@@ -227,58 +231,68 @@ const GetAllRoom = () => {
     ];
 
     return (
-        <div style={{ padding: "24px", backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
-            <Card style={{ borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
-                {/* Header */}
-                <div style={{ textAlign: "center", marginBottom: "32px" }}>
-                    <Title level={2} style={{ color: "#1890ff" }}>
-                        <ApartmentOutlined /> Quản lý phòng trọ
+        <div>
+            {/* Page Header */}
+            <div className="page-header">
+                <div>
+                    <Title level={4} style={{ margin: 0, fontWeight: 600 }}>
+                        Quản lý phòng trọ
                     </Title>
-                    <Text type="secondary">Danh sách và quản lý thông tin phòng trọ</Text>
+                    <Text type="secondary" style={{ fontSize: '13px' }}>
+                        Danh sách và quản lý thông tin phòng trọ
+                    </Text>
                 </div>
+                <Button type="primary" icon={<PlusOutlined />} onClick={handleAddRoom}>
+                    Thêm phòng
+                </Button>
+            </div>
 
-                <Divider />
+            {/* Statistics */}
+            <Row gutter={16} className="stat-row">
+                <Col xs={24} sm={8}>
+                    <Card size="small">
+                        <Statistic
+                            title="Tổng số phòng"
+                            value={roomEmpty + roomRenting}
+                            prefix={<HomeOutlined style={{ color: '#1677ff' }} />}
+                        />
+                    </Card>
+                </Col>
+                <Col xs={24} sm={8}>
+                    <Card size="small">
+                        <Statistic
+                            title="Phòng trống"
+                            value={roomEmpty}
+                            prefix={<ExclamationCircleOutlined style={{ color: '#ff4d4f' }} />}
+                        />
+                    </Card>
+                </Col>
+                <Col xs={24} sm={8}>
+                    <Card size="small">
+                        <Statistic
+                            title="Đang cho thuê"
+                            value={roomRenting}
+                            prefix={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
+                        />
+                    </Card>
+                </Col>
+            </Row>
 
-                {/* Statistics */}
-                <Row gutter={[16, 16]} style={{ marginBottom: "24px" }}>
-                    <Col xs={24} sm={8}>
-                        <Card size="small" style={{ textAlign: "center", borderLeft: "4px solid #1890ff" }}>
-                            <Statistic title="Tổng số phòng" value={roomEmpty + roomRenting} prefix={<HomeOutlined />} />
-                        </Card>
-                    </Col>
-                    <Col xs={24} sm={8}>
-                        <Card size="small" style={{ textAlign: "center", borderLeft: "4px solid #ff4d4f" }}>
-                            <Statistic title="Phòng trống" value={roomEmpty} prefix={<ExclamationCircleOutlined />} />
-                        </Card>
-                    </Col>
-                    <Col xs={24} sm={8}>
-                        <Card size="small" style={{ textAlign: "center", borderLeft: "4px solid #52c41a" }}>
-                            <Statistic title="Đang cho thuê" value={roomRenting} prefix={<CheckCircleOutlined />} />
-                        </Card>
-                    </Col>
-                </Row>
-
-                {/* Search & Filter */}
-                <Space style={{ marginBottom: 16 }}>
+            {/* Filters */}
+            <Card size="small" style={{ marginBottom: 16 }}>
+                <div className="filter-bar">
                     <Input
                         placeholder="Tìm kiếm..."
-                        prefix={<SearchOutlined />}
+                        prefix={<SearchOutlined style={{ color: '#9ca3af' }} />}
                         value={keyword}
                         onChange={(e) => setKeyword(e.target.value)}
-                        style={{ width: 250 }}
+                        onPressEnter={handleSearch}
+                        style={{ width: isMobile ? "100%" : 240 }}
+                        allowClear
                     />
-                    <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>
-                        Tìm kiếm
-                    </Button>
-                    <Button icon={<ReloadOutlined />} onClick={fetchRoomData}>
-                        Làm mới
-                    </Button>
-                </Space>
-
-                <Space style={{ marginBottom: 16 }}>
                     <Select
                         value={selectedHouseId}
-                        style={{ width: 200 }}
+                        style={{ width: isMobile ? "100%" : 180 }}
                         onChange={(value) => {
                             setSelectedHouseId(value);
                             searchHouseForRent(value, selectedCustomerId);
@@ -291,10 +305,9 @@ const GetAllRoom = () => {
                             </Option>
                         ))}
                     </Select>
-
                     <Select
                         value={selectedCustomerId}
-                        style={{ width: 200 }}
+                        style={{ width: isMobile ? "100%" : 180 }}
                         onChange={(value) => {
                             setSelectedCustomerId(value);
                             searchHouseForRent(selectedHouseId, value);
@@ -307,17 +320,25 @@ const GetAllRoom = () => {
                             </Option>
                         ))}
                     </Select>
-                </Space>
-
-                {/* Add Button */}
-                <div style={{ textAlign: "right", marginBottom: 16 }}>
-                    <Button type="primary" icon={<PlusOutlined />} onClick={handleAddRoom}>
-                        Thêm phòng mới
+                    <Button icon={<SearchOutlined />} onClick={handleSearch}>
+                        Tìm
+                    </Button>
+                    <Button icon={<ReloadOutlined />} onClick={fetchRoomData}>
+                        Làm mới
                     </Button>
                 </div>
+            </Card>
 
-                {/* Table */}
-                <Table columns={columns} dataSource={filterData} rowKey="id" pagination={{ pageSize: 10 }} />
+            {/* Table */}
+            <Card size="small">
+                <Table
+                    columns={columns}
+                    dataSource={filterData}
+                    rowKey="id"
+                    scroll={{ x: 1200 }}
+                    pagination={{ pageSize: 10, showSizeChanger: !isMobile, showTotal: (total) => `${total} phòng` }}
+                    size={isMobile ? "small" : "middle"}
+                />
             </Card>
 
             <ModalDetailRoomHistory

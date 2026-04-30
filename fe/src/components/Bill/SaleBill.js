@@ -1,15 +1,28 @@
 import React, { useEffect, useState } from "react";
-import { Tabs, Form, Input, Row, Col, Button, Typography, Divider, Select, Modal, DatePicker, message, Flex } from "antd";
+import {
+    Tabs, Form, Input, Row, Col, Button, Typography,
+    Divider, Select, Modal, DatePicker, message,
+    Flex, Card, Spin, Statistic, Space, Badge
+} from "antd";
+import {
+    SearchOutlined,
+    PlusOutlined,
+    HomeOutlined,
+    UserOutlined,
+    DollarCircleOutlined,
+    ThunderboltOutlined,
+    DashboardOutlined,
+    ToolOutlined,
+    SaveOutlined,
+    CalendarOutlined
+} from "@ant-design/icons";
 import RoomService from "../../services/RoomService";
 import CustomerService from "../../services/CustomerService";
-import ContractService from "../../services/ContractService";
 import SaleService from "../../services/SaleService";
-import { li } from "framer-motion/client";
-import { list } from "postcss";
-import { use } from "framer-motion/m";
 import dayjs from "dayjs";
 const { TabPane } = Tabs;
-const { Title } = Typography;
+const { Title, Text } = Typography;
+
 
 const SaleBill = () => {
     const [form] = Form.useForm();
@@ -29,24 +42,26 @@ const SaleBill = () => {
     const [totalPriceElectricUse, setTotalPriceElectricUse] = useState(0);
     const [totalPriceWaterUse, setTotalPriceWaterUse] = useState(0);
 
+    const [loadingSearch, setLoadingSearch] = useState(false);
     const [selectRoomId, setSelectRoomId] = useState(null);
     const [selectCustomerId, setSelectCustomerId] = useState(null);
     const [selectBillId, setSelectBillId] = useState(null);
     const [isHistory, setIsHistory] = useState(false);
 
-    //   useEffect(() => {
-    //     const fetchAllRoom = async () => {
-    //         try {
-    //             const rooms = await RoomService.getAllRooms(token);
-    //             setListRoom(rooms);
-    //             console.log("Check data room", rooms);
+    const fetchAllBill = async () => {
+        try {
+            const response = await SaleService.getAllBillNoCreateBill(token)
+            setListBill(response);
+            if (response && response.length > 0) {
+                const firstBillId = response[0].id.toString();
+                setSelectBillId(firstBillId);
+                form.setFieldsValue({ currentTab: firstBillId });
+            }
+        } catch (error) {
+            message.error("Lỗi khi lấy bill")
+        }
+    };
 
-    //         } catch (error) {
-    //             console.error("Failed to fetch rooms:", error);
-    //         }
-    //     }
-    //     fetchAllRoom();
-    //   } , [token]);
     useEffect(() => {
         const fetchAllCustomer = async () => {
             try {
@@ -59,59 +74,43 @@ const SaleBill = () => {
         fetchAllCustomer();
     }, [token]);
 
-
-
-    const handleSelectRoooms = async () => {
-        setModalVisible(true);
-    }
-
-
     useEffect(() => {
-        const fetchAllBill = async () => {
-            try {
-                const response = await SaleService.getAllBillNoCreateBill(token)
-                setListBill(response);
-                console.log("Check list bill", response);
-
-
-            } catch (error) {
-                message.error("Lỗi khi lấy bil")
-            }
-        }
         fetchAllBill();
-
-    }, [token])
+    }, [token, form])
 
     const searchRoomNoPayMent = async () => {
-        console.log("Check chạy");
         if (!selectDate) {
-            message.error("Vui lòng chọn ngày/năm cần tìm !")
+            return message.error("Vui lòng chọn ngày/năm cần tìm !")
         }
+
+        setLoadingSearch(true);
         const mother = selectDate.month() + 1;
         const year = selectDate.year();
-        console.log("Check mother", mother);
-        console.log("Check year", year);
-        try {
-            const response = await RoomService.getRoomNoPayMent(token, mother, year);
-            setListRoom(response);
-            console.log("Check list room lấy được", response);
-            setModalVisible(false);
-            message.success("Tìm phòng trọ thành công!")
-        } catch (error) {
-            message.error("Không lấy được dữ liệu")
-        }
 
-
-
+        setTimeout(async () => {
+            try {
+                const response = await RoomService.getRoomNoPayMent(token, mother, year);
+                setListRoom(response);
+                setModalVisible(false);
+                message.success("Tìm phòng trọ thành công!")
+            } catch (error) {
+                message.error("Không lấy được dữ liệu")
+            } finally {
+                setLoadingSearch(false);
+            }
+        }, 1000);
     }
+
     const getTotalPriceRoom = async (roomid) => {
         try {
             const response = await RoomService.getTotalPriceRoom(token, roomid);
-            console.log("Check tổng tiền room", response);
-            console.log("Check don gia tien diện ", response.electricUnitPrice);
+            const currentTab = form.getFieldValue("currentTab") || selectBillId;
 
-            const currentTab = form.getFieldValue("currentTab");
-            const tabKey = currentTab || (listBill[0]?.id?.toString() || "1");
+            if (!currentTab) {
+                message.error("Không xác định được hóa đơn hiện tại");
+                return;
+            }
+
             form.setFieldsValue({
                 [currentTab]: {
                     ...form.getFieldValue(currentTab),
@@ -143,23 +142,21 @@ const SaleBill = () => {
 
     const createBill = async () => {
         let id = '2b3ebae0-ea7d-40c7-b39e-9d15fd1d0159'
-        if (!id) { return message.error("No id create bill ") }
         if (listBill.length >= 10) {
             message.warning("Không thể tạo quá 10 hóa đơn")
             return;
-
         }
         try {
             await SaleService.createBill(token, id)
             message.success("Tạo hóa đơn thành công");
-            window.location.reload();
-
+            await fetchAllBill();
         } catch (error) {
             message.error("Lỗi khi tạo");
         }
     }
+
     const formatCurrency = (value) => {
-        if (isNaN(value)) return "0";
+        if (value === null || value === undefined || isNaN(value)) return "0 ₫";
         return Number(value).toLocaleString("vi-VN", { style: "currency", currency: "VND" });
     };
 
@@ -181,9 +178,6 @@ const SaleBill = () => {
         const note = values?.[currentTab]?.input10;
         if (dueDate) {
             forMatDueDate = dayjs(dueDate).format("DD/MM/YYYY");
-            console.log("Ngày format: ", forMatDueDate);
-        } else {
-            console.log("Chưa chọn ngày!");
         }
         Modal.confirm({
             title: "Xác nhận lưu hóa đơn",
@@ -206,171 +200,264 @@ const SaleBill = () => {
                     isHistory: isHistory
                 }
                 try {
-                    const response = await SaleService.saveBill(token, selectBillId, billData)
+                    await SaleService.saveBill(token, selectBillId, billData)
                     message.success("Tạo hóa đơn thành công")
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 2000);
+                    await fetchAllBill();
                 } catch (error) {
-                    message.error("Lỗi khi gửi data")
+                    message.error("Vui lòng điền đầy đủ thông tin và chọn phòng trọ")
                 }
             }
         })
-
     }
+
     return (
-        <div style={{ maxWidth: 1500, margin: "0 auto", padding: 24, background: "#fff", borderRadius: 8 }}>
-            <Title level={3} style={{ textAlign: "center" }}>Tạo hóa đơn thanh toán</Title>
+        <div style={{ maxWidth: 1400, margin: "0 auto", padding: "24px 0" }}>
+            <div style={{
+                marginBottom: 32,
+                padding: "0 24px",
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                width: '100%'
+            }}>
+                <div>
+                    <Title level={4} style={{ margin: 0, fontWeight: 600 }}>Tạo hóa đơn thanh toán</Title>
+                    <Text type="secondary">Lập hóa đơn và tính tiền phòng cho khách hàng</Text>
+                </div>
+                <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={createBill}
+                    size="large"
+                >
+                    Tạo hóa đơn mới
+                </Button>
+            </div>
+
             <Form
                 form={form}
                 layout="vertical"
                 onValuesChange={handleValuesChange}
-                initialValues={{ currentTab: "1" }}
             >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div>
-                        <Button type="primary" onClick={createBill}>Tạo hóa đơn</Button>
-                    </div>
-                    <div style={{ marginBottom: 16 }}>
-                        <span>Chọn tháng/năm :</span>
-                        <DatePicker
-                            picker="month"
-                            placeholder="Chọn tháng"
-                            style={{ marginLeft: 8, width: 200 }}
-                            onChange={(date) => setSelectDate(date)}
-                        ></DatePicker>
-                        <Button type="primary" style={{ marginLeft: 8 }} onClick={searchRoomNoPayMent}>
-                            Tìm Phòng
-                        </Button>
+                <Card size="small" style={{ margin: "0 24px 24px 24px", borderRadius: 12 }}>
+                    <Flex align="center" gap={16}>
+                        <div style={{ flex: 1 }}>
+                            <Text strong style={{ display: 'block', marginBottom: 4 }}>Kỳ thanh toán</Text>
+                            <DatePicker
+                                picker="month"
+                                placeholder="Chọn kỳ thanh toán"
+                                style={{ width: '100%' }}
+                                format="MM/YYYY"
+                                onChange={(date) => setSelectDate(date)}
+                                size="large"
+                            />
+                        </div>
+                        <div style={{ marginTop: 24 }}>
+                            <Button
+                                type="primary"
+                                icon={loadingSearch ? <Spin size="small" /> : <SearchOutlined />}
+                                onClick={searchRoomNoPayMent}
+                                size="large"
+                                loading={loadingSearch}
+                                style={{ minWidth: 140 }}
+                            >
+                                {loadingSearch ? "Đang tìm..." : "Tìm phòng trống"}
+                            </Button>
+                        </div>
+                    </Flex>
+                </Card>
 
-                    </div>
-
-                </div>
                 <Form.Item name="currentTab" hidden>
                     <Input />
                 </Form.Item>
-                <Tabs
-                    defaultActiveKey={listBill[0]?.id?.toString() || "1"}
-                    onChange={key => {
-                        form.setFieldsValue({ currentTab: key });
-                        setSelectBillId(key)
-                        console.log("Đã chuyển sang tab có key:", key);
-                    }}
-                >
 
-                    {listBill.map(bill => (
-                        <TabPane
-                            tab={bill.label || bill.name || `Hóa đơn ${bill.code}`}
-                            key={bill.id?.toString()}
-                        >
-                            <Row gutter={16}>
-                                <Col span={12}>
-                                    <Form.Item name={[bill.id?.toString(), "input1"]} label="Phòng trọ"
-                                        rules={[{ required: true, message: "Vui lòng chọn phòng trọ" }]}>
-                                        <Select
-                                            placeholder="Chọn phòng trọ"
-                                            style={{ width: "100%" }}
-                                            onChange={(value) => {
-                                                setSelectRoomId(value);
-                                                getTotalPriceRoom(value);
-                                            }}
-                                        >
-                                            {listRoom.map(room => (
-                                                <Select.Option key={room.id} value={room.id}>
-                                                    {room.name}
-                                                </Select.Option>
-                                            ))}
-                                        </Select>
-                                    </Form.Item>
-                                </Col>
-                                <Col span={12}>
-                                    <Form.Item name={[bill.id?.toString(), "input2"]} label="Tiền phòng trọ">
-                                        <Input placeholder="Nhập giá trị" />
-                                    </Form.Item>
-                                </Col>
-                                <Col span={12}>
-                                    <Form.Item name={[bill.id?.toString(), "input3"]} label="Số điện sử dụng">
-                                        <Input placeholder="Nhập giá trị" />
-                                    </Form.Item>
-                                </Col>
-                                <Col span={12}>
-                                    <Form.Item name={[bill.id?.toString(), "input4"]} label="Thành tiền">
-                                        <Input placeholder="Nhập giá trị" />
-                                    </Form.Item>
-                                </Col>
-                                <Col span={12}>
-                                    <Form.Item name={[bill.id?.toString(), "input5"]} label="Số nước sử dụng">
-                                        <Input placeholder="Nhập giá trị" />
-                                    </Form.Item>
-                                </Col>
-                                <Col span={12}>
-                                    <Form.Item name={[bill.id?.toString(), "input6"]} label="Thành tiền">
-                                        <Input placeholder="Nhập giá trị" />
-                                    </Form.Item>
-                                </Col>
-                                <Col span={12}>
-                                    <Form.Item name={[bill.id?.toString(), "input7"]} label="Tiền dịch vụ">
-                                        <Input placeholder="Nhập giá trị" />
-                                    </Form.Item>
-                                </Col>
-                                <Col span={12}>
-                                    <Form.Item name={[bill.id?.toString(), "input8"]} label="Khách hàng thanh toán"
-                                        rules={[{ required: true, message: "Vui lòng chọn khách hàng" }]}>
-                                        <Select placeholder="Chọn khách hàng" style={{ width: "100%" }}
-                                            onChange={(value) => {
-                                                setSelectCustomerId(value)
-                                                console.log("CHeck id customer", value);
+                <div style={{ padding: "0 24px" }}>
+                    <Tabs
+                        defaultActiveKey={listBill[0]?.id?.toString() || "1"}
+                        type="card"
+                        onChange={key => {
+                            form.setFieldsValue({ currentTab: key });
+                            setSelectBillId(key)
+                        }}
+                        style={{ marginBottom: 0 }}
+                    >
+                        {listBill.map(bill => (
+                            <TabPane
+                                tab={
+                                    <Badge dot={!!form.getFieldValue([bill.id?.toString(), "input1"])} offset={[5, 0]} status="error">
+                                        <Text strong>{bill.label || bill.name || `Hóa đơn ${bill.code}`}</Text>
+                                    </Badge>
+                                }
+                                key={bill.id?.toString()}
+                            >
+                                <Row gutter={24}>
+                                    <Col lg={16} md={24}>
+                                        <Card title="Chi tiết hóa đơn" variant="outlined" style={{ borderRadius: 12, height: '100%' }}>
+                                            <Row gutter={16}>
+                                                <Col span={12}>
+                                                    <Form.Item name={[bill.id?.toString(), "input1"]} label={<Space><HomeOutlined />Phòng trọ</Space>}
+                                                        rules={[{ required: true, message: "Vui lòng chọn phòng trọ" }]}>
+                                                        <Select
+                                                            placeholder="Chọn phòng trọ"
+                                                            size="large"
+                                                            onChange={(value) => {
+                                                                setSelectRoomId(value);
+                                                                getTotalPriceRoom(value);
+                                                            }}
+                                                        >
+                                                            {listRoom.map(room => (
+                                                                <Select.Option key={room.id} value={room.id}>
+                                                                    {room.name}
+                                                                </Select.Option>
+                                                            ))}
+                                                        </Select>
+                                                    </Form.Item>
+                                                </Col>
+                                                <Col span={12}>
+                                                    <Form.Item name={[bill.id?.toString(), "input8"]} label={<Space><UserOutlined />Khách hàng</Space>}
+                                                        rules={[{ required: true, message: "Vui lòng chọn khách hàng" }]}>
+                                                        <Select placeholder="Chọn khách hàng" size="large"
+                                                            onChange={(value) => setSelectCustomerId(value)}
+                                                        >
+                                                            {listCustomer.map(customer => (
+                                                                <Select.Option key={customer.id} value={customer.id}>
+                                                                    {customer.name}
+                                                                </Select.Option>
+                                                            ))}
+                                                        </Select>
+                                                    </Form.Item>
+                                                </Col>
 
-                                            }}
+                                                <Col span={24}><Divider style={{ margin: '12px 0' }} /></Col>
+
+                                                <Col span={8}>
+                                                    <Form.Item name={[bill.id?.toString(), "input2"]} label="Tiền phòng">
+                                                        <Input prefix={<DollarCircleOutlined style={{ color: '#52c41a' }} />} readOnly />
+                                                    </Form.Item>
+                                                </Col>
+                                                <Col span={8}>
+                                                    <Form.Item name={[bill.id?.toString(), "input3"]} label="Điện tiêu thụ">
+                                                        <Input prefix={<ThunderboltOutlined style={{ color: '#faad14' }} />} readOnly />
+                                                    </Form.Item>
+                                                </Col>
+                                                <Col span={8}>
+                                                    <Form.Item name={[bill.id?.toString(), "input4"]} label="Tiền điện">
+                                                        <Input prefix={<DollarCircleOutlined style={{ color: '#1890ff' }} />} readOnly />
+                                                    </Form.Item>
+                                                </Col>
+
+                                                <Col span={8}>
+                                                    <Form.Item name={[bill.id?.toString(), "input5"]} label="Nước tiêu thụ">
+                                                        <Input prefix={<DashboardOutlined style={{ color: '#1890ff' }} />} readOnly />
+                                                    </Form.Item>
+                                                </Col>
+                                                <Col span={8}>
+                                                    <Form.Item name={[bill.id?.toString(), "input6"]} label="Tiền nước">
+                                                        <Input prefix={<DollarCircleOutlined style={{ color: '#52c41a' }} />} readOnly />
+                                                    </Form.Item>
+                                                </Col>
+                                                <Col span={8}>
+                                                    <Form.Item name={[bill.id?.toString(), "input7"]} label="Tiền dịch vụ">
+                                                        <Input prefix={<ToolOutlined style={{ color: '#722ed1' }} />} readOnly />
+                                                    </Form.Item>
+                                                </Col>
+
+                                                <Col span={24}><Divider style={{ margin: '12px 0' }} /></Col>
+
+                                                <Col span={12}>
+                                                    <Form.Item name={[bill.id?.toString(), "input9"]} label={<Space><CalendarOutlined />Hạn thanh toán</Space>}>
+                                                        <DatePicker
+                                                            style={{ width: "100%" }}
+                                                            format="DD/MM/YYYY"
+                                                            placeholder="Chọn ngày hạn"
+                                                            size="large"
+                                                        />
+                                                    </Form.Item>
+                                                </Col>
+                                                <Col span={12}>
+                                                    <Form.Item name={[bill.id?.toString(), "input10"]} label="Ghi chú">
+                                                        <Input placeholder="Nhập ghi chú thêm..." size="large" />
+                                                    </Form.Item>
+                                                </Col>
+                                            </Row>
+                                        </Card>
+                                    </Col>
+
+                                    <Col lg={8} md={24}>
+                                        <Card
+                                            title="Tổng kết thanh toán"
+                                            variant="outlined"
+                                            style={{ borderRadius: 12, background: '#fafafa' }}
+                                            extra={<DollarCircleOutlined style={{ fontSize: 20, color: '#52c41a' }} />}
                                         >
-                                            {listCustomer.map(customer => (
-                                                <Select.Option key={customer.id} value={customer.id}>
-                                                    {customer.name}
-                                                </Select.Option>
-                                            ))}
-                                        </Select>
-                                    </Form.Item>
-                                </Col>
-                                <Col span={12}>
-                                    <Form.Item name={[bill.id?.toString(), "input9"]} label="Hạn thanh toán">
-                                        <DatePicker
-                                            style={{ width: "100%" }}
-                                            format="DD/MM/YYYY"
-                                            placeholder="Chọn hạn thanh toán tiền nhà"
-                                        />
-                                    </Form.Item>
-                                </Col>
-                                <Col span={12}>
-                                    <Form.Item name={[bill.id?.toString(), "input10"]} label="Ghi chú">
-                                        <Input placeholder="Nhập ghi chú" />
-                                    </Form.Item>
-                                </Col>
-                            </Row>
-                            <Divider />
-                            <div style={{ textAlign: "center", fontWeight: "bold", fontSize: 18 }}>
-                                Tổng tiền phòng: {formatCurrency(totalRoomPrice)} <span style={{ color: "red" }}>VND</span>
-                            </div>
-                            <div style={{ textAlign: "center", fontWeight: "bold", fontSize: 18 }}>
-                                Tổng tiền điện: {formatCurrency(totalPriceElectric)} <span style={{ color: "red" }}>VND</span>
-                            </div>
-                            <div style={{ textAlign: "center", fontWeight: "bold", fontSize: 18 }}>
-                                Tổng tiền nước: {formatCurrency(totalPriceWater)} <span style={{ color: "red" }}>VND</span>
-                            </div>
-                            <div style={{ textAlign: "center", fontWeight: "bold", fontSize: 18 }}>
-                                Tổng tiền dịch vụ: {formatCurrency(totalPriceSerivce)} <span style={{ color: "red" }}>VND</span>
-                            </div>
-                            <div style={{ textAlign: "center", fontWeight: "bold", fontSize: 18 }}>
-                                Tổng tiền cần thanh toán: {formatCurrency(totalPricePayMent)} <span style={{ color: "red" }}>VND</span>
-                            </div>
-                        </TabPane>
-                    ))}
-                </Tabs>
-                <div style={{ textAlign: "center", marginTop: 24 }}>
-                    <Button type="primary" htmlType="submit" onClick={saveBill}>Lưu hóa đơn</Button>
+                                            <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                                                <Statistic
+                                                    title="Tiền phòng"
+                                                    value={totalRoomPrice || 0}
+                                                    suffix="đ"
+                                                    valueStyle={{ fontSize: 16 }}
+                                                />
+                                                <Row gutter={16}>
+                                                    <Col span={12}>
+                                                        <Statistic title="Tiền điện" value={totalPriceElectric || 0} suffix="đ" valueStyle={{ fontSize: 14 }} />
+                                                    </Col>
+                                                    <Col span={12}>
+                                                        <Statistic title="Tiền nước" value={totalPriceWater || 0} suffix="đ" valueStyle={{ fontSize: 14 }} />
+                                                    </Col>
+                                                </Row>
+                                                <Statistic title="Tiền dịch vụ" value={totalPriceSerivce || 0} suffix="đ" valueStyle={{ fontSize: 16 }} />
+
+                                                <Divider style={{ margin: '8px 0' }} />
+
+                                                <Statistic
+                                                    title={<Text strong style={{ fontSize: 16 }}>TỔNG CẦN THANH TOÁN</Text>}
+                                                    value={totalPricePayMent || 0}
+                                                    suffix="đ"
+                                                    valueStyle={{ color: '#f5222d', fontSize: 28, fontWeight: 'bold' }}
+                                                />
+
+                                                <Button
+                                                    type="primary"
+                                                    size="large"
+                                                    block
+                                                    icon={<SaveOutlined />}
+                                                    onClick={saveBill}
+                                                    style={{ height: 50, borderRadius: 8, fontSize: 16, fontWeight: 600, marginTop: 12 }}
+                                                >
+                                                    XÁC NHẬN & LƯU
+                                                </Button>
+                                            </Space>
+                                        </Card>
+                                    </Col>
+                                </Row>
+                            </TabPane>
+                        ))}
+                    </Tabs>
                 </div>
             </Form>
 
-
+            <style jsx>{`
+                .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab {
+                    border-radius: 8px 8px 0 0 !important;
+                    background: #f0f2f5;
+                    border: 1px solid #d9d9d9 !important;
+                    transition: all 0.3s;
+                }
+                .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active {
+                    background: #fff !important;
+                    border-bottom-color: #fff !important;
+                    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+                }
+                .ant-tabs-tab-btn {
+                    font-weight: 500;
+                    color: #595959;
+                }
+                .ant-tabs-tab-active .ant-tabs-tab-btn {
+                    color: #1890ff !important;
+                    font-weight: 700 !important;
+                    font-size: 15px;
+                }
+            `}</style>
         </div>
     );
 };

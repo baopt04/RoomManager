@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Form, Input, Button, Select, InputNumber, DatePicker, Upload, Row, Col, message, Typography } from "antd";
-import { PlusOutlined, UploadOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
+import { Form, Input, Button, Select, InputNumber, DatePicker, Upload, Row, Col, message, Typography, Space, Modal } from "antd";
+import { PlusOutlined, UploadOutlined, CalendarOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import RoomService from "../../services/RoomService";
 import ContractService from "../../services/ContractService";
 import HouseForRentService from "../../services/HouseForRentService";
@@ -15,8 +16,15 @@ const CreateContract = () => {
   const [fileList, setFileList] = useState([]);
   const [houseList, setHouseList] = useState([]);
   const [customerList, setCustomerList] = useState([]);
-const navigate = useNavigate();
+  const navigate = useNavigate();
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     const fetchRooms = async () => {
@@ -58,43 +66,84 @@ const navigate = useNavigate();
     setFileList(newFileList);
   };
 
-const handleFinish = async (values) => {
-  try {
-    const formData = new FormData();
-    Object.keys(values).forEach(key => {
-      formData.append(key, values[key]);
-    });
-    formData.append("adminId", "e6c59463-fb23-4006-8380-82326ae7a878");
-    fileList.forEach(file => {
-      if (file.originFileObj) {
-       formData.append("images", file.originFileObj);
+  const handleDateStartChange = (date) => {
+    if (date) {
+      const nextDueDate = date.clone().add(1, 'month');
+      form.setFieldsValue({ nextDueDate: nextDueDate });
+    }
+  };
+
+  const handleRoomChange = (roomId) => {
+    const selectedRoom = roomList.find(r => r.id === roomId);
+    if (selectedRoom) {
+      form.setFieldsValue({ contractDeponsit: selectedRoom.price });
+    }
+  };
+
+  const handleFinish = (values) => {
+    Modal.confirm({
+      title: 'Xác nhận tạo hợp đồng',
+      content: 'Bạn có chắc chắn muốn tạo hợp đồng mới này không?',
+      okText: 'Tạo ngay',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        try {
+          const formData = new FormData();
+          Object.keys(values).forEach(key => {
+            formData.append(key, values[key]);
+          });
+          formData.append("adminId", "e6c59463-fb23-4006-8380-82326ae7a878");
+          fileList.forEach(file => {
+            if (file.originFileObj) {
+              formData.append("images", file.originFileObj);
+            }
+          });
+
+          await ContractService.createContract(token, formData);
+
+          message.success("Thêm hợp đồng thành công!");
+          form.resetFields();
+          setFileList([]);
+          navigate("/contract-management");
+        } catch (error) {
+          if (error.response && error.response.data && error.response.data.message) {
+            message.error(error.response.data.message);
+          } else {
+            message.error("Lỗi khi thêm hợp đồng, vui lòng thử lại sau!");
+          }
+        }
       }
     });
-
-    await ContractService.createContract(token, formData);
-    console.log("Check formData", formData);
-    
-    message.success("Thêm hợp đồng thành công!");
+  };
+  const returnBack = () => {
+    navigate("/contract-management");
     form.resetFields();
     setFileList([]);
-    navigate("/contract-management");
-  } catch (error) {
-   if (error.response && error.response.data && error.response.data.message) {
-      message.error(error.response.data.message);
-    } else {
-      message.error("Lỗi khi thêm hợp đồng, vui lòng thử lại sau!");
-    }
   }
-};
-const returnBack = () => {
-  navigate("/contract-management");
-  form.resetFields();
-  setFileList([]);
-}
+
+  const handleDurationSelect = (months) => {
+    const dateStart = form.getFieldValue("dateStart");
+    if (!dateStart) {
+      message.warning("Vui lòng chọn ngày ký hợp đồng trước!");
+      return;
+    }
+    const dateEnd = dateStart.clone().add(months, 'month');
+    form.setFieldsValue({ dateEnd: dateEnd });
+  };
 
   return (
-    <div style={{ maxWidth: 2000, margin: "0 auto", padding: 32, background: "#fff", borderRadius: 8 }}>
-      <Title level={2} style={{ textAlign: "center" }}>Thêm hợp đồng mới</Title>
+    <div style={{ maxWidth: 2000, margin: "0 auto", padding: isMobile ? 16 : 32, background: "#fff", borderRadius: 8 }}>
+      <div style={{ marginBottom: 16 }}>
+        <Button
+          type="text"
+          icon={<ArrowLeftOutlined />}
+          onClick={returnBack}
+          style={{ paddingLeft: 0, fontWeight: 500 }}
+        >
+          Quay lại
+        </Button>
+      </div>
+      <Title level={2} style={{ textAlign: "center", marginTop: 0 }}>Thêm hợp đồng mới</Title>
       <Form
         form={form}
         layout="vertical"
@@ -107,16 +156,58 @@ const returnBack = () => {
               name="dateStart"
               rules={[{ required: true, message: "Vui lòng chọn ngày ký hợp đồng" }]}
             >
-              <DatePicker style={{ width: "100%", minWidth: 250 }} format="DD/MM/YYYY" placeholder="Chọn ngày ký hợp đồng" />
+              <DatePicker
+                style={{ width: "100%", minWidth: 250 }}
+                format="DD/MM/YYYY"
+                placeholder="Chọn ngày ký hợp đồng"
+                onChange={handleDateStartChange}
+              />
             </Form.Item>
           </Col>
           <Col xs={24} md={12}>
             <Form.Item
-              label="Ngày hết hạn"
+              label={
+                <Space>
+                  <span>Ngày hết hạn</span>
+                  <Space size={4}>
+                    <Button type="dashed" size="small" onClick={() => handleDurationSelect(3)}>3 tháng</Button>
+                    <Button type="dashed" size="small" onClick={() => handleDurationSelect(6)}>6 tháng</Button>
+                    <Button type="dashed" size="small" onClick={() => handleDurationSelect(12)}>1 năm</Button>
+                  </Space>
+                </Space>
+              }
               name="dateEnd"
               rules={[{ required: true, message: "Vui lòng chọn ngày hết hạn" }]}
             >
               <DatePicker style={{ width: "100%", minWidth: 250 }} format="DD/MM/YYYY" placeholder="Chọn ngày hết hạn hợp đồng" />
+            </Form.Item>
+          </Col>
+        </Row>
+        <Row gutter={32}>
+          <Col xs={24} md={12}>
+            <Form.Item
+              label="Phòng trọ thuê"
+              name="roomId"
+              rules={[{ required: true, message: "Vui lòng chọn phòng trọ" }]}
+            >
+              <Select
+                placeholder="Chọn phòng trọ ký hợp đồng"
+                style={{ width: "100%", minWidth: 250 }}
+                onChange={handleRoomChange}
+              >
+                {roomList.map(room => (
+                  <Option key={room.id} value={room.id}>{room.name}</Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col xs={24} md={12}>
+            <Form.Item
+              label="Ngày thanh toán kế tiếp"
+              name="nextDueDate"
+              rules={[{ required: true, message: "Vui lòng chọn ngày thanh toán" }]}
+            >
+              <DatePicker style={{ width: "100%", minWidth: 250 }} format="DD/MM/YYYY" placeholder="Chọn ngày thanh toán tiếp theo" />
             </Form.Item>
           </Col>
         </Row>
@@ -139,30 +230,6 @@ const returnBack = () => {
           </Col>
           <Col xs={24} md={12}>
             <Form.Item
-              label="Ngày thanh toán kế tiếp"
-              name="nextDueDate"
-              rules={[{ required: true, message: "Vui lòng chọn ngày thanh toán" }]}
-            >
-              <DatePicker style={{ width: "100%", minWidth: 250 }} format="DD/MM/YYYY" placeholder="Chọn ngày thanh toán tiếp theo" />
-            </Form.Item>
-          </Col>
-        </Row>
-        <Row gutter={32}>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="Phòng trọ thuê"
-              name="roomId"
-              rules={[{ required: true, message: "Vui lòng chọn phòng trọ" }]}
-            >
-              <Select placeholder="Chọn phòng trọ ký hợp đồng" style={{ width: "100%", minWidth: 250 }}>
-                {roomList.map(room => (
-                  <Option key={room.id} value={room.id}>{room.name}</Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Col>
-           <Col xs={24} md={12}>
-            <Form.Item
               label="Khách hàng thuê"
               name="customerId"
               rules={[{ required: true, message: "Vui lòng chọn khách hàng thuê" }]}
@@ -175,8 +242,8 @@ const returnBack = () => {
             </Form.Item>
           </Col>
         </Row>
-          <Row gutter={32}>
-      
+        <Row gutter={32}>
+
           <Col xs={24} md={12}>
             <Form.Item
               label="Ghi chú"
@@ -190,7 +257,7 @@ const returnBack = () => {
               />
             </Form.Item>
           </Col>
-           <Col xs={24} md={12}>
+          <Col xs={24} md={12}>
             <Form.Item
               label="Trạng thái"
               name="status"
@@ -203,7 +270,7 @@ const returnBack = () => {
             </Form.Item>
           </Col>
         </Row>
-       
+
         <Form.Item
           label="Ảnh hợp đồng"
           name="images"
@@ -224,9 +291,6 @@ const returnBack = () => {
         <Form.Item style={{ textAlign: "left" }}>
           <Button type="primary" htmlType="submit" icon={<PlusOutlined />}>
             Thêm hợp đồng
-          </Button>
-          <Button type="primary" danger  style={{ marginLeft: 16 }} onClick={returnBack}>
-            Quay lại
           </Button>
         </Form.Item>
       </Form>

@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import { Modal, Form, InputNumber, Button, Select, message } from "antd";
 import WaterService from "../../services/WaterService";
 import RoomService from "../../services/RoomService";
-const ModalUpdateWater = ({ visible, onClose , id }) => {
-    const [form] = Form.useForm(); // Tạo form instance
+const ModalUpdateWater = ({ visible, onClose, id, onSuccess }) => {
+    const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const [room, setRoom] = useState([]);
-    const [waterData , setDataWater] = useState([])
+    const [waterData, setDataWater] = useState([])
     const token = localStorage.getItem("token");
 
- useEffect(() => {
+    useEffect(() => {
         const fetchRoom = async () => {
             try {
                 const response = await RoomService.getAllRooms(token);
@@ -21,57 +21,61 @@ const ModalUpdateWater = ({ visible, onClose , id }) => {
         fetchRoom();
     }, [token]);
 
- useEffect(() => {
-    const fetchDetail = async () => {
-        try{
-            const response = await WaterService.detailWater(token , id);
-        setDataWater(response);
-        form.setFieldsValue( {
-            room : response.room.id ,
-            numberFirst : response.numberFirst , 
-            numberLast : response.numberLast ,
-            unitPrice : response.unitPrice , 
-            status : response.status , 
-            
-    })
-        }catch(error) {
-            console.log("Không thể kết nối tới service!");       
-        }
-    }
-    fetchDetail();
- } , [token , form , id])
+    useEffect(() => {
+        const fetchDetail = async () => {
+            try {
+                const response = await WaterService.detailWater(token, id);
+                setDataWater(response);
+                form.setFieldsValue({
+                    room: response.room.id,
+                    numberFirst: response.numberFirst,
+                    numberLast: response.numberLast,
+                    unitPrice: response.unitPrice,
+                    status: response.status,
 
-    const updateRoom = async (values) => {
-        setLoading(true);
-        try {
-            const payload = {
-                ...values,
-                room: { id: values.room },
-            };
-            await WaterService.updateWater(token , id , payload);
-            message.success("Cập nhật  thành công!");
-            window.location.reload();
-            form.resetFields(); 
-            onClose(); 
-        } catch (error) {
-            if (error.response) {
-                console.error("Error response:", error.response);
-                const messageError = error.response.data?.message;
-                if (messageError) {
-                    message.error(messageError); 
-                } else {
-                    message.error("Đã xảy ra lỗi không xác định từ server!");
-                }
-            } else {
-                console.error("Error:", error);
-                message.error("Không thể kết nối đến server, vui lòng thử lại!");
+                })
+            } catch (error) {
+                console.log("Không thể kết nối tới service!");
             }
-        } finally {
-            setLoading(false);
         }
+        fetchDetail();
+    }, [token, form, id])
+
+    const updateRoom = (values) => {
+        Modal.confirm({
+            title: 'Xác nhận cập nhật chỉ số nước',
+            content: 'Bạn có chắc chắn muốn lưu các thay đổi cho chỉ số nước này không?',
+            okText: 'Cập nhật',
+            cancelText: 'Hủy',
+            onOk: async () => {
+                setLoading(true);
+                try {
+                    const payload = {
+                        ...values,
+                        room: { id: values.room },
+                    };
+                    await WaterService.updateWater(token, id, payload);
+                    message.success("Cập nhật thành công!");
+                    form.resetFields();
+                    if (onSuccess) {
+                        await onSuccess();
+                    }
+                    onClose();
+                } catch (error) {
+                    if (error.response) {
+                        const messageError = error.response.data?.message;
+                        message.error(messageError || "Đã xảy ra lỗi từ server!");
+                    } else {
+                        message.error("Không thể kết nối đến server!");
+                    }
+                } finally {
+                    setLoading(false);
+                }
+            }
+        });
     };
     const handleCancel = () => {
-        onClose(); 
+        onClose();
     }
     return (
         <Modal
@@ -81,10 +85,10 @@ const ModalUpdateWater = ({ visible, onClose , id }) => {
             footer={null}
         >
             <Form
-                form={form} // Liên kết form với instance
+                form={form}
                 layout="vertical"
-                onFinish={updateRoom} // Xử lý khi submit form
-                
+                onFinish={updateRoom}
+
             >
                 <Form.Item
                     label="Tên phòng trọ"
@@ -144,7 +148,7 @@ const ModalUpdateWater = ({ visible, onClose , id }) => {
                 </Form.Item>
                 <Form.Item style={{ textAlign: "center" }}>
                     <Button type="primary" htmlType="submit" loading={loading}>
-                        Cập nhật 
+                        Cập nhật
                     </Button>
                 </Form.Item>
             </Form>

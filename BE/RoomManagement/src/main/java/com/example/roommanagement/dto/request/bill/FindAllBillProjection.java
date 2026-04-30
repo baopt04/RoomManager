@@ -23,7 +23,7 @@ public interface FindAllBillProjection {
     String getStatus();
     String getDescription();
     String getMeThod();
-    String getRoom();       // Nếu chỉ lấy id phòng
+    String getRoom();
     String getCustomer();
     String getContract();
     String getAdmin();

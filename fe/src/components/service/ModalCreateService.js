@@ -1,39 +1,42 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Form, Input, Button, Radio, Select, InputNumber } from "antd";
 import { message } from "antd";
-import HostService from "../../services/HostService";
-import HouseForRentService from "../../services/HouseForRentService";
 import Services from "../../services/Services";
-import { useNavigate } from "react-router-dom";
-const { Option } = Select; // Import Option from Select
-const ModalCreateService = ({ visible, onClose }) => {
+const { Option } = Select;
+const ModalCreateService = ({ visible, onClose, onSuccess }) => {
     const token = localStorage.getItem("token");
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const [houseData, setHouseData] = useState(null);
 
 
-    const handleAddService = async (values) => {
-        setLoading(true);
-        try {
-
-            await Services.createService(token, values);
-            message.success("Thêm dịch vụ thành công!");
-            form.resetFields();
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
-            onClose();
-            setLoading(false);
-        } catch (error) {
-            console.log("Error in catch:", error);
-            if (error.response && error.response.data && error.response.data.message) {
-                message.error(error.response.data.message);
-            } else {
-                message.error("Đã xảy ra lỗi không xác định từ server!");
+    const handleAddService = (values) => {
+        Modal.confirm({
+            title: 'Xác nhận thêm dịch vụ mới',
+            content: 'Bạn có chắc chắn muốn tạo dịch vụ mới này không?',
+            okText: 'Thêm mới',
+            cancelText: 'Hủy',
+            onOk: async () => {
+                setLoading(true);
+                try {
+                    await Services.createService(token, values);
+                    message.success("Thêm dịch vụ thành công!");
+                    form.resetFields();
+                    if (onSuccess) {
+                        await onSuccess();
+                    }
+                    onClose();
+                } catch (error) {
+                    if (error.response && error.response.data && error.response.data.message) {
+                        message.error(error.response.data.message);
+                    } else {
+                        message.error("Đã xảy ra lỗi không xác định từ server!");
+                    }
+                } finally {
+                    setLoading(false);
+                }
             }
-            setLoading(false);
-        };
+        });
     };
     const handleCancel = () => {
         form.resetFields();

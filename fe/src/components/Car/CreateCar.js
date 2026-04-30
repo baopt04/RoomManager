@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Form, Input, Button, Select, InputNumber, DatePicker, Upload, Row, Col, message, Typography } from "antd";
-import { PlusOutlined, UploadOutlined } from "@ant-design/icons";
+import { Form, Input, Button, Select, InputNumber, DatePicker, Upload, Row, Col, message, Typography, Modal, ColorPicker } from "antd";
+import { PlusOutlined, UploadOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import RoomService from "../../services/RoomService";
 import CustomerService from "../../services/CustomerService";
 import CarService from "../../services/CarService";
@@ -42,29 +42,46 @@ const navigator = useNavigate();
   }, [token]);
 
  
-const addCar = async (values) => {
-  setLoading(true);
-  try {
-    const payLoad = {
-      ...values,
-      room: { id: values.room },
-      customer: { id: values.customerId }
-    };
-    await CarService.createCar(token, payLoad);
+const addCar = (values) => {
+  Modal.confirm({
+    title: 'Xác nhận thêm xe mới',
+    content: 'Bạn có chắc chắn muốn thêm xe mới này vào hệ thống không?',
+    okText: 'Thêm mới',
+    cancelText: 'Hủy',
+    onOk: async () => {
+      setLoading(true);
+      try {
+        const payLoad = {
+          ...values,
+          color: typeof values.color === 'string' ? values.color : values.color?.toHexString(),
+          room: { id: values.room },
+          customer: { id: values.customerId }
+        };
+        await CarService.createCar(token, payLoad);
 
-    message.success("Thêm xe thành công!");
-    form.resetFields();
-    navigator("/car-management"); // ✅ dùng đúng `navigate`, không phải `navigator`
-  } catch (error) {
-    const msg = error?.response?.data?.message || "Có lỗi xảy ra khi thêm xe!";
-    message.error(msg);
-  } finally {
-    setLoading(false);
-  }
+        message.success("Thêm xe thành công!");
+        form.resetFields();
+        navigator("/car-management");
+      } catch (error) {
+        const msg = error?.response?.data?.message || "Có lỗi xảy ra khi thêm xe!";
+        message.error(msg);
+      } finally {
+        setLoading(false);
+      }
+    }
+  });
 };
 
   return (
-    <div style={{ maxWidth: 2000, margin: "0 auto", padding: 32, background: "#fff", borderRadius: 8 }}>
+    <div style={{ maxWidth: 2000, margin: "0 auto", padding: 32, background: "#fff", borderRadius: 8, position: 'relative' }}>
+      <Button 
+        type="text" 
+        icon={<ArrowLeftOutlined />} 
+        onClick={() => navigator("/car-management")}
+        style={{ position: 'absolute', top: 32, left: 32, fontWeight: 500 }}
+      >
+        Quay lại
+      </Button>
       <Title level={2} style={{ textAlign: "center" }}>Thêm xe mới</Title>
       <Form
         form={form}
@@ -110,10 +127,10 @@ const addCar = async (values) => {
             <Form.Item
               label="Màu sắc"
               name="color"
-              rules={[{ required: true, message: "Vui lòng nhập màu sắc" }]}
+              rules={[{ required: true, message: "Vui lòng chọn màu sắc" }]}
             >
-                <Input placeholder="Nhập màu sắc" style={{ width: "100%", minWidth: 250 }} />
-                </Form.Item>
+              <ColorPicker showText format="hex" />
+            </Form.Item>
           </Col>
         </Row>
         <Row gutter={32}>
@@ -149,9 +166,6 @@ const addCar = async (values) => {
         <Form.Item style={{ textAlign: "left" }}>
           <Button type="primary" htmlType="submit" icon={<PlusOutlined />} loading={loading}>
             Thêm xe
-          </Button>
-          <Button type="primary" danger icon={<PlusOutlined />} style={{ marginLeft: 16 }} onClick={() => form.resetFields()}>
-            Quay lại
           </Button>
         </Form.Item>
       </Form>

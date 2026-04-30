@@ -63,10 +63,25 @@ const updateRoomServiceDetail = async (token, id, roomServiceData) => {
     }
 }
 
+const deleteRoomServiceDetail = async (token, id) => {
+    try {
+        const response = await axiosInstance.delete(`${BASE_URL}/delete/${id}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            }
+        })
+        console.log("Response delete room service:", response.data);
+        return response.data;
+    } catch (error) {
+        console.log("Error deleting room service:", error);
+        throw error;
+    }
+}
 
 export default {
     getAllRoomServiceDetail,
     createRoomServiceDetail,
     detailRoomServiceDetail,
     updateRoomServiceDetail,
+    deleteRoomServiceDetail,
 }

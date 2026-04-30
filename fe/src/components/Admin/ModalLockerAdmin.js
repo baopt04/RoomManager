@@ -4,7 +4,7 @@ import Title from "antd/es/typography/Title";
 import AdminService from "../../services/AdminService";
 
 
-const ModalLockerAdmin = ({ visible, onclose, id }) => {
+const ModalLockerAdmin = ({ visible, onclose, id, onSuccess }) => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const token = localStorage.getItem('token');
@@ -25,9 +25,9 @@ const ModalLockerAdmin = ({ visible, onclose, id }) => {
                     cancelModal();
                     setLoading(true);
                     message.success("Khóa thành viên quản trị thành công")
-                    setTimeout(() => {
-                        window.location.reload()
-                    }, 1000);
+                    if (onSuccess) {
+                        await onSuccess();
+                    }
                 } catch (error) {
                     message.error("Lỗi")
                     setLoading(false);

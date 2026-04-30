@@ -5,7 +5,7 @@ import HostService from "../../services/HostService";
 
 const { Option } = Select;
 
-const ModalUpdate = ({ visible, onClose, houseData, hostId }) => {
+const ModalUpdate = ({ visible, onClose, houseData, onSuccess }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [hostData, setHostData] = useState([]);
@@ -53,26 +53,34 @@ const ModalUpdate = ({ visible, onClose, houseData, hostId }) => {
   }, [visible, houseData, form]);
 
   const handleUpdate = async (values) => {
-    setLoading(true);
-    try {
-      const payload = {
-        ...values,
-        host: { id: values.host },
-      };
-      await HouseForRentService.updateHouseForRent(
-        localStorage.getItem("token"),
-        houseData,
-        payload
-      );
-      message.success("Cập nhật nhà cho thuê thành công!");
-      window.location.reload();
-      onClose();
-    } catch (error) {
-      console.error("Error updating house:", error);
-      message.error("Không thể cập nhật nhà cho thuê!");
-    } finally {
-      setLoading(false);
-    }
+    Modal.confirm({
+      title: 'Xác nhận cập nhật',
+      content: 'Bạn có chắc chắn muốn cập nhật thông tin nhà cho thuê này không?',
+      okText: 'Xác nhận',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        setLoading(true);
+        try {
+          const payload = {
+            ...values,
+            host: { id: values.host },
+          };
+          await HouseForRentService.updateHouseForRent(
+            localStorage.getItem("token"),
+            houseData,
+            payload
+          );
+          message.success("Cập nhật nhà cho thuê thành công!");
+          if (onSuccess) onSuccess();
+          onClose();
+        } catch (error) {
+          console.error("Error updating house:", error);
+          message.error("Không thể cập nhật nhà cho thuê!");
+        } finally {
+          setLoading(false);
+        }
+      }
+    });
   };
 
   return (
@@ -91,8 +99,8 @@ const ModalUpdate = ({ visible, onClose, houseData, hostId }) => {
           label="Tên nhà thuê"
           name="name"
           rules={[{ required: true, message: "Vui lòng nhập tên nhà thuê" },
-          { pattern: /^[\p{L}\d\s]+$/u, message: "Tên nhà thuê chỉ được chứa chữ cái, số và khoảng trắng" },
-          { max: 200, message: "Tên nhà thuê không được vượt quá 50 ký tự" },
+          // { pattern: /^[\p{L}\d\s]+$/u, message: "Tên nhà thuê chỉ được chứa chữ cái, số và khoảng trắng" },
+          { max: 100, message: "Tên nhà thuê không được vượt quá 100 ký tự" },
           { min: 2, message: "Tên nhà thuê phải có ít nhất 2 ký tự" }
           ]}
         >
@@ -119,6 +127,7 @@ const ModalUpdate = ({ visible, onClose, houseData, hostId }) => {
               if (value > 1000000000) {
                 return Promise.reject(new Error("Giá không được vượt quá 1 tỷ đồng"));
               }
+              return Promise.resolve();
             }
           }
 

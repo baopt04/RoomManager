@@ -106,15 +106,15 @@ public class BillServiceImpl implements BillService {
         if (!optionalCustomer.isPresent()) {
             throw new BusinessException(Constrants.CUSTOMER_FOUND);
         }
-        Optional<Contract> optionalContract = contractRepository.findByRoomId((request.getRoomId()));
+        Optional<Contract> optionalContract = contractRepository.findTopByRoomIdOrderByLastModifiedDateDesc((request.getRoomId()));
         if (!optionalContract.isPresent()) {
             throw new BusinessException(Constrants.CONTRACT_NOT_FOUND);
         }
-        Optional<Water> optionalWater = waterRepository.findByRoomId(request.getRoomId());
+        Optional<Water> optionalWater = waterRepository.findTopByRoomIdOrderByLastModifiedDateDesc(request.getRoomId());
         if (!optionalWater.isPresent()) {
             throw new BusinessException(Constrants.WATER_NOT_FOUND);
         }
-        Optional<Electricity> optionalElectricity = electricityRepository.findByRoomId(request.getRoomId());
+        Optional<Electricity> optionalElectricity = electricityRepository.findTopByRoomIdOrderByLastModifiedDateDesc(request.getRoomId());
         if (!optionalElectricity.isPresent()) {
             throw new BusinessException(Constrants.ELECTRICITY_NOT_FOUND);
         }
@@ -174,7 +174,6 @@ public class BillServiceImpl implements BillService {
                         BillDetail.builder()
                                 .bill(bill)
                                 .type(TypeBillDetail.DICH_VU)
-//                                .quantity(request.getElectricityUsage())
                                 .unitPrice(request.getTotalRoomService())
                                 .amount(request.getTotalRoomService())
                                 .description("BillDetail dịch vụ")
@@ -242,15 +241,15 @@ public class BillServiceImpl implements BillService {
         if (!optionalCustomer.isPresent()) {
             throw new BusinessException(Constrants.CUSTOMER_FOUND);
         }
-        Optional<Contract> optionalContract = contractRepository.findByRoomId((request.getRoomId()));
+        Optional<Contract> optionalContract = contractRepository.findTopByRoomIdOrderByLastModifiedDateDesc((request.getRoomId()));
         if (!optionalContract.isPresent()) {
             throw new BusinessException(Constrants.CONTRACT_NOT_FOUND);
         }
-        Optional<Water> optionalWater = waterRepository.findByRoomId(request.getRoomId());
+        Optional<Water> optionalWater = waterRepository.findTopByRoomIdOrderByLastModifiedDateDesc(request.getRoomId());
         if (!optionalWater.isPresent()) {
             throw new BusinessException(Constrants.WATER_NOT_FOUND);
         }
-        Optional<Electricity> optionalElectricity = electricityRepository.findByRoomId(request.getRoomId());
+        Optional<Electricity> optionalElectricity = electricityRepository.findTopByRoomIdOrderByLastModifiedDateDesc(request.getRoomId());
         if (!optionalElectricity.isPresent()) {
             throw new BusinessException(Constrants.ELECTRICITY_NOT_FOUND);
         }
@@ -318,7 +317,6 @@ public class BillServiceImpl implements BillService {
                         BillDetail.builder()
                                 .bill(bill)
                                 .type(TypeBillDetail.DICH_VU)
-//                                .quantity(request.getElectricityUsage())
                                 .unitPrice(request.getTotalRoomService())
                                 .amount(request.getTotalRoomService())
                                 .description("BillDetail dịch vụ")

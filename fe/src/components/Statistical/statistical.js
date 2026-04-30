@@ -1,19 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { 
-  Card, 
-  Form, 
-  Select, 
-  DatePicker, 
-  Button, 
-  Row, 
-  Col, 
-  Statistic, 
-  Table, 
+import {
+  Card,
+  Form,
+  Select,
+  Button,
+  Row,
+  Col,
+  Statistic,
+  Table,
   message,
-  Divider,
   Space,
   Typography,
-  Badge,
   Spin
 } from "antd";
 import {
@@ -25,111 +22,89 @@ import {
   Legend,
   ResponsiveContainer,
   CartesianGrid,
-  LineChart,
-  Line,
   PieChart,
   Pie,
   Cell
 } from "recharts";
-import { 
-  DollarCircleOutlined, 
-  ThunderboltOutlined, 
+import {
+  DollarCircleOutlined,
+  ThunderboltOutlined,
   DropboxOutlined,
   HomeOutlined,
   CalendarOutlined,
   BarChartOutlined,
-  RiseOutlined
+  RiseOutlined,
+  SearchOutlined,
+  FileExcelOutlined
 } from "@ant-design/icons";
+import * as XLSX from 'xlsx';
+import moment from "moment";
 import StatisticalService from "../../services/StatisticalService";
 import ModalSearchStatistical from "./ModalSearchStatistical";
 import RoomService from "../../services/RoomService";
 
 const { Option } = Select;
-const { RangePicker } = DatePicker;
 const { Title, Text } = Typography;
 
-// Colors for charts
-const COLORS = ['#3f8600', '#faad14', '#1890ff', '#ff4d4f', '#722ed1'];
+const COLORS = ['#722ed1', '#faad14', '#1677ff', '#ff4d4f'];
 
 const columns = [
-  { 
-    title: "Tháng", 
-    dataIndex: "month", 
+  {
+    title: "Tháng",
+    dataIndex: "month",
     key: "month",
     align: 'center',
-    render: (text) => <Text strong>{text}</Text>
+    width: 80,
   },
-  { 
-    title: "Năm", 
-    dataIndex: "year", 
+  {
+    title: "Năm",
+    dataIndex: "year",
     key: "year",
     align: 'center',
-    render: (text) => <Text strong>{text}</Text>
+    width: 80,
   },
   {
     title: "Tiền điện",
     dataIndex: "totalElectricity",
     key: "totalElectricity",
     align: 'right',
-    render: (totalElectricity) => (
-      <Text style={{ color: '#faad14', fontWeight: 'bold' }}>
-        {totalElectricity.toLocaleString("vi-VN")} ₫
-      </Text>
-    ),
+    render: (v) => <Text>{v.toLocaleString("vi-VN")} ₫</Text>,
   },
   {
     title: "Tiền nước",
     dataIndex: "totalWater",
     key: "totalWater",
     align: 'right',
-    render: (totalWater) => (
-      <Text style={{ color: '#1890ff', fontWeight: 'bold' }}>
-        {totalWater.toLocaleString("vi-VN")} ₫
-      </Text>
-    ),
+    render: (v) => <Text>{v.toLocaleString("vi-VN")} ₫</Text>,
   },
   {
     title: "Tiền dịch vụ",
     dataIndex: "totalService",
     key: "totalService",
     align: 'right',
-    render: (totalService) => (
-      <Text style={{ color: '#ff4d4f', fontWeight: 'bold' }}>
-        {totalService.toLocaleString("vi-VN")} ₫
-      </Text>
-    ),
+    render: (v) => <Text>{v.toLocaleString("vi-VN")} ₫</Text>,
   },
   {
     title: "Tiền phòng",
     dataIndex: "totalRoom",
     key: "totalRoom",
     align: 'right',
-    render: (totalRoom) => (
-      <Text style={{ color: '#722ed1', fontWeight: 'bold' }}>
-        {totalRoom.toLocaleString("vi-VN")} ₫
-      </Text>
-    ),
+    render: (v) => <Text>{v.toLocaleString("vi-VN")} ₫</Text>,
   },
   {
     title: "Tổng doanh thu",
     dataIndex: "totalMonth",
     key: "totalMonth",
     align: 'right',
-    render: (totalMonth) => (
-      <Text style={{ color: '#3f8600', fontWeight: 'bold', fontSize: '16px' }}>
-        {totalMonth.toLocaleString("vi-VN")} ₫
-      </Text>
-    ),
+    render: (v) => <Text style={{ fontWeight: 600 }}>{v.toLocaleString("vi-VN")} ₫</Text>,
   },
 ];
 
 const Statistical = () => {
   const [form] = Form.useForm();
   const [selectedRoom, setSelectedRoom] = useState(null);
-  const [range, setRange] = useState([]);
   const [loading, setLoading] = useState(false);
-  
-  // State variables
+
   const [totalPriceRoom, setTotalPriceRoom] = useState(0);
   const [totalPriceElectricity, setTotalPriceElectricity] = useState(0);
   const [totalPriceWater, setTotalPriceWater] = useState(0);
@@ -145,60 +120,11 @@ const Statistical = () => {
   const [listTotalPriceForMonth, setListTotalPriceForMonth] = useState([]);
   const [modalSearch, setModalSearch] = useState(false);
   const [listRoom, setListRoom] = useState([]);
-  
+
   const token = localStorage.getItem("token");
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
 
-  // Custom statistic card component
-  const StatCard = ({ title, value, icon, color, suffix = "₫" }) => (
-    <Card 
-      hoverable 
-      style={{ 
-        borderRadius: '12px', 
-        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-        border: `2px solid ${color}20`
-      }}
-      bodyStyle={{ padding: '20px' }}
-    >
-      <Statistic
-        title={
-          <Space>
-            {icon}
-            <Text style={{ fontSize: '14px', fontWeight: 500 }}>{title}</Text>
-          </Space>
-        }
-        value={value}
-        valueStyle={{ 
-          color: color, 
-          fontSize: '24px', 
-          fontWeight: 'bold' 
-        }}
-        suffix={suffix}
-        precision={0}
-      />
-    </Card>
-  );
-
-  // Section header component
-  const SectionHeader = ({ title, subtitle }) => (
-    <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-      <Title level={3} style={{ 
-        color: '#1890ff', 
-        marginBottom: '8px',
-        fontWeight: 'bold'
-      }}>
-        {title}
-      </Title>
-      {subtitle && (
-        <Text type="secondary" style={{ fontSize: '16px' }}>
-          {subtitle}
-        </Text>
-      )}
-    </div>
-  );
-
-  // Fetch functions
   useEffect(() => {
     const fetchAllPrice = async () => {
       setLoading(true);
@@ -245,7 +171,6 @@ const Statistical = () => {
         setListRoom(response);
       } catch (error) {
         console.error("Error fetching room data:", error);
-        message.error("Không thể tải danh sách phòng");
       }
     };
     getAllRooms();
@@ -258,7 +183,6 @@ const Statistical = () => {
         setListTotalPriceForMonth(response);
       } catch (error) {
         console.error("Error fetching list total price for mother:", error);
-        message.error("Không thể tải dữ liệu biểu đồ");
       }
     };
     getListTotalPriceForMonther();
@@ -267,338 +191,358 @@ const Statistical = () => {
   const handleFinish = (values) => {
     setSelectedRoom(values.room);
     setModalSearch(true);
-    setRange(values.range);
   };
 
-  // Prepare pie chart data
+  const handleExportExcel = async () => {
+    try {
+      setLoading(true);
+
+      const [rooms, customers, revenueByRoom] = await Promise.all([
+        StatisticalService.getTotalRoom(token),
+        StatisticalService.getTotalCustomer(token),
+        StatisticalService.getTotalPriceForRoomMother(token)
+      ]);
+
+      const formatCurrency = (value) => {
+        if (value === null || value === undefined) return "0 VNĐ";
+        return new Intl.NumberFormat('vi-VN').format(value) + " VNĐ";
+      };
+
+      const formatDate = (date) => {
+        if (!date) return "N/A";
+        return moment(date).format("DD/MM/YYYY");
+      };
+
+      const formatStatus = (status) => {
+        switch (status) {
+          case "DANG_CHO_THUE": return "Đang cho thuê";
+          case "TRONG": return "Trống";
+          case "DA_COC": return "Đã cọc";
+          default: return status;
+        }
+      };
+
+      // 1. Prepare Room Data
+      const roomData = (rooms || []).map((item, index) => ({
+        "STT": index + 1,
+        "Tên phòng": item.name,
+        "Trạng thái": formatStatus(item.status),
+        "Diện tích": item.acreage,
+        "Mã phòng": item.code,
+        "Giá phòng": formatCurrency(item.price),
+        "Tên nhà": item.houseName
+      }));
+
+      // 2. Prepare Customer Data
+      const customerData = (customers || []).map((item, index) => ({
+        "STT": index + 1,
+        "Tên khách hàng": item.name,
+        "Số điện thoại": item.numberPhone,
+        "Ngày bắt đầu": formatDate(item.dateStart),
+        "CCCD": item.cccd,
+        "Tên phòng": item.roomName
+      }));
+
+      // 3. Prepare Revenue Data
+      const revenueData = (revenueByRoom || []).map((item, index) => ({
+        "STT": index + 1,
+        "Năm": item.year,
+        "Tháng": item.month,
+        "Tên phòng": item.roomName,
+        "Tiền phòng": formatCurrency(item.roomPrice),
+        "Tiền điện": formatCurrency(item.electricityPrice),
+        "Tiền nước": formatCurrency(item.waterPrice),
+        "Tiền dịch vụ": formatCurrency(item.servicePrice),
+        "Tổng cộng": formatCurrency(item.totalAmount)
+      }));
+
+      // Helper to create sheet with header
+      const createSheetWithHeader = (data, title, numCols) => {
+        const header = [
+          ["THỐNG KÊ HỆ THỐNG PHÒNG TRỌ TIẾN ĐỨC LAND"],
+          [title.toUpperCase()],
+          [`Người cung cấp phần mềm: baothanhdev`],
+          [`Ngày xuất báo cáo: ${moment().format("DD/MM/YYYY HH:mm:ss")}`],
+          []
+        ];
+
+        const ws = XLSX.utils.aoa_to_sheet(header);
+
+        // Add table data starting from A6
+        XLSX.utils.sheet_add_json(ws, data, { origin: "A6" });
+
+        // Merge header rows across all columns
+        ws["!merges"] = [
+          { s: { r: 0, c: 0 }, e: { r: 0, c: numCols - 1 } }, // Title
+          { s: { r: 1, c: 0 }, e: { r: 1, c: numCols - 1 } }, // Sheet Title
+          { s: { r: 2, c: 0 }, e: { r: 2, c: numCols - 1 } }, // Provider
+          { s: { r: 3, c: 0 }, e: { r: 3, c: numCols - 1 } }  // Date
+        ];
+
+        // Basic column width adjustment
+        const colWidths = Array(numCols).fill({ wch: 15 });
+        colWidths[0] = { wch: 6 }; // STT
+        ws["!cols"] = colWidths;
+
+        return ws;
+      };
+
+      // Create Workbook and Sheets
+      const wb = XLSX.utils.book_new();
+
+      const wsRooms = createSheetWithHeader(roomData, "Danh sách phòng trọ", 7);
+      const wsCustomers = createSheetWithHeader(customerData, "Danh sách khách hàng", 6);
+      const wsRevenue = createSheetWithHeader(revenueData, "Chi tiết doanh thu theo từng phòng", 9);
+
+      // Add sheets to workbook
+      XLSX.utils.book_append_sheet(wb, wsRooms, "Danh sách phòng");
+      XLSX.utils.book_append_sheet(wb, wsCustomers, "Danh sách khách hàng");
+      XLSX.utils.book_append_sheet(wb, wsRevenue, "Doanh thu theo phòng");
+
+      const fileName = `Bao_cao_thong_ke_${moment().format("YYYYMMDD_HHmmss")}.xlsx`;
+      XLSX.writeFile(wb, fileName);
+
+      message.success("Xuất file Excel thành công!");
+    } catch (error) {
+      console.error("Export error:", error);
+      message.error("Lỗi khi xuất file Excel!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const pieData = [
     { name: 'Tiền phòng', value: totalPriceRoom, color: '#722ed1' },
     { name: 'Tiền điện', value: totalPriceElectricity, color: '#faad14' },
-    { name: 'Tiền nước', value: totalPriceWater, color: '#1890ff' },
+    { name: 'Tiền nước', value: totalPriceWater, color: '#1677ff' },
     { name: 'Tiền dịch vụ', value: totalPriceService, color: '#ff4d4f' }
   ];
 
+  const formatValue = (v) => v.toLocaleString("vi-VN") + " ₫";
+
   return (
-    <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
-      <Card 
-        title={
-          <Space>
-            <BarChartOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
-            <Title level={2} style={{ margin: 0, color: '#1890ff' }}>
-              Thống kê hệ thống phòng trọ
-            </Title>
-          </Space>
-        }
-        style={{ 
-          maxWidth: 1600, 
-          margin: "0 auto",
-          borderRadius: '16px',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.1)'
-        }}
-        bodyStyle={{ padding: '32px' }}
-      >
-        {/* Search Form */}
-        <Card 
-          style={{ 
-            marginBottom: 32, 
-            borderRadius: '12px',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            border: 'none'
-          }}
-          bodyStyle={{ padding: '24px' }}
+    <div>
+      {/* Page Header */}
+      <div className="page-header">
+        <div>
+          <Title level={4} style={{ margin: 0, fontWeight: 600 }}>Thống kê</Title>
+          <Text type="secondary" style={{ fontSize: '13px' }}>Tổng quan hệ thống năm {currentYear}</Text>
+        </div>
+        <Button
+          icon={<FileExcelOutlined />}
+          onClick={handleExportExcel}
+          style={{ borderRadius: 8 }}
         >
-          <Form
-            form={form}
-            layout="inline"
-            onFinish={handleFinish}
-            style={{ 
-              justifyContent: "center", 
-              display: "flex",
-              alignItems: 'center',
-              gap: '16px'
-            }}
+          Xuất báo cáo Excel
+        </Button>
+      </div>
+
+      {/* Search Form */}
+      <Card size="small" style={{ marginBottom: 16 }}>
+        <Form
+          form={form}
+          layout="inline"
+          onFinish={handleFinish}
+          style={{ display: "flex", alignItems: 'center', gap: '12px' }}
+        >
+          <Form.Item
+            name="room"
+            rules={[{ required: true, message: "Chọn phòng" }]}
+            style={{ marginBottom: 0 }}
           >
-            <Form.Item
-              name="room"
-              label={<Text style={{ color: 'white', fontWeight: 'bold' }}>Chọn phòng trọ</Text>}
-              rules={[{ required: true, message: "Vui lòng chọn phòng trọ" }]}
+            <Select
+              placeholder="Chọn phòng trọ"
+              style={{ width: 260 }}
+              showSearch
+              filterOption={(input, option) =>
+                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
             >
-              <Select 
-                placeholder="Chọn phòng" 
-                style={{ width: 300 }}
-                size="large"
-                showSearch
-                filterOption={(input, option) =>
-                  option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-                }
-              >
-                {listRoom.map((room) => (
-                  <Option key={room.id} value={room.id}>
-                    <Space>
-                      <HomeOutlined />
-                      {room.name}
-                    </Space>
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-            
-            <Form.Item>
-              <Button 
-                type="primary" 
-                htmlType="submit" 
-                size="large"
-                icon={<BarChartOutlined />}
-                style={{
-                  background: '#52c41a',
-                  borderColor: '#52c41a',
-                  fontWeight: 'bold'
-                }}
-              >
-                Thống kê chi tiết
-              </Button>
-            </Form.Item>
-          </Form>
-        </Card>
+              {listRoom.map((room) => (
+                <Option key={room.id} value={room.id}>
+                  {room.name}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item style={{ marginBottom: 0 }}>
+            <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
+              Thống kê chi tiết
+            </Button>
+          </Form.Item>
+        </Form>
+      </Card>
 
-        <ModalSearchStatistical 
-          visible={modalSearch} 
-          onClose={() => setModalSearch(false)} 
-          roomId={selectedRoom} 
-        />
+      <ModalSearchStatistical
+        visible={modalSearch}
+        onClose={() => setModalSearch(false)}
+        roomId={selectedRoom}
+      />
 
-        {/* Annual Statistics */}
-        <SectionHeader 
-          title={`📊 Tổng quan hệ thống năm ${currentYear}`}
-          subtitle="Thống kê tổng doanh thu và tình trạng phòng trọ"
-        />
-        
-        <Spin spinning={loading}>
-          <Row gutter={[24, 24]} style={{ marginBottom: 48 }}>
-            <Col xs={24} sm={12} lg={8}>
-              <StatCard
+      {/* Annual Overview */}
+      <Spin spinning={loading}>
+        <Row gutter={16} className="stat-row">
+          <Col xs={24} sm={12} lg={4}>
+            <Card size="small">
+              <Statistic
                 title="Tổng doanh thu"
                 value={totalPrice}
-                icon={<RiseOutlined style={{ color: '#3f8600' }} />}
-                color="#3f8600"
+                suffix="₫"
+                prefix={<RiseOutlined style={{ color: '#52c41a' }} />}
+                valueStyle={{ fontSize: '18px' }}
               />
-            </Col>
-            <Col xs={24} sm={12} lg={8}>
-              <StatCard
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={4}>
+            <Card size="small">
+              <Statistic
+                title="Tiền phòng"
+                value={totalPriceRoom}
+                suffix="₫"
+                prefix={<HomeOutlined style={{ color: '#722ed1' }} />}
+                valueStyle={{ fontSize: '18px' }}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={4}>
+            <Card size="small">
+              <Statistic
                 title="Tiền điện"
                 value={totalPriceElectricity}
-                icon={<ThunderboltOutlined style={{ color: '#faad14' }} />}
-                color="#faad14"
+                suffix="₫"
+                prefix={<ThunderboltOutlined style={{ color: '#faad14' }} />}
+                valueStyle={{ fontSize: '18px' }}
               />
-            </Col>
-            <Col xs={24} sm={12} lg={8}>
-              <StatCard
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={4}>
+            <Card size="small">
+              <Statistic
                 title="Tiền nước"
                 value={totalPriceWater}
-                icon={<DropboxOutlined style={{ color: '#1890ff' }} />}
-                color="#1890ff"
+                suffix="₫"
+                prefix={<DropboxOutlined style={{ color: '#1677ff' }} />}
+                valueStyle={{ fontSize: '18px' }}
               />
-            </Col>
-            <Col xs={24} sm={12} lg={8}>
-              <StatCard
-                title="Phòng đang thuê"
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={4}>
+            <Card size="small">
+              <Statistic
+                title="Đang thuê"
                 value={roomRenting}
-                icon={<HomeOutlined style={{ color: '#52c41a' }} />}
-                color="#52c41a"
                 suffix="phòng"
+                prefix={<HomeOutlined style={{ color: '#52c41a' }} />}
+                valueStyle={{ fontSize: '18px' }}
               />
-            </Col>
-            <Col xs={24} sm={12} lg={8}>
-              <StatCard
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={4}>
+            <Card size="small">
+              <Statistic
                 title="Phòng trống"
                 value={roomEmpty}
-                icon={<HomeOutlined style={{ color: '#ff4d4f' }} />}
-                color="#ff4d4f"
                 suffix="phòng"
+                prefix={<HomeOutlined style={{ color: '#ff4d4f' }} />}
+                valueStyle={{ fontSize: '18px' }}
               />
-            </Col>
-            <Col xs={24} sm={12} lg={8}>
-              <StatCard
-                title="Tỷ lệ lấp đầy"
-                value={roomRenting + roomEmpty > 0 ? ((roomRenting / (roomRenting + roomEmpty)) * 100).toFixed(1) : 0}
-                icon={<BarChartOutlined style={{ color: '#722ed1' }} />}
-                color="#722ed1"
-                suffix="%"
-              />
-            </Col>
-          </Row>
-        </Spin>
+            </Card>
+          </Col>
+        </Row>
+      </Spin>
 
-        <Divider style={{ margin: '48px 0', borderColor: '#1890ff' }} />
+      {/* Monthly Stats */}
+      <div style={{ marginBottom: 20 }}>
+        <Text style={{ fontSize: '15px', fontWeight: 600, color: '#374151' }}>
+          Doanh thu tháng {currentMonth}/{currentYear}
+        </Text>
+      </div>
+      <Row gutter={16} className="stat-row">
+        <Col xs={24} sm={6}>
+          <Card size="small">
+            <Statistic title="Tổng tháng" value={totalPriceMother} suffix="₫" prefix={<DollarCircleOutlined style={{ color: '#52c41a' }} />} valueStyle={{ fontSize: '16px' }} />
+          </Card>
+        </Col>
+        <Col xs={24} sm={6}>
+          <Card size="small">
+            <Statistic title="Tiền điện" value={totalPriceElectricityMother} suffix="₫" prefix={<ThunderboltOutlined style={{ color: '#faad14' }} />} valueStyle={{ fontSize: '16px' }} />
+          </Card>
+        </Col>
+        <Col xs={24} sm={6}>
+          <Card size="small">
+            <Statistic title="Tiền nước" value={totalPriceWaterMother} suffix="₫" prefix={<DropboxOutlined style={{ color: '#1677ff' }} />} valueStyle={{ fontSize: '16px' }} />
+          </Card>
+        </Col>
+        <Col xs={24} sm={6}>
+          <Card size="small">
+            <Statistic title="Tiền dịch vụ" value={totalPriceServiceMother} suffix="₫" prefix={<CalendarOutlined style={{ color: '#ff4d4f' }} />} valueStyle={{ fontSize: '16px' }} />
+          </Card>
+        </Col>
+      </Row>
 
-        {/* Monthly Statistics */}
-        <SectionHeader 
-          title={`📈 Doanh thu tháng ${currentMonth}/${currentYear}`}
-          subtitle="Thống kê chi tiết doanh thu tháng hiện tại"
+      {/* Charts */}
+      <Row gutter={16} style={{ marginBottom: 20 }}>
+        <Col xs={24} lg={16}>
+          <Card size="small" title={<Text style={{ fontWeight: 500 }}>Doanh thu theo tháng - {currentYear}</Text>}>
+            <ResponsiveContainer width="100%" height={360}>
+              <BarChart data={listTotalPriceForMonth} margin={{ top: 10, right: 20, left: 10, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `${(v / 1000000).toFixed(1)}M`} />
+                <Tooltip
+                  formatter={(value, name) => [formatValue(value), name]}
+                  contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: '13px' }}
+                />
+                <Legend wrapperStyle={{ paddingTop: '16px', fontSize: '12px' }} />
+                <Bar dataKey="totalMonth" name="Tổng" fill="#52c41a" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="totalElectricity" name="Điện" fill="#faad14" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="totalWater" name="Nước" fill="#1677ff" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="totalService" name="Dịch vụ" fill="#ff4d4f" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="totalRoom" name="Phòng" fill="#722ed1" radius={[3, 3, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        </Col>
+        <Col xs={24} lg={8}>
+          <Card size="small" title={<Text style={{ fontWeight: 500 }}>Cơ cấu doanh thu</Text>}>
+            <ResponsiveContainer width="100%" height={360}>
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={55}
+                  outerRadius={110}
+                  paddingAngle={3}
+                  dataKey="value"
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  labelLine={{ stroke: '#d1d5db' }}
+                  style={{ fontSize: '12px' }}
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(value) => formatValue(value)}
+                  contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: '13px' }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Data Table */}
+      <Card size="small" title={<Text style={{ fontWeight: 500 }}>Chi tiết doanh thu theo tháng</Text>}>
+        <Table
+          columns={columns}
+          dataSource={listTotalPriceForMonth}
+          rowKey="month"
+          pagination={{ pageSize: 12 }}
+          size="middle"
+          scroll={{ x: 800 }}
         />
-        
-        <Row gutter={[24, 24]} style={{ marginBottom: 48 }}>
-          <Col xs={24} sm={12} lg={6}>
-            <StatCard
-              title="Tổng doanh thu"
-              value={totalPriceMother}
-              icon={<DollarCircleOutlined style={{ color: '#3f8600' }} />}
-              color="#3f8600"
-            />
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <StatCard
-              title="Tiền điện"
-              value={totalPriceElectricityMother}
-              icon={<ThunderboltOutlined style={{ color: '#faad14' }} />}
-              color="#faad14"
-            />
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <StatCard
-              title="Tiền nước"
-              value={totalPriceWaterMother}
-              icon={<DropboxOutlined style={{ color: '#1890ff' }} />}
-              color="#1890ff"
-            />
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <StatCard
-              title="Tiền dịch vụ"
-              value={totalPriceServiceMother}
-              icon={<CalendarOutlined style={{ color: '#ff4d4f' }} />}
-              color="#ff4d4f"
-            />
-          </Col>
-        </Row>
-
-        <Divider style={{ margin: '48px 0', borderColor: '#1890ff' }} />
-
-        {/* Charts Section */}
-        <Row gutter={[32, 32]} style={{ marginBottom: 48 }}>
-          {/* Bar Chart */}
-          <Col xs={24} lg={16}>
-            <Card 
-              title={
-                <Space>
-                  <BarChartOutlined style={{ color: '#1890ff' }} />
-                  <Text strong>Biểu đồ doanh thu theo tháng - {currentYear}</Text>
-                </Space>
-              }
-              style={{ 
-                borderRadius: '12px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-              }}
-            >
-              <ResponsiveContainer width="100%" height={400}>
-                <BarChart data={listTotalPriceForMonth} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis 
-                    dataKey="month" 
-                    tick={{ fontSize: 12 }}
-                    axisLine={{ stroke: '#d9d9d9' }}
-                  />
-                  <YAxis 
-                    tick={{ fontSize: 12 }}
-                    axisLine={{ stroke: '#d9d9d9' }}
-                    tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
-                  />
-                  <Tooltip 
-                    formatter={(value, name) => [value.toLocaleString("vi-VN") + " ₫", name]}
-                    labelStyle={{ color: '#666' }}
-                    contentStyle={{ 
-                      borderRadius: '8px', 
-                      border: '1px solid #d9d9d9',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                    }}
-                  />
-                  <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                  <Bar dataKey="totalMonth" name="Tổng doanh thu" fill="#3f8600" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="totalElectricity" name="Tiền điện" fill="#faad14" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="totalWater" name="Tiền nước" fill="#1890ff" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="totalService" name="Tiền dịch vụ" fill="#ff4d4f" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="totalRoom" name="Tiền phòng" fill="#722ed1" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </Card>
-          </Col>
-
-          {/* Pie Chart */}
-          <Col xs={24} lg={8}>
-            <Card 
-              title={
-                <Space>
-                  <PieChart style={{ color: '#1890ff' }} />
-                  <Text strong>Cơ cấu doanh thu năm {currentYear}</Text>
-                </Space>
-              }
-              style={{ 
-                borderRadius: '12px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-              }}
-            >
-              <ResponsiveContainer width="100%" height={400}>
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={120}
-                    paddingAngle={5}
-                    dataKey="value"
-                    label={({name, percent}) => `${name}: ${(percent * 100).toFixed(1)}%`}
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    formatter={(value) => value.toLocaleString("vi-VN") + " ₫"}
-                    contentStyle={{ 
-                      borderRadius: '8px', 
-                      border: '1px solid #d9d9d9',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </Card>
-          </Col>
-        </Row>
-
-        {/* Data Table */}
-        <Card 
-          title={
-            <Space>
-              <CalendarOutlined style={{ color: '#1890ff' }} />
-              <Text strong>Chi tiết doanh thu theo tháng</Text>
-            </Space>
-          }
-          style={{ 
-            borderRadius: '12px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-          }}
-        >
-          <Table
-            columns={columns}
-            dataSource={listTotalPriceForMonth}
-            rowKey="month"
-            pagination={{
-              pageSize: 12,
-              showSizeChanger: true,
-              showQuickJumper: true,
-              showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} mục`,
-            }}
-            bordered
-            size="middle"
-            scroll={{ x: 800 }}
-            style={{ 
-              borderRadius: '8px',
-              overflow: 'hidden'
-            }}
-          />
-        </Card>
       </Card>
     </div>
   );

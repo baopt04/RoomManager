@@ -1,8 +1,7 @@
-// src/components/SidebarMenu.js
 import React from 'react';
 import { Layout, Menu } from 'antd';
 import {
-  DashboardOutlined,
+  BarChartOutlined,
   UserOutlined,
   HomeOutlined,
   ApartmentOutlined,
@@ -13,426 +12,264 @@ import {
   ToolOutlined,
   DollarOutlined,
   CarOutlined,
-  CustomerServiceOutlined,
-  FileTextOutlined as BillOutlined,
   TeamOutlined,
-  BarChartOutlined,
+  CrownOutlined,
+  AppstoreOutlined,
+  PlusCircleOutlined,
+  EyeOutlined,
 } from '@ant-design/icons';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import logo from '../../assets/logo.png';
 
 const { Sider } = Layout;
 
-const SidebarMenu = () => {
+const SidebarMenu = ({ onClose }) => {
   const navigator = useNavigate();
+  const location = useLocation();
+
+  const getSelectedKey = () => {
+    const path = location.pathname;
+    const map = {
+      '/statistical': '1',
+      '/host-management': '2',
+      '/houseForRent-management': '3',
+      '/room-management': '4',
+      '/contract-management': '5',
+      '/customer-management': '6',
+      '/water-management': '7',
+      '/electricity-management': '8',
+      '/service-management': '9',
+      '/roomSerivce-management': '10',
+      '/maintenance-management': '11',
+      '/car-management': '12',
+      '/bill-management': '13',
+      '/sale-counter': '14',
+      '/admin-management': '15',
+      '/room-viewing-management': '16',
+    };
+    for (const [key, value] of Object.entries(map)) {
+      if (path.startsWith(key)) return value;
+    }
+    return '1';
+  };
+
+  const menuItems = [
+    {
+      type: 'group',
+      label: 'TỔNG QUAN',
+      children: [
+        { key: '1', icon: <BarChartOutlined />, label: 'Thống kê', path: '/statistical' },
+      ],
+    },
+    {
+      type: 'group',
+      label: 'QUẢN LÝ',
+      children: [
+        { key: '2', icon: <UserOutlined />, label: 'Chủ nhà', path: '/host-management' },
+        { key: '3', icon: <HomeOutlined />, label: 'Nhà cho thuê', path: '/houseForRent-management' },
+        { key: '4', icon: <ApartmentOutlined />, label: 'Phòng trọ', path: '/room-management' },
+        { key: '5', icon: <FileTextOutlined />, label: 'Hợp đồng', path: '/contract-management' },
+        { key: '6', icon: <TeamOutlined />, label: 'Khách hàng', path: '/customer-management' },
+        { key: '16', icon: <EyeOutlined />, label: 'Người xem nhà', path: '/room-viewing-management' },
+      ],
+    },
+    {
+      type: 'group',
+      label: 'DỊCH VỤ',
+      children: [
+        { key: '7', icon: <CloudOutlined />, label: 'Nước', path: '/water-management' },
+        { key: '8', icon: <ThunderboltOutlined />, label: 'Điện', path: '/electricity-management' },
+        { key: '9', icon: <SettingOutlined />, label: 'Dịch vụ', path: '/service-management' },
+        { key: '10', icon: <AppstoreOutlined />, label: 'DV phòng trọ', path: '/roomSerivce-management' },
+        { key: '11', icon: <ToolOutlined />, label: 'Bảo trì', path: '/maintenance-management' },
+        { key: '12', icon: <CarOutlined />, label: 'Xe máy', path: '/car-management' },
+      ],
+    },
+    {
+      type: 'group',
+      label: 'TÀI CHÍNH',
+      children: [
+        { key: '13', icon: <DollarOutlined />, label: 'Hóa đơn', path: '/bill-management' },
+        { key: '14', icon: <PlusCircleOutlined />, label: 'Tạo hóa đơn', path: '/sale-counter' },
+      ],
+    },
+    {
+      type: 'group',
+      label: 'HỆ THỐNG',
+      children: [
+        { key: '15', icon: <CrownOutlined />, label: 'Admin', path: '/admin-management' },
+      ],
+    },
+  ];
+
+  const handleClick = ({ key }) => {
+    // Find the path from menuItems
+    for (const group of menuItems) {
+      const item = group.children.find((c) => c.key === key);
+      if (item) {
+        navigator(item.path);
+        if (onClose) onClose();
+        return;
+      }
+    }
+  };
 
   return (
     <div style={{
-      width: "280px",
-      height: "100vh", // Full height
-      background: 'linear-gradient(180deg, #2d3748 0%, #1a202c 100%)',
-      boxShadow: '2px 0 8px rgba(0,0,0,0.15)',
-      overflow: 'hidden', // Ngăn overflow
+      width: '100%',
+      height: '100vh',
+      background: '#ffffff',
+      borderRight: '1px solid #e5e7eb',
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      overflow: 'hidden',
     }}>
-      {/* Logo Section - Fixed */}
+      {/* Logo */}
       <div style={{
-        padding: '20px',
-        textAlign: 'center',
-        borderBottom: '1px solid #4a5568',
-        flexShrink: 0, // Không co lại khi scroll
-        background: 'linear-gradient(135deg, #2d3748 0%, #1a202c 100%)'
+        padding: '16px 20px',
+        borderBottom: '1px solid #e5e7eb',
+        flexShrink: 0,
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
       }}>
         <img
           src={logo}
           alt="Logo"
           style={{
-            width: '80px',
-            height: 'auto',
-            marginBottom: '10px',
-            borderRadius: '8px'
+            width: '32px',
+            height: '32px',
+            borderRadius: '6px',
           }}
         />
-        <h2 style={{
-          color: '#63b3ed',
-          margin: 0,
-          fontSize: '16px',
+        <span style={{
+          fontSize: '15px',
           fontWeight: '600',
-          fontFamily: 'Arial, sans-serif'
+          color: '#1a1a2e',
+          fontFamily: "'Inter', sans-serif",
         }}>
-          🏠 Quản lý phòng trọ
-        </h2>
-        <p style={{
-          color: '#a0aec0',
-          fontSize: '12px',
-          margin: '5px 0 0 0'
-        }}>
-          Hệ thống quản lý toàn diện
-        </p>
+          Quản lý phòng trọ
+        </span>
       </div>
 
-      {/* Scrollable Menu Section */}
+      {/* Menu */}
       <div style={{
-        flex: 1, // Chiếm toàn bộ không gian còn lại
-        overflowY: 'auto', // Cho phép scroll dọc
-        overflowX: 'hidden', // Ẩn scroll ngang
-        padding: '10px 0'
+        flex: 1,
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        padding: '8px 0',
       }}>
-        <Sider
-          width={280}
+        <Menu
+          mode="inline"
+          selectedKeys={[getSelectedKey()]}
+          onClick={handleClick}
           style={{
-            background: 'transparent',
             border: 'none',
-            height: '100%'
+            background: 'transparent',
+            fontFamily: "'Inter', sans-serif",
           }}
-        >
-          <Menu
-            mode="inline"
-            defaultSelectedKeys={['2']}
-            style={{
-              height: '100%',
-              border: 'none',
-              background: 'transparent',
-              padding: '0 10px'
-            }}
-            theme="dark"
-            onClick={({ key }) => {
-              switch (key) {
-                case '1':
-                  navigator('/dashboard');
-                  break;
-                case '2':
-                  navigator('/host-management');
-                  break;
-                case '3':
-                  navigator('/houseForRent-management');
-                  break;
-                case '4':
-                  navigator('/room-management');
-                  break;
-                case '5':
-                  navigator('/contract-management');
-                  break;
-                case '6':
-                  navigator('/water-management');
-                  break;
-                case '7':
-                  navigator('/electricity-management');
-                  break;
-                case '8':
-                  navigator('/service-management');
-                  break;
-                case '9':
-                  navigator('/maintenance-management');
-                  break;
-                case '10':
-                  navigator('/car-management');
-                  break;
-                case '11':
-                  navigator('/roomSerivce-management');
-                  break;
-                case '12':
-                  navigator('/bill-management');
-                  break;
-                case '13':
-                  navigator('/sale-counter');
-                  break;
-                case '14':
-                  navigator('/customer-management');
-                  break;
-                case '15':
-                  navigator("/admin-management")
-                  break;
-                case '16':
-                  navigator('/statistical');
-                  break;
-                default:
-                  break;
-              }
-            }}
-          >
-
-            <Menu.Item
-              key="2"
-              style={{
-                color: '#f7fafc',
-                fontSize: '14px',
-                height: '45px',
-                lineHeight: '45px',
-                margin: '4px 0',
-                borderRadius: '8px',
-                marginTop:'180px'
-              }}
-            >
-              👤 Quản lý chủ nhà
-            </Menu.Item>
-
-            <Menu.Item
-              key="3"
-              style={{
-                color: '#f7fafc',
-                fontSize: '14px',
-                height: '45px',
-                lineHeight: '45px',
-                margin: '4px 0',
-                borderRadius: '8px'
-              }}
-            >
-              🏠 Quản lý nhà cho thuê
-            </Menu.Item>
-
-            <Menu.Item
-              key="4"
-              style={{
-                color: '#f7fafc',
-                fontSize: '14px',
-                height: '45px',
-                lineHeight: '45px',
-                margin: '4px 0',
-                borderRadius: '8px'
-              }}
-            >
-              🏢 Quản lý trọ cho thuê
-            </Menu.Item>
-
-            <Menu.Item
-              key="5"
-              style={{
-                color: '#f7fafc',
-                fontSize: '14px',
-                height: '45px',
-                lineHeight: '45px',
-                margin: '4px 0',
-                borderRadius: '8px'
-              }}
-            >
-              📋 Quản lý hợp đồng
-            </Menu.Item>
-
-            <Menu.Item
-              key="6"
-              style={{
-                color: '#f7fafc',
-                fontSize: '14px',
-                height: '45px',
-                lineHeight: '45px',
-                margin: '4px 0',
-                borderRadius: '8px'
-              }}
-            >
-              💧 Quản lý nước
-            </Menu.Item>
-
-            <Menu.Item
-              key="7"
-              style={{
-                color: '#f7fafc',
-                fontSize: '14px',
-                height: '45px',
-                lineHeight: '45px',
-                margin: '4px 0',
-                borderRadius: '8px'
-              }}
-            >
-              ⚡ Quản lý điện
-            </Menu.Item>
-
-            <Menu.Item
-              key="8"
-              style={{
-                color: '#f7fafc',
-                fontSize: '14px',
-                height: '45px',
-                lineHeight: '45px',
-                margin: '4px 0',
-                borderRadius: '8px'
-              }}
-            >
-              🔧 Quản lý dịch vụ
-            </Menu.Item>
-
-            <Menu.Item
-              key="9"
-              style={{
-                color: '#f7fafc',
-                fontSize: '14px',
-                height: '45px',
-                lineHeight: '45px',
-                margin: '4px 0',
-                borderRadius: '8px'
-              }}
-            >
-              🛠️ Quản lý bảo trì
-            </Menu.Item>
-
-            <Menu.Item
-              key="10"
-              style={{
-                color: '#f7fafc',
-                fontSize: '14px',
-                height: '45px',
-                lineHeight: '45px',
-                margin: '4px 0',
-                borderRadius: '8px'
-              }}
-            >
-              🏍️ Quản lý xe máy
-            </Menu.Item>
-
-            <Menu.Item
-              key="11"
-              style={{
-                color: '#f7fafc',
-                fontSize: '14px',
-                height: '45px',
-                lineHeight: '45px',
-                margin: '4px 0',
-                borderRadius: '8px'
-              }}
-            >
-              🛎️ Dịch vụ phòng trọ
-            </Menu.Item>
-
-            <Menu.Item
-              key="12"
-              style={{
-                color: '#f7fafc',
-                fontSize: '14px',
-                height: '45px',
-                lineHeight: '45px',
-                margin: '4px 0',
-                borderRadius: '8px'
-              }}
-            >
-              🧾 Quản lý hóa đơn
-            </Menu.Item>
-
-            <Menu.Item
-              key="13"
-              style={{
-                color: '#f7fafc',
-                fontSize: '14px',
-                height: '45px',
-                lineHeight: '45px',
-                margin: '4px 0',
-                borderRadius: '8px'
-              }}
-            >
-              💰 Tạo hóa đơn
-            </Menu.Item>
-
-            <Menu.Item
-              key="14"
-              style={{
-                color: '#f7fafc',
-                fontSize: '14px',
-                height: '45px',
-                lineHeight: '45px',
-                margin: '4px 0',
-                borderRadius: '8px'
-              }}
-            >
-              👥 Quản lý khách hàng
-            </Menu.Item>
-
-            <Menu.Item
-              key="15"
-              style={{
-                color: '#f7fafc',
-                fontSize: '14px',
-                height: '45px',
-                lineHeight: '45px',
-                margin: '4px 0',
-                borderRadius: '8px'
-              }}
-            >
-              👑 Quản lý admin
-            </Menu.Item>
-
-            <Menu.Item
-              key="16"
-              style={{
-                color: '#f7fafc',
-                fontSize: '14px',
-                height: '45px',
-                lineHeight: '45px',
-                margin: '4px 0',
-                borderRadius: '8px'
-              }}
-            >
-              📈 Thống kê
-            </Menu.Item>
-          </Menu>
-        </Sider>
+          items={menuItems.map((group) => ({
+            type: 'group',
+            label: (
+              <span style={{
+                fontSize: '11px',
+                fontWeight: '600',
+                color: '#9ca3af',
+                letterSpacing: '0.5px',
+                padding: '0 12px',
+              }}>
+                {group.label}
+              </span>
+            ),
+            children: group.children.map((item) => ({
+              key: item.key,
+              icon: item.icon,
+              label: item.label,
+            })),
+          }))}
+        />
       </div>
 
-      {/* Custom CSS cho hover effect và scrollbar */}
-      <style jsx>{`
-        /* Menu hover effects */
-        .ant-menu-dark .ant-menu-item:hover {
-          background-color: #4a5568 !important;
-          border-left: 3px solid #63b3ed !important;
-          transform: translateX(5px);
+      {/* Sidebar CSS */}
+      <style>{`
+        /* Sidebar menu items */
+        .ant-menu-inline .ant-menu-item {
+          height: 36px !important;
+          line-height: 36px !important;
+          margin: 2px 8px !important;
+          padding: 0 12px !important;
+          border-radius: 10px !important;
+          font-size: 13px !important;
+          font-weight: 400 !important;
+          color: #4b5563 !important;
+          width: calc(100% - 16px) !important;
         }
-        
-        .ant-menu-dark .ant-menu-item-selected {
-          background-color: #3182ce !important;
-          border-left: 3px solid #63b3ed !important;
-          transform: translateX(5px);
+
+        .ant-menu-inline .ant-menu-item:hover {
+          background: #f3f4f6 !important;
+          color: #1a1a2e !important;
         }
-        
-        .ant-menu-dark .ant-menu-item {
-          border-left: 3px solid transparent; 
-          transition: all 0.3s ease;
+
+        .ant-menu-inline .ant-menu-item-selected {
+          background: #e6f4ff !important;
+          color: #1677ff !important;
+          font-weight: 500 !important;
         }
-        
-        .ant-menu-dark .ant-menu-item-active {
-          background-color: #4a5568 !important;
+
+        .ant-menu-inline .ant-menu-item-selected .anticon {
+          color: #1677ff !important;
         }
-        
-        /* Custom scrollbar cho sidebar menu */
-        .ant-layout-sider ::-webkit-scrollbar {
-          width: 6px;
+
+        .ant-menu-item-group-title {
+          padding: 16px 8px 4px 8px !important;
+          font-size: 11px !important;
         }
-        
-        .ant-layout-sider ::-webkit-scrollbar-track {
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 3px;
+
+        /* Remove extra borders & backgrounds */
+        .ant-menu-light {
+          border-inline-end: none !important;
         }
-        
-        .ant-layout-sider ::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.3);
-          border-radius: 3px;
+
+        .ant-menu-inline .ant-menu-item::after {
+          border-right: none !important;
         }
-        
-        .ant-layout-sider ::-webkit-scrollbar-thumb:hover {
-          background: rgba(255, 255, 255, 0.5);
+
+        /* Sidebar scrollbar */
+        .ant-layout-sider ::-webkit-scrollbar,
+        div[style*="overflow"] ::-webkit-scrollbar {
+          width: 4px;
         }
-        
-        /* Smooth scroll */
-        .ant-layout-sider {
-          scroll-behavior: smooth;
+
+        div[style*="overflow"] ::-webkit-scrollbar-thumb {
+          background: #e5e7eb;
+          border-radius: 2px;
         }
-        
-        /* Animation cho menu items */
-        @keyframes slideIn {
-          from {
-            opacity: 0;
-            transform: translateX(-20px);
+
+        @media (max-width: 1024px) {
+          .ant-menu-inline .ant-menu-item {
+            height: 34px !important;
+            line-height: 34px !important;
+            font-size: 12px !important;
+            margin: 2px 6px !important;
+            width: calc(100% - 12px) !important;
           }
-          to {
-            opacity: 1;
-            transform: translateX(0);
+
+          .ant-menu-item-group-title {
+            padding-top: 12px !important;
+            font-size: 10px !important;
           }
         }
-        
-        .ant-menu-item {
-          animation: slideIn 0.3s ease-out;
+
+        @media (max-width: 768px) {
+          .ant-menu-inline .ant-menu-item {
+            height: 32px !important;
+            line-height: 32px !important;
+            padding: 0 10px !important;
+          }
         }
       `}</style>
     </div>
-  )
+  );
 };
 
 export default SidebarMenu;

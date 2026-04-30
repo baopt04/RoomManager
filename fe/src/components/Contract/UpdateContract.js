@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Form, Input, Button, Select, InputNumber, DatePicker, Upload, Row, Col, message, Typography } from "antd";
-import { PlusOutlined, UploadOutlined } from "@ant-design/icons";
+import { Form, Input, Button, Select, InputNumber, DatePicker, Upload, Row, Col, message, Typography, Space, Modal } from "antd";
+import { PlusOutlined, UploadOutlined, CalendarOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import RoomService from "../../services/RoomService";
 import ContractService from "../../services/ContractService";
 import HouseForRentService from "../../services/HouseForRentService";
 import CustomerService from "../../services/CustomerService";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
-import moment from "moment";
 import dayjs from "dayjs";
 const { Option } = Select;
 const { Title } = Typography;
@@ -21,8 +20,12 @@ const UpdateContract = () => {
   const [customerList, setCustomerList] = useState([]);
   const token = localStorage.getItem("token");
   const { contractId } = useParams();
-  const [oldImageUrls, setOldImageUrls] = useState([]);
-  console.log("Check chạy và");
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   const navigator = useNavigate();
   useEffect(() => {
 
@@ -62,12 +65,9 @@ const UpdateContract = () => {
 
   useEffect(() => {
     const fetchContractDetails = async () => {
-      console.log("Check chạy hàm", contractId);
-
       try {
         if (contractId) {
           const response = await ContractService.detailContract(token, contractId);
-          console.log("Detail contract:", response);
 
           form.setFieldsValue({
             dateStart: dayjs(response.dateStart, 'DD/MM/YYYY'),
@@ -83,8 +83,6 @@ const UpdateContract = () => {
 
 
           if (response.imageUrls && Array.isArray(response.imageUrls)) {
-            setOldImageUrls(response.imageUrls || []);
-            console.log("Check oldImageUrls", oldImageUrls);
             const formattedFileList = response.imageUrls.map((url, index) => ({
               uid: `-${index}`,
               name: `image-${index + 1}.jpg`,
@@ -99,80 +97,109 @@ const UpdateContract = () => {
       }
     }
     fetchContractDetails();
-  }, [form, token]);
+  }, [form, token, contractId]);
   const handleUploadChange = ({ fileList: newFileList }) => {
     setFileList(newFileList);
   };
 
-  const handLeUpdateContract = async (values) => {
-    try {
-      const formData = new FormData();
+  const handLeUpdateContract = (values) => {
+    Modal.confirm({
+      title: 'Xác nhận cập nhật hợp đồng',
+      content: 'Bạn có chắc chắn muốn lưu các thay đổi cho hợp đồng này không?',
+      okText: 'Cập nhật',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        try {
+          const formData = new FormData();
 
-      // Append các field khác (trừ images)
-      Object.keys(values).forEach((key) => {
-        if (key !== "images") {
-          formData.append(key, values[key]);
+          // Append các field khác (trừ images)
+          Object.keys(values).forEach((key) => {
+            if (key !== "images") {
+              formData.append(key, values[key]);
+            }
+          });
+          formData.append("adminId", "e6c59463-fb23-4006-8380-82326ae7a878");
+
+          const remainOldUrls = fileList
+            .filter((file) => !file.originFileObj && file.url)
+            .map((file) => file.url);
+
+          const newFiles = fileList.filter((file) => !!file.originFileObj);
+
+          // LOGIC CHÍNH: Chỉ gửi 1 trong 2 loại
+          if (newFiles.length > 0) {
+            newFiles.forEach((file) => {
+              formData.append("images", file.originFileObj);
+            });
+            remainOldUrls.forEach((url) => {
+              formData.append("imageUrls", url);
+            });
+          } else if (remainOldUrls.length > 0) {
+            remainOldUrls.forEach((url) => {
+              formData.append("imageUrls", url);
+            });
+          }
+
+          await ContractService.updateContract(token, contractId, formData);
+          message.success("Cập nhật hợp đồng thành công!");
+          form.resetFields();
+          setFileList([]);
+          navigator("/contract-management");
+        } catch (error) {
+          if (error.response && error.response.data && error.response.data.message) {
+            message.error(error.response.data.message);
+          } else {
+            message.error("Lỗi khi cập nhật hợp đồng, vui lòng thử lại sau!");
+          }
         }
-      });
-      formData.append("adminId", "e6c59463-fb23-4006-8380-82326ae7a878");
-
-      // Phân loại file cũ và file mới
-      const remainOldUrls = fileList
-        .filter((file) => !file.originFileObj && file.url)
-        .map((file) => file.url);
-
-      const newFiles = fileList.filter((file) => !!file.originFileObj);
-
-      console.log("Old URLs:", remainOldUrls);
-      console.log("New Files:", newFiles.length);
-
-      // LOGIC CHÍNH: Chỉ gửi 1 trong 2 loại
-      if (newFiles.length > 0) {
-        // CASE 1: Có file mới -> Gửi TẤT CẢ (cũ + mới) qua images
-        console.log("Uploading with mixed files (old URLs + new files)");
-
-        // Gửi file mới qua images
-        newFiles.forEach((file) => {
-          formData.append("images", file.originFileObj);
-        });
-
-        // Gửi URL cũ qua imageUrls để backend biết cần giữ lại
-        remainOldUrls.forEach((url) => {
-          formData.append("imageUrls", url);
-        });
-      } else if (remainOldUrls.length > 0) {
-        // CASE 2: Chỉ có ảnh cũ -> Chỉ gửi imageUrls
-        console.log("Updating only with existing URLs");
-
-        remainOldUrls.forEach((url) => {
-          formData.append("imageUrls", url);
-        });
       }
-      // CASE 3: Không có ảnh nào -> Không gửi gì (xóa hết)
+    });
+  };
 
-      await ContractService.updateContract(token, contractId, formData);
-      message.success("Cập nhật hợp đồng thành công!");
-      form.resetFields();
-      setFileList([]);
-      navigator("/contract-management");
-    } catch (error) {
-      if (error.response && error.response.data && error.response.data.message) {
-        message.error(error.response.data.message);
-      } else {
-        message.error("Lỗi khi cập nhật hợp đồng, vui lòng thử lại sau!");
-      }
+  const handleDateStartChange = (date) => {
+    if (date) {
+      const nextDueDate = date.clone().add(1, 'month');
+      form.setFieldsValue({ nextDueDate: nextDueDate });
     }
   };
+
+  const handleRoomChange = (roomId) => {
+    const selectedRoom = roomList.find(r => r.id === roomId);
+    if (selectedRoom) {
+      form.setFieldsValue({ contractDeponsit: selectedRoom.price });
+    }
+  };
+
   const returnBack = () => {
     navigator("/contract-management");
     form.resetFields();
     setFileList([]);
   }
 
+  const handleDurationSelect = (months) => {
+    const dateStart = form.getFieldValue("dateStart");
+    if (!dateStart) {
+      message.warning("Vui lòng chọn ngày ký hợp đồng trước!");
+      return;
+    }
+    const dateEnd = dateStart.clone().add(months, 'month');
+    form.setFieldsValue({ dateEnd: dateEnd });
+  };
+
 
   return (
-    <div style={{ maxWidth: 2000, margin: "0 auto", padding: 32, background: "#fff", borderRadius: 8 }}>
-      <Title level={2} style={{ textAlign: "center" }}>Cập nhật hợp đồng</Title>
+    <div style={{ maxWidth: 2000, margin: "0 auto", padding: isMobile ? 16 : 32, background: "#fff", borderRadius: 8 }}>
+      <div style={{ marginBottom: 16 }}>
+        <Button
+          type="text"
+          icon={<ArrowLeftOutlined />}
+          onClick={returnBack}
+          style={{ paddingLeft: 0, fontWeight: 500 }}
+        >
+          Quay lại
+        </Button>
+      </div>
+      <Title level={2} style={{ textAlign: "center", marginTop: 0 }}>Cập nhật hợp đồng</Title>
       <Form
         form={form}
         layout="vertical"
@@ -185,16 +212,58 @@ const UpdateContract = () => {
               name="dateStart"
               rules={[{ required: true, message: "Vui lòng chọn ngày ký hợp đồng" }]}
             >
-              <DatePicker style={{ width: "100%", minWidth: 250 }} format="DD/MM/YYYY" placeholder="Chọn ngày ký hợp đồng" />
+              <DatePicker
+                style={{ width: "100%", minWidth: 250 }}
+                format="DD/MM/YYYY"
+                placeholder="Chọn ngày ký hợp đồng"
+                onChange={handleDateStartChange}
+              />
             </Form.Item>
           </Col>
           <Col xs={24} md={12}>
             <Form.Item
-              label="Ngày hết hạn"
+              label={
+                <Space>
+                  <span>Ngày hết hạn</span>
+                  <Space size={4}>
+                    <Button type="dashed" size="small" onClick={() => handleDurationSelect(3)}>3 tháng</Button>
+                    <Button type="dashed" size="small" onClick={() => handleDurationSelect(6)}>6 tháng</Button>
+                    <Button type="dashed" size="small" onClick={() => handleDurationSelect(12)}>1 năm</Button>
+                  </Space>
+                </Space>
+              }
               name="dateEnd"
               rules={[{ required: true, message: "Vui lòng chọn ngày hết hạn" }]}
             >
               <DatePicker style={{ width: "100%", minWidth: 250 }} format="DD/MM/YYYY" placeholder="Chọn ngày hết hạn hợp đồng" />
+            </Form.Item>
+          </Col>
+        </Row>
+        <Row gutter={32}>
+          <Col xs={24} md={12}>
+            <Form.Item
+              label="Phòng trọ thuê"
+              name="roomId"
+              rules={[{ required: true, message: "Vui lòng chọn phòng trọ" }]}
+            >
+              <Select
+                placeholder="Chọn phòng trọ ký hợp đồng"
+                style={{ width: "100%", minWidth: 250 }}
+                onChange={handleRoomChange}
+              >
+                {roomList.map(room => (
+                  <Option key={room.id} value={room.id}>{room.name}</Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col xs={24} md={12}>
+            <Form.Item
+              label="Ngày thanh toán"
+              name="nextDueDate"
+              rules={[{ required: true, message: "Vui lòng chọn ngày thanh toán" }]}
+            >
+              <DatePicker style={{ width: "100%", minWidth: 250 }} format="DD/MM/YYYY" placeholder="Chọn ngày thanh toán tiếp theo" />
             </Form.Item>
           </Col>
         </Row>
@@ -213,30 +282,6 @@ const UpdateContract = () => {
                 parser={value => value.replace(/\$\s?|(,*)/g, '')}
                 addonAfter="VNĐ"
               />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="Ngày thanh toán"
-              name="nextDueDate"
-              rules={[{ required: true, message: "Vui lòng chọn ngày thanh toán" }]}
-            >
-              <DatePicker style={{ width: "100%", minWidth: 250 }} format="DD/MM/YYYY" placeholder="Chọn ngày thanh toán tiếp theo" />
-            </Form.Item>
-          </Col>
-        </Row>
-        <Row gutter={32}>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="Phòng trọ thuê"
-              name="roomId"
-              rules={[{ required: true, message: "Vui lòng chọn phòng trọ" }]}
-            >
-              <Select placeholder="Chọn phòng trọ ký hợp đồng" style={{ width: "100%", minWidth: 250 }}>
-                {roomList.map(room => (
-                  <Option key={room.id} value={room.id}>{room.name}</Option>
-                ))}
-              </Select>
             </Form.Item>
           </Col>
           <Col xs={24} md={12}>
@@ -316,9 +361,6 @@ const UpdateContract = () => {
         <Form.Item style={{ textAlign: "left" }}>
           <Button type="primary" htmlType="submit" icon={<PlusOutlined />}>
             Cập nhật hợp đồng
-          </Button>
-          <Button type="primary" danger style={{ marginLeft: 16 }} onClick={returnBack}>
-            Quay lại
           </Button>
         </Form.Item>
       </Form>

@@ -5,20 +5,19 @@ const axiosInstance = axios.create({
     withCredentials: true,
 });
 
-// Biến để kiểm soát refresh process
-let isRefreshing = false; // Kiểm tra xem refresh có tồn tại hay không
-let failedQueue = []; // queue chứa các request bị 401 đang chờ
+let isRefreshing = false;
+let failedQueue = [];
 
 
 const processQueue = (error, token = null) => {
     failedQueue.forEach(prom => {
         if (error) {
-            prom.reject(error); // tất cả request fails
+            prom.reject(error);
         } else {
-            prom.resolve(token); // tất cả request được token mới
+            prom.resolve(token);
         }
     });
-    
+
     failedQueue = []; // clean queue
 };
 
@@ -41,7 +40,7 @@ axiosInstance.interceptors.response.use(
         const originalRequest = error.config;
 
         if ((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry) { // điều kiện để refresh
-            
+
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {
                     failedQueue.push({ resolve, reject });
@@ -58,16 +57,16 @@ axiosInstance.interceptors.response.use(
 
             try {
                 console.log('🔄 Đang refresh token...');
-                
+
                 const res = await axios.post(
-                    'http://localhost:8080/public/refresh-token', 
-                    {}, 
+                    'http://localhost:8080/public/refresh-token',
+                    {},
                     { withCredentials: true }
                 );
 
                 const newAccessToken = res.data.accessToken;
                 localStorage.setItem('token', newAccessToken);
-                
+
                 if (res.data.name) {
                     localStorage.setItem('userName', res.data.name);
                 }
@@ -83,17 +82,17 @@ axiosInstance.interceptors.response.use(
 
             } catch (refreshError) {
                 console.log('❌ Refresh token thất bại:', refreshError);
-                
+
                 processQueue(refreshError, null);
-                
+
                 localStorage.removeItem('token');
                 localStorage.removeItem('email');
                 localStorage.removeItem('userName');
-                
+
                 setTimeout(() => {
                     window.location.href = '/login';
                 }, 500);
-                
+
                 return Promise.reject(refreshError);
             } finally {
                 isRefreshing = false;

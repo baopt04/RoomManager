@@ -19,7 +19,7 @@ import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 public interface ElectricityRepository extends CrudRepository<Electricity, String> {
     Optional<Electricity> findById(String id);
     boolean existsByRoom_Id(String id);
-    Optional<Electricity> findByRoomId(String roomId);
+    Optional<Electricity> findTopByRoomIdOrderByLastModifiedDateDesc(String roomId);
 
     @Query(value = """
             SELECT 

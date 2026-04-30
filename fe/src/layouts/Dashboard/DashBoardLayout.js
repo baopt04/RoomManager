@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Layout, Dropdown, Menu, message, Modal, Avatar } from "antd";
-import { UserOutlined, LockOutlined, LogoutOutlined } from "@ant-design/icons";
+import { Layout, Dropdown, Menu, message, Modal, Avatar, Button, Drawer } from "antd";
+import { UserOutlined, LockOutlined, LogoutOutlined, MenuOutlined, CloseOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import SidebarMenu from "../../components/Menu/SideBarMenu";
 import ModalChangePassword from "../../components/Login/ModalChangePassword";
@@ -12,6 +12,19 @@ const DashboardLayout = ({ children }) => {
   const userName = localStorage.getItem("userName") || "Người dùng";
   const navigate = useNavigate();
   const [modalChangePassword, setModalChangePassword] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [drawerVisible, setDrawerVisible] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+      if (window.innerWidth > 768) {
+        setDrawerVisible(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -21,7 +34,7 @@ const DashboardLayout = ({ children }) => {
   const formatTime = (date) =>
     date.toLocaleTimeString("vi-VN", {
       hour: "2-digit",
-      minute: "2-digit", 
+      minute: "2-digit",
       second: "2-digit",
     });
 
@@ -36,7 +49,7 @@ const DashboardLayout = ({ children }) => {
   const handleMenuClick = (e) => {
     if (e.key === "logout") {
       Modal.confirm({
-        title: '🚪 Đăng xuất',
+        title: 'Đăng xuất',
         content: 'Bạn có chắc muốn đăng xuất khỏi hệ thống?',
         okText: 'Đăng xuất',
         cancelText: 'Hủy',
@@ -60,32 +73,26 @@ const DashboardLayout = ({ children }) => {
   };
 
   const userMenu = (
-    <Menu 
+    <Menu
       onClick={handleMenuClick}
       style={{
         borderRadius: '8px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-        border: '1px solid #e8e8e8'
+        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+        border: '1px solid #e5e7eb',
+        padding: '4px',
       }}
     >
-      <Menu.Item 
-        key="changePassword" 
+      <Menu.Item
+        key="changePassword"
         icon={<LockOutlined />}
-        style={{ 
-          fontSize: '14px',
-          padding: '10px 16px'
-        }}
+        style={{ fontSize: '13px', borderRadius: '6px' }}
       >
         Đổi mật khẩu
       </Menu.Item>
-      <Menu.Item 
-        key="logout" 
+      <Menu.Item
+        key="logout"
         icon={<LogoutOutlined />}
-        style={{ 
-          fontSize: '14px',
-          padding: '10px 16px',
-          color: '#ef4444'
-        }}
+        style={{ fontSize: '13px', borderRadius: '6px', color: '#ef4444' }}
       >
         Đăng xuất
       </Menu.Item>
@@ -93,193 +100,144 @@ const DashboardLayout = ({ children }) => {
   );
 
   return (
-    <Layout style={{ minHeight: "100vh", background: '#f8f9fa' }}>
-      {/* Fixed Sidebar Menu */}
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        zIndex: 1000,
-        height: '100vh',
-        width: '280px'
-      }}>
-        <SidebarMenu />
-      </div>
+    <Layout style={{ minHeight: "100vh", background: '#f5f5f5' }}>
+      {/* Desktop: Fixed Sidebar */}
+      {!isMobile && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          zIndex: 1000,
+          height: '100vh',
+          width: '240px',
+        }}>
+          <SidebarMenu />
+        </div>
+      )}
 
-      {/* Main Layout với margin-left để tránh bị sidebar che */}
-      <Layout style={{ 
-        background: '#f8f9fa',
-        marginLeft: '280px', // Để dành chỗ cho fixed sidebar
-        minHeight: '100vh'
+      {/* Mobile: Drawer Sidebar */}
+      {isMobile && (
+        <Drawer
+          placement="left"
+          onClose={() => setDrawerVisible(false)}
+          open={drawerVisible}
+          width={260}
+          bodyStyle={{ padding: 0 }}
+          headerStyle={{ display: 'none' }}
+        >
+          <SidebarMenu onClose={() => setDrawerVisible(false)} />
+        </Drawer>
+      )}
+
+      {/* Main Area */}
+      <Layout style={{
+        background: '#f5f5f5',
+        marginLeft: isMobile ? 0 : '240px',
+        minHeight: '100vh',
       }}>
-        {/* Fixed Header Bar */}
+        {/* Header */}
         <div
           style={{
-            position: 'sticky', // Sử dụng sticky thay vì fixed để header luôn ở đầu khi scroll
+            position: 'sticky',
             top: 0,
             zIndex: 999,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            background: "linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)",
-            padding: "16px 30px",
-            margin: "20px 20px 0 20px",
-            borderRadius: "12px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-            border: "1px solid #e2e8f0",
-            backdropFilter: 'blur(10px)', // Thêm hiệu ứng blur
+            background: "#ffffff",
+            padding: isMobile ? "0 12px" : "0 24px",
+            height: '56px',
+            borderBottom: '1px solid #e5e7eb',
           }}
         >
-          {/* Thời gian thực */}
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          {/* Left Side */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }}>
+            {/* Mobile hamburger */}
+            {isMobile && (
+              <Button
+                type="text"
+                icon={<MenuOutlined style={{ fontSize: '18px' }} />}
+                onClick={() => setDrawerVisible(true)}
+                style={{ padding: '4px 8px' }}
+              />
+            )}
+
+            {/* Date & Time */}
             <div style={{
-              background: 'linear-gradient(45deg, #3182ce, #63b3ed)',
-              color: 'white',
-              padding: '8px 16px',
-              borderRadius: '8px',
-              fontSize: '16px',
-              fontWeight: '600',
-              marginRight: '15px',
-              boxShadow: '0 2px 8px rgba(49, 130, 206, 0.3)'
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px',
+              color: '#6b7280',
+              fontSize: '13px',
             }}>
-              🕐 {formatTime(time)}
+              {!isMobile && (
+                <span style={{ fontWeight: '500' }}>{formatDate(time)}</span>
+              )}
+              <span style={{
+                color: '#1677ff',
+                fontWeight: '600',
+                fontFamily: "'Inter', monospace",
+              }}>
+                {formatTime(time)}
+              </span>
             </div>
           </div>
 
-          {/* Ngày tháng */}
-          <div style={{
-            color: '#2d3748',
-            fontSize: '15px',
-            fontWeight: '500',
-            textAlign: 'center',
-            flex: 1
-          }}>
-            📅 {formatDate(time)}
-          </div>
-
-          {/* User Menu */}
-          <Dropdown 
-            overlay={userMenu} 
-            placement="bottomRight" 
+          {/* Right: User */}
+          <Dropdown
+            overlay={userMenu}
+            placement="bottomRight"
             trigger={["hover"]}
-            arrow={{ pointAtCenter: true }}
           >
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                background: 'linear-gradient(45deg, #f0f9ff, #e0f2fe)',
-                padding: '8px 16px',
-                borderRadius: '25px',
+                gap: '8px',
                 cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                border: '2px solid #e0f2fe',
-                boxShadow: '0 2px 8px rgba(59, 130, 246, 0.15)'
+                padding: '6px 12px',
+                borderRadius: '6px',
+                transition: 'background 0.2s',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-1px)';
-                e.currentTarget.style.boxShadow = '0 4px 16px rgba(59, 130, 246, 0.25)';
+                e.currentTarget.style.background = '#f3f4f6';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(59, 130, 246, 0.15)';
+                e.currentTarget.style.background = 'transparent';
               }}
             >
-              <Avatar 
-                size={32} 
-                icon={<UserOutlined />} 
-                style={{
-                  background: 'linear-gradient(45deg, #3b82f6, #60a5fa)',
-                  marginRight: '10px'
-                }}
+              <Avatar
+                size={28}
+                icon={<UserOutlined />}
+                style={{ background: '#1677ff' }}
               />
-              <span style={{
-                fontWeight: '600',
-                color: '#1e40af',
-                fontSize: '14px'
-              }}>
-                👋 {userName}
-              </span>
+              {!isMobile && (
+                <span style={{
+                  fontWeight: '500',
+                  color: '#374151',
+                  fontSize: '13px',
+                }}>
+                  {userName}
+                </span>
+              )}
             </div>
           </Dropdown>
         </div>
 
-        {/* Scrollable Content Area */}
-        <div style={{
-          flex: 1,
-          overflow: 'auto', // Cho phép scroll trong vùng này
-          padding: '0 20px 20px 20px'
-        }}>
-          <Content
-            style={{
-              padding: '20px',
-              marginTop: '15px',
-              background: '#ffffff',
-              borderRadius: '12px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-              border: '1px solid #e2e8f0',
-              minHeight: 'calc(100vh - 140px)' // Điều chỉnh chiều cao để tránh overflow
-            }}
-          >
-            <div style={{
-              background: '#ffffff',
-              minHeight: '100%',
-              borderRadius: '8px'
-            }}>
-              {children}
-            </div>
-          </Content>
-        </div>
+        {/* Content */}
+        <Content style={{ padding: isMobile ? '12px' : '24px' }}>
+          {children}
+        </Content>
       </Layout>
 
       <ModalChangePassword
         visible={modalChangePassword}
         onclose={() => setModalChangePassword(false)}
       />
-
-      {/* Custom CSS cho animations và scrollbar */}
-      <style jsx>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .ant-layout-content {
-          animation: fadeIn 0.3s ease-out;
-        }
-        
-        .ant-dropdown {
-          animation: fadeIn 0.2s ease-out;
-        }
-        
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-          width: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-          background: #f1f1f1;
-          border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-          background: linear-gradient(45deg, #cbd5e0, #a0aec0);
-          border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(45deg, #a0aec0, #718096);
-        }
-        
-        /* Đảm bảo sidebar không bị ảnh hưởng bởi scroll */
-        .ant-layout-sider {
-          position: fixed !important;
-          left: 0 !important;
-          top: 0 !important;
-          height: 100vh !important;
-          z-index: 1000 !important;
-        }
-      `}</style>
     </Layout>
   );
 };

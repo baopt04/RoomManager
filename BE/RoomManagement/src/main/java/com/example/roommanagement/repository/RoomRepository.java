@@ -27,6 +27,7 @@ public interface RoomRepository extends JpaRepository<Room, String> {
                         r.id as id, 
             r.code as code ,
             r.name as name , 
+            r.slug as slug ,
             r.price as price , 
             r.acreage as acreage ,
             r.people_Max as peopleMax ,
@@ -45,6 +46,7 @@ public interface RoomRepository extends JpaRepository<Room, String> {
                         r.id as id, 
             r.code as code ,
             r.name as name , 
+            r.slug as slug ,
             r.price as price , 
             r.acreage as acreage ,
             r.people_Max as peopleMax ,
@@ -63,6 +65,7 @@ public interface RoomRepository extends JpaRepository<Room, String> {
                 r.id AS id,
                 r.code AS code,
                 r.name AS name,
+                r.slug AS slug,
                 r.price AS price,
                 r.acreage AS acreage,
                 r.people_Max AS peopleMax,
@@ -88,6 +91,7 @@ public interface RoomRepository extends JpaRepository<Room, String> {
              r.id as id ,
                   r.code as code ,
                         r.name as name , 
+                        r.slug as slug ,
                         r.price as price , 
                         r.acreage as acreage ,
                         r.people_Max as peopleMax ,
@@ -127,6 +131,7 @@ public interface RoomRepository extends JpaRepository<Room, String> {
             "r.id as id, " +
             "r.code as code, " +
             "r.name as name, " +
+            "r.slug as slug, " +
             "r.price as price, " +
             "r.acreage as acreage, " +
             "r.people_max as peopleMax, " +
@@ -149,6 +154,7 @@ public interface RoomRepository extends JpaRepository<Room, String> {
             SELECT 
                 r.id AS room_id,
                 r.name AS room_name,
+                r.slug AS room_slug,
                 r.price AS room_price,
             
                 e.data_close AS total_electric_usage,
@@ -171,7 +177,7 @@ public interface RoomRepository extends JpaRepository<Room, String> {
             WHERE r.id = :roomId
             
             GROUP BY 
-                r.id, r.name, r.price,
+                r.id, r.name, r.slug, r.price,
                 e.data_close, e.unit_price, e.total_price,
                 w.data_close, w.unit_price, w.total_price
             """, nativeQuery = true)

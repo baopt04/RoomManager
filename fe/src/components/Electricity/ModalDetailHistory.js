@@ -1,9 +1,6 @@
 import React , {useEffect , useState} from "react";
 import { Modal, Form, InputNumber, Button, Select, Table,message } from "antd";
 import ElectricityService from "../../services/ElectricityService";
-import { title } from "framer-motion/client";
-import { keyboard } from "@testing-library/user-event/dist/keyboard";
-import { render } from "@testing-library/react";
 
 const ModalDetailHistory = ({ visible, onClose ,  id }) => {
     const token = localStorage.getItem("token");

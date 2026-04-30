@@ -16,9 +16,7 @@ import java.util.Date;
 public class BaseMaintenanceDTO {
     private String code;
     private String name;
-//    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "MM/dd/yyyy")
     private Date dataRequest;
-//    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "MM/dd/yyyy")
     private Date dataComplete;
     private String description;
     private BigDecimal expense;

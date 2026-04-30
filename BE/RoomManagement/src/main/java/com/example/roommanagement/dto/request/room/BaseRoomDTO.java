@@ -17,6 +17,7 @@ import java.util.List;
 public class BaseRoomDTO {
     private String code;
     private String name;
+    private String slug;
     private BigDecimal price;
     private String acreage;
     private Integer peopleMax;

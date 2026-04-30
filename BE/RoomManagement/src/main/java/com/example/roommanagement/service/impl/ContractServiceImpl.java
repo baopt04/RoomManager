@@ -109,7 +109,7 @@ public class ContractServiceImpl implements ContractService {
            Calendar nextMonth =(Calendar) start.clone();
            nextMonth.add(Calendar.MONTH, 1);
            RoomHistory history = RoomHistory.builder()
-                   .price(room.getPrice()) // hoặc từ DTO
+                   .price(room.getPrice())
                    .startDate(start.getTime())
                    .endDate(nextMonth.getTime())
                    .room(room)
@@ -155,15 +155,14 @@ public class ContractServiceImpl implements ContractService {
         Customer customer = customerRepository.findById(updateContractDTO.getCustomerId()).
                 orElseThrow(() -> new RuntimeException(Constrants.CUSTOMER_FOUND));
         StatusRoom statusRoom = room.getStatus();
-        if (statusRoom == StatusRoom.DANG_CHO_THUE) {
-            throw new BusinessException(Constrants.ROOM_CONTRACT_STATUS);
-        }
+//        if (statusRoom == StatusRoom.DANG_CHO_THUE) {
+//            throw new BusinessException(Constrants.ROOM_CONTRACT_STATUS);
+//        }
         StatusContract statusContract = updateContractDTO.getStatus();
         StatusContractHistory statusContractHistory;
         if (statusContract == StatusContract.KICH_HOAT){
          statusContract = StatusContract.KICH_HOAT;
          statusContractHistory = StatusContractHistory.CAP_NHAT;
-            System.out.println("Chay 1" + updateContractDTO.getStatus());
         }else if (statusContract == StatusContract.NGUNG_KICH_HOAT){
             statusContract = StatusContract.NGUNG_KICH_HOAT;
             statusContractHistory = StatusContractHistory.CAP_NHAT;

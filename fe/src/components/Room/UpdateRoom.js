@@ -1,14 +1,11 @@
-import React, { useState, useEffect, use } from "react";
-import { Form, Input, Button, Select, InputNumber, message, Upload } from "antd";
+import React, { useState, useEffect } from "react";
+import { Form, Input, Button, Select, InputNumber, message, Upload, Modal } from "antd";
 import { data, useNavigate, useParams } from "react-router-dom";
 import RoomService from "../../services/RoomService";
-import { UploadOutlined } from "@ant-design/icons";
-import { div, th, u } from "framer-motion/client";
-import { For } from "@chakra-ui/react";
+import { UploadOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import "./CreateRoom.css";
 import HouseForRentService from "../../services/HouseForRentService";
 import CustomerService from "../../services/CustomerService";
-import { useLocation } from "react-router-dom";
 const UpdateRoom = () => {
     const navigate = useNavigate();
     const [form] = Form.useForm();
@@ -20,6 +17,12 @@ const UpdateRoom = () => {
     const { roomId } = useParams();
     const [fileList, setFileList] = useState([]);
     const [listImage, setListImage] = useState([]);
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 768);
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
     useEffect(() => {
         const fetchHouseForRent = async () => {
             try {
@@ -80,54 +83,75 @@ const UpdateRoom = () => {
     };
 
     const updateRoom = async (values) => {
-        setLoading(true)
-        try {
-            const formData = new FormData();
-            formData.append("name", values.name);
-            formData.append("price", values.price);
-            formData.append("acreage", values.acreage);
-            formData.append("peopleMax", values.peopleMax);
-            formData.append("status", values.status);
-            formData.append("type", values.type);
-            formData.append("houseForRentId", values.houseForRent);
-            formData.append("customerId", values.customer);
-            formData.append("decription", values.decription);
+        Modal.confirm({
+            title: 'Xác nhận cập nhật',
+            content: 'Bạn có chắc chắn muốn cập nhật thông tin phòng trọ này không?',
+            okText: 'Xác nhận',
+            cancelText: 'Hủy',
+            onOk: async () => {
+                setLoading(true)
+                try {
+                    const formData = new FormData();
+                    formData.append("name", values.name);
+                    formData.append("price", values.price);
+                    formData.append("acreage", values.acreage);
+                    formData.append("peopleMax", values.peopleMax);
+                    formData.append("status", values.status);
+                    formData.append("type", values.type);
+                    formData.append("houseForRentId", values.houseForRent);
+                    if (values.customer) {
+                        formData.append("customerId", values.customer);
+                    }
+                    formData.append("decription", values.decription);
 
-            const reaminOldUrl = fileList
-                .filter((file) => !file.originFileObj && file.url)
-                .map((file) => file.url);
-            const newFiles = fileList.filter((file) => !!file.originFileObj);
-            if (newFiles.length > 0) {
-                newFiles.forEach((file) => {
-                    formData.append("images", file.originFileObj);
-                });
-                reaminOldUrl.forEach((url) => {
-                    formData.append("imageUrls", url)
-                });
+                    const reaminOldUrl = fileList
+                        .filter((file) => !file.originFileObj && file.url)
+                        .map((file) => file.url);
+                    const newFiles = fileList.filter((file) => !!file.originFileObj);
+                    if (newFiles.length > 0) {
+                        newFiles.forEach((file) => {
+                            formData.append("images", file.originFileObj);
+                        });
+                        reaminOldUrl.forEach((url) => {
+                            formData.append("imageUrls", url)
+                        });
 
-            } else if (reaminOldUrl.length > 0) {
-                reaminOldUrl.forEach((url) => {
-                    formData.append("imageUrls", url);
-                })
+                    } else if (reaminOldUrl.length > 0) {
+                        reaminOldUrl.forEach((url) => {
+                            formData.append("imageUrls", url);
+                        })
+                    }
+                    await RoomService.updateRoom(token, roomId, formData);
+                    message.success("Cập nhật hợp đồng thành công!");
+                    form.resetFields();
+                    setFileList([]);
+                    navigate('/room-management')
+                } catch (error) {
+                    if (error.response && error.response.data && error.response.data.message) {
+                        message.error(error.response.data.message);
+                    }
+                    else {
+                        message.error("Cập nhật phòng trọ thất bại, vui lòng thử lại sau!");
+                    }
+                } finally {
+                    setLoading(false)
+                }
             }
-            await RoomService.updateRoom(token, roomId, formData);
-            message.success("Cập nhật hợp đồng thành công!");
-            form.resetFields();
-            setFileList([]);
-            navigate('/room-management')
-        } catch (error) {
-            if (error.response && error.response.data && error.response.data.message) {
-                message.error(error.response.data.message);
-            }
-            else {
-                message.error("Cập nhật phòng trọ thất bại, vui lòng thử lại sau!");
-            }
-            setLoading(false)
-        }
+        });
     }
     return (
         <div className="create-room-container">
-            <h2 style={{ textAlign: 'center ', fontSize: '30px' }}>Cập nhật phòng trọ</h2>
+            <div style={{ marginBottom: 16 }}>
+                <Button
+                    type="text"
+                    icon={<ArrowLeftOutlined />}
+                    onClick={() => navigate('/room-management')}
+                    style={{ paddingLeft: 0, fontWeight: 500 }}
+                >
+                    Quay lại
+                </Button>
+            </div>
+            <h2 style={{ textAlign: 'center ', fontSize: isMobile ? '28px' : '30px', marginTop: 0 }}>Cập nhật phòng trọ</h2>
             <Form
                 form={form}
                 layout="vertical"
@@ -157,7 +181,6 @@ const UpdateRoom = () => {
                             min={0}
                         />
                     </Form.Item>
-
                 </div>
 
                 <div className="form-row">
@@ -214,23 +237,31 @@ const UpdateRoom = () => {
 
                         </Select>
                     </Form.Item>
-                    <Form.Item label="Người đại diện thuê"
-                        name="customer"
-                        rules={[{ required: true, message: "Vui lòng chọn người đại diện thuê" }]}
-                        className="form-item">
-                        <Select placeholder="Chọn người đại diện thuê" allowClear>
-                            {customerData.map((customer) => (
-                                <Select.Option key={customer.id} value={customer.id}>
-                                    {customer.name}
-                                </Select.Option>
-                            ))}
-                        </Select>
+                    <Form.Item
+                        noStyle
+                        shouldUpdate={(prevValues, currentValues) => prevValues.status !== currentValues.status}
+                    >
+                        {({ getFieldValue }) =>
+                            getFieldValue('status') === 'DANG_CHO_THUE' ? (
+                                <Form.Item label="Người đại diện thuê"
+                                    name="customer"
+                                    rules={[{ required: true, message: "Vui lòng chọn người đại diện thuê" }]}
+                                    className="form-item">
+                                    <Select placeholder="Chọn người đại diện thuê" allowClear>
+                                        {customerData.map((customer) => (
+                                            <Select.Option key={customer.id} value={customer.id}>
+                                                {customer.name}
+                                            </Select.Option>
+                                        ))}
+                                    </Select>
+                                </Form.Item>
+                            ) : null
+                        }
                     </Form.Item>
 
 
                 </div>
                 <div className="form-row">
-
                     <Form.Item label="Mô tả phòng trọ"
                         name="decription"
                         rules={[{ required: true, message: "Vui lòng nhập mô tả" }]}
@@ -264,9 +295,6 @@ const UpdateRoom = () => {
                 <div className="form-submit">
                     <Button type="primary" htmlType="submit" loading={loading}>
                         Cập nhật phòng trọ
-                    </Button>
-                    <Button type="primary" danger style={{ marginLeft: "10px" }} onClick={() => { form.resetFields(); }}>
-                        Quay lại
                     </Button>
                 </div>
 

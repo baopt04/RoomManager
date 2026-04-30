@@ -32,9 +32,14 @@ public class RoomServiceImpl implements RoomService {
         if (roomRepository.existsByName(createRoomDTO.getName())) {
             throw new BusinessException(Constrants.NAME_EXISTS);
         }
-        Customer customer = customerRepository.findById(createRoomDTO.getCustomerId()).orElseThrow(
-                () -> new BusinessException(Constrants.CUSTOMER_FOUND)
-        );
+
+        Customer customer = null;
+
+        if (createRoomDTO.getCustomerId() != null) {
+            customer = customerRepository.findById(createRoomDTO.getCustomerId())
+                    .orElseThrow(() -> new BusinessException(Constrants.CUSTOMER_FOUND));
+        }
+
         HouseForRent houseForRent = houseForRentRepository.findById(createRoomDTO.getHouseForRentId()).orElseThrow(
                 () -> new BusinessException(Constrants.HOUSE_FOR_RENT_FOUND)
         );
@@ -69,7 +74,7 @@ public class RoomServiceImpl implements RoomService {
     @Override
     public UpdateRoomDTO updateRoom(String id, UpdateRoomDTO updateRoomDTO) {
         Optional<Room> optionalRoom = roomRepository.findById(id);
-        Optional<Contract> optionalContract = contractRepository.findByRoomId(id);
+        Optional<Contract> optionalContract = contractRepository.findTopByRoomIdOrderByLastModifiedDateDesc(id);
         if (!optionalRoom.isPresent()) {
             throw new BusinessException(Constrants.NOT_FOUND);
         }
@@ -78,9 +83,11 @@ public class RoomServiceImpl implements RoomService {
                 throw new BusinessException(Constrants.NAME_EXISTS);
             }
         }
-        StatusContract statusContract = optionalContract.get().getStatus();
-        if (statusContract  == StatusContract.DUNG_KINH_DOANH) {
-            throw new BusinessException(Constrants.CONTRACT_ROOM_STATUS);
+        if (optionalContract.isPresent()) {
+            StatusContract statusContract = optionalContract.get().getStatus();
+            if (statusContract == StatusContract.DUNG_KINH_DOANH) {
+                throw new BusinessException(Constrants.CONTRACT_ROOM_STATUS);
+            }
         }
 
         Customer customer = customerRepository.findById(updateRoomDTO.getCustomerId()).orElseThrow(
@@ -195,6 +202,7 @@ public class RoomServiceImpl implements RoomService {
         BaseRoomDTO baseRoomDTO = new BaseRoomDTO();
         baseRoomDTO.setCode(room.get().getCode());
         baseRoomDTO.setName(room.get().getName());
+        baseRoomDTO.setSlug(room.get().getSlug());
         baseRoomDTO.setPrice(room.get().getPrice());
         baseRoomDTO.setAcreage(room.get().getAcreage());
         baseRoomDTO.setPeopleMax(room.get().getPeopleMax());

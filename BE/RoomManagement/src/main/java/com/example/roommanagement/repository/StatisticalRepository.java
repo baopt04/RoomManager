@@ -145,8 +145,51 @@ public interface StatisticalRepository extends JpaRepository<RoomHistory , Strin
     )
     List<MonthlyTotalDTO> findMonthlyTotals();
 
-// Query history for water and electricity and service and room
-@Query(value = """
+    @Query(value = """
+    SELECT 
+        r.name AS roomName,
+        b.mother_pay AS month,
+        b.year_pay AS year,
+        b.total_room AS roomPrice,
+        b.total_electricity_service AS electricityPrice,
+        b.total_water_service AS waterPrice,
+        b.total_room_service AS servicePrice,
+        b.total_amount AS totalAmount
+    FROM bill b
+    JOIN room r ON b.id_room = r.id
+    WHERE b.status = 'DA_THANH_TOAN'
+    AND b.mother_pay = MONTH(CURDATE())
+    AND b.year_pay = YEAR(CURDATE())
+    """, nativeQuery = true)
+    List<RevenueStatisticalProjection> findAllRevenueStatistical();
+
+    @Query(value = """
+    SELECT 
+        c.name AS name,
+        c.number_phone AS numberPhone,
+        c.citizen_identification AS cccd,
+        COALESCE(r.name, 'Chưa thuê') AS roomName,
+        con.date_start AS dateStart
+    FROM customer c
+    LEFT JOIN contract con ON c.id = con.id_customer AND con.status = 'KICH_HOAT'
+    LEFT JOIN room r ON con.id_room = r.id
+    """, nativeQuery = true)
+    List<CustomerStatisticalProjection> findAllCustomerStatistical();
+
+    @Query(value = """
+    SELECT 
+        r.code AS code,
+        r.name AS name,
+        r.price AS price,
+        r.status AS status,
+        h.name AS houseName,
+        r.acreage AS acreage
+    FROM room r
+    LEFT JOIN house_for_rent h ON r.id_house_for_rent = h.id
+    """, nativeQuery = true)
+    List<RoomStatisticalProjection> findAllRoomStatistical();
+
+    @Query(value = """
     SELECT 
         r.id AS roomId,
         w.id AS waterId,

@@ -35,6 +35,7 @@ const { Search } = Input;
 
 const GetAllAdmin = () => {
     const [dataAdmin, setDataAdmin] = useState([]);
+    const [filteredAdmin, setFilteredAdmin] = useState([]);
     const [loading, setLoading] = useState(false);
     const [searchText, setSearchText] = useState("");
     const token = localStorage.getItem('token');
@@ -43,25 +44,36 @@ const GetAllAdmin = () => {
     const [modalLocker, setModalLocker] = useState(false);
 
     const [idAdmin, setIdAdmin] = useState("");
-    useEffect(() => {
-        const getAllAdmin = async () => {
-            setLoading(true);
-            try {
-                const response = await AdminService.getAllAdmin(token);
-                console.log("Check data admin", response);
-                setDataAdmin(response);
-            } catch (error) {
-                console.log("error get admin");
-            } finally {
-                setLoading(false);
-            }
+    const fetchAllAdmin = async () => {
+        setLoading(true);
+        try {
+            const response = await AdminService.getAllAdmin(token);
+            setDataAdmin(response);
+            setFilteredAdmin(response);
+        } catch (error) {
+            console.log("error get admin");
+        } finally {
+            setLoading(false);
         }
-        getAllAdmin();
+    };
+
+    useEffect(() => {
+        fetchAllAdmin();
     }, [token]);
 
     const handleSearch = (value) => {
         setSearchText(value);
-        // Thêm logic tìm kiếm ở đây
+        if (!value.trim()) {
+            setFilteredAdmin(dataAdmin);
+            return;
+        }
+        const searchValue = value.toLowerCase();
+        const filtered = dataAdmin.filter((item) =>
+            [item.name, item.email, item.code, item.numberPhone]
+                .filter(Boolean)
+                .some((field) => field.toLowerCase().includes(searchValue))
+        );
+        setFilteredAdmin(filtered);
     };
 
     const getRoleTag = (role) => {
@@ -247,9 +259,7 @@ const GetAllAdmin = () => {
                     }
                     await AdminService.lockerAdmin(token, id, unlockerAdmin);
                     message.success("Mở khóa thành viên quản trị thành công!")
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
+                    await fetchAllAdmin();
                 } catch (error) {
                     message.error("Lỗi từ server.Vui lòng thử lại sau!")
                 }
@@ -316,7 +326,7 @@ const GetAllAdmin = () => {
                             onClick={openCreateModalAdmin}
                             block
                             style={{
-                                borderRadius: '8px',
+                                borderRadius: '10px',
                                 height: '40px',
                                 fontWeight: 'bold'
                             }}
@@ -331,7 +341,7 @@ const GetAllAdmin = () => {
                     <Col xs={24} sm={8}>
                         <Card size="small" style={{ textAlign: 'center' }}>
                             <div style={{ color: '#1890ff', fontSize: '24px', fontWeight: 'bold' }}>
-                                {dataAdmin.length}
+                                {filteredAdmin.length}
                             </div>
                             <div style={{ color: '#666' }}>Tổng số tài khoản</div>
                         </Card>
@@ -339,7 +349,7 @@ const GetAllAdmin = () => {
                     <Col xs={24} sm={8}>
                         <Card size="small" style={{ textAlign: 'center' }}>
                             <div style={{ color: '#52c41a', fontSize: '24px', fontWeight: 'bold' }}>
-                                {dataAdmin.filter(admin => admin.status === 'HOAT_DONG').length}
+                                {filteredAdmin.filter(admin => admin.status === 'HOAT_DONG').length}
                             </div>
                             <div style={{ color: '#666' }}>Đang hoạt động</div>
                         </Card>
@@ -347,7 +357,7 @@ const GetAllAdmin = () => {
                     <Col xs={24} sm={8}>
                         <Card size="small" style={{ textAlign: 'center' }}>
                             <div style={{ color: '#faad14', fontSize: '24px', fontWeight: 'bold' }}>
-                                {dataAdmin.filter(admin => admin.role === 'ROLE_ADMIN').length}
+                                {filteredAdmin.filter(admin => admin.role === 'ROLE_ADMIN').length}
                             </div>
                             <div style={{ color: '#666' }}>Quản trị viên</div>
                         </Card>
@@ -357,7 +367,7 @@ const GetAllAdmin = () => {
                 {/* Table */}
                 <Table
                     columns={columns}
-                    dataSource={dataAdmin}
+                    dataSource={filteredAdmin}
                     loading={loading}
                     pagination={{
                         pageSize: 10,
@@ -381,16 +391,20 @@ const GetAllAdmin = () => {
             <ModalCreateAdmin
                 visible={modalCreate}
                 onclose={() => setModalCreate(false)}
+                onSuccess={fetchAllAdmin}
             />
             <ModalUpdateAdmin
                 visible={modalUpdate}
                 onclose={() => setModalUpdate(false)}
                 id={idAdmin}
+                onSuccess={fetchAllAdmin}
             />
             <ModalLockerAdmin
                 visible={modalLocker}
                 onclose={() => setModalLocker(false)}
-                id={idAdmin} />
+                id={idAdmin}
+                onSuccess={fetchAllAdmin}
+            />
             {/* Custom CSS */}
             <style jsx>{`
                 .table-row-light {

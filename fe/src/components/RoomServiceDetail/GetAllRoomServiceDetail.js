@@ -1,26 +1,27 @@
 import React, { useState, useEffect } from "react";
-import { 
-    Table, 
-    Input, 
-    Button, 
-    Space, 
-    Card, 
-    Row, 
-    Col, 
-    Typography, 
-    Tag, 
-    Tooltip, 
+import {
+    Table,
+    Input,
+    Button,
+    Space,
+    Card,
+    Row,
+    Col,
+    Typography,
+    Tag,
+    Tooltip,
     Select,
     Statistic,
     message,
     Modal,
     Avatar,
-    Badge
+    Badge,
+    Divider
 } from "antd";
-import { 
-    SearchOutlined, 
-    PlusOutlined, 
-    EditOutlined, 
+import {
+    SearchOutlined,
+    PlusOutlined,
+    EditOutlined,
     DeleteOutlined,
     ReloadOutlined,
     ToolOutlined,
@@ -28,7 +29,8 @@ import {
     DollarOutlined,
     AppstoreOutlined,
     ExclamationCircleOutlined,
-    LinkOutlined
+    LinkOutlined,
+    CheckCircleOutlined
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import Services from "../../services/Services";
@@ -57,7 +59,6 @@ const GetAllRoomServiceDetail = () => {
     const token = localStorage.getItem("token");
     const navigate = useNavigate();
 
-    // Fetch all data
     useEffect(() => {
         fetchAllData();
     }, [token]);
@@ -82,24 +83,39 @@ const GetAllRoomServiceDetail = () => {
         }
     };
 
-    // Map data when all data is available
+    // Map data and group by room
     useEffect(() => {
-        if (roomServiceData.length > 0 && dataRoom.length > 0 && dataService.length > 0) {
-            const mapped = roomServiceData.map((item, idx) => {
+        if (dataRoom.length > 0 && dataService.length > 0) {
+            const assignments = roomServiceData.map((item) => {
                 const room = dataRoom.find(r => r.id === item.room);
                 const service = dataService.find(s => s.id === item.service);
                 return {
                     ...item,
-                    stt: idx + 1,
-                    key: item.id,
                     roomName: room ? room.name : "Không xác định",
                     serviceName: service ? service.name : "Không xác định",
                     servicePrice: service ? service.price : 0,
                     unitOfMeasure: service ? service.unitOfMeasure : "",
                 };
             });
-            setOriginalData(mapped);
-            setFilteredData(mapped);
+
+            // Grouping logic
+            const grouped = dataRoom.map((room) => {
+                const roomServices = assignments.filter(a => a.room === room.id);
+                return {
+                    key: room.id,
+                    roomId: room.id,
+                    roomName: room.name,
+                    services: roomServices,
+                    totalPrice: roomServices.reduce((sum, s) => sum + (s.servicePrice || 0), 0)
+                };
+            }).filter(group => group.services.length > 0);
+
+            // Sort and add STT
+            const finalData = grouped.sort((a, b) => a.roomName.localeCompare(b.roomName))
+                .map((item, idx) => ({ ...item, stt: idx + 1 }));
+
+            setOriginalData(finalData);
+            setFilteredData(finalData);
         }
     }, [roomServiceData, dataRoom, dataService]);
 
@@ -109,28 +125,25 @@ const GetAllRoomServiceDetail = () => {
 
         // Filter by keyword
         if (searchText.trim()) {
-            filtered = filtered.filter((item) =>
-                Object.values(item).some((value) =>
-                    value &&
-                    value.toString().toLowerCase().includes(searchText.toLowerCase())
-                )
+            filtered = filtered.filter((roomGroup) =>
+                roomGroup.roomName.toLowerCase().includes(searchText.toLowerCase()) ||
+                roomGroup.services.some(s => s.serviceName.toLowerCase().includes(searchText.toLowerCase()))
             );
         }
 
         // Filter by room
         if (roomFilter !== "ALL") {
-            filtered = filtered.filter(item => item.room === roomFilter);
+            filtered = filtered.filter(item => item.roomId === roomFilter);
         }
 
         // Filter by service
         if (serviceFilter !== "ALL") {
-            filtered = filtered.filter(item => item.service === serviceFilter);
+            filtered = filtered.filter(item => item.services.some(s => s.service === serviceFilter));
         }
 
         setFilteredData(filtered);
     };
 
-    // Reset filters
     const resetFilters = () => {
         setSearchText("");
         setRoomFilter("ALL");
@@ -149,9 +162,9 @@ const GetAllRoomServiceDetail = () => {
             okType: 'danger',
             onOk: async () => {
                 try {
-                    // await RoomServiceDetail.deleteRoomServiceDetail(record.id, token);
+                    await RoomServiceDetail.deleteRoomServiceDetail(token, record.id);
                     message.success("Xóa dịch vụ phòng thành công");
-                    fetchAllData(); // Refresh data
+                    fetchAllData();
                 } catch (error) {
                     message.error("Xóa dịch vụ phòng thất bại");
                 }
@@ -169,55 +182,29 @@ const GetAllRoomServiceDetail = () => {
         setIsModalVisible(true);
     };
 
-    // Service badge component
-    const ServiceBadge = ({ serviceName, unitOfMeasure }) => {
-        const getColor = (unit) => {
-            switch (unit) {
-                case 'THÁNG': return 'green';
-                case 'NGÀY': return 'blue';
-                case 'LẦN': return 'orange';
-                case 'NGƯỜI': return 'purple';
-                default: return 'default';
-            }
-        };
-
+    // Room badge component
+    const RoomBadge = ({ roomName }) => {
         return (
             <Space>
-                <Avatar 
-                    size="small" 
-                    style={{ backgroundColor: getColor(unitOfMeasure) }}
-                    icon={<ToolOutlined />}
+                <Avatar
+                    size="large"
+                    style={{ backgroundColor: '#1890ff', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
+                    icon={<HomeOutlined />}
                 />
                 <div>
-                    <Text strong>{serviceName}</Text>
+                    <Text strong style={{ fontSize: '16px' }}>{roomName}</Text>
                     <br />
-                    <Tag color={getColor(unitOfMeasure)} size="small">
-                        {unitOfMeasure}
-                    </Tag>
+                    <Text type="secondary" style={{ fontSize: '12px' }}>Phòng trọ</Text>
                 </div>
             </Space>
         );
     };
 
-    // Room badge component
-    const RoomBadge = ({ roomName }) => {
-        return (
-            <Space>
-                <Avatar 
-                    size="small" 
-                    style={{ backgroundColor: '#1890ff' }}
-                    icon={<HomeOutlined />}
-                />
-                <Text strong>{roomName}</Text>
-            </Space>
-        );
-    };
-
     // Calculate statistics
-    const totalAssignments = filteredData.length;
-    const uniqueRooms = new Set(filteredData.map(item => item.room)).size;
-    const uniqueServices = new Set(filteredData.map(item => item.service)).size;
-    const totalValue = filteredData.reduce((sum, item) => sum + (item.servicePrice || 0), 0);
+    const totalAssignments = filteredData.reduce((sum, item) => sum + item.services.length, 0);
+    const uniqueRooms = filteredData.length;
+    const uniqueServices = new Set(filteredData.flatMap(item => item.services.map(s => s.service))).size;
+    const totalValue = filteredData.reduce((sum, item) => sum + item.totalPrice, 0);
 
     // Get room options for filter
     const roomOptions = dataRoom.map(room => ({
@@ -231,7 +218,6 @@ const GetAllRoomServiceDetail = () => {
         label: service.name
     }));
 
-    // Table columns
     const columns = [
         {
             title: "STT",
@@ -239,25 +225,6 @@ const GetAllRoomServiceDetail = () => {
             key: "stt",
             width: 60,
             align: 'center',
-            sorter: (a, b) => a.stt - b.stt
-        },
-        {
-            title: (
-                <Space>
-                    <ToolOutlined />
-                    Dịch vụ
-                </Space>
-            ),
-            dataIndex: "serviceName",
-            key: "serviceName",
-            width: 200,
-            sorter: (a, b) => a.serviceName.localeCompare(b.serviceName),
-            render: (serviceName, record) => (
-                <ServiceBadge 
-                    serviceName={serviceName} 
-                    unitOfMeasure={record.unitOfMeasure}
-                />
-            )
         },
         {
             title: (
@@ -268,284 +235,245 @@ const GetAllRoomServiceDetail = () => {
             ),
             dataIndex: "roomName",
             key: "roomName",
-            width: 150,
-            sorter: (a, b) => a.roomName.localeCompare(b.roomName),
+            width: 220,
             render: (roomName) => <RoomBadge roomName={roomName} />
         },
         {
             title: (
                 <Space>
-                    <DollarOutlined />
-                    Giá dịch vụ
+                    <ToolOutlined />
+                    Dịch vụ đang sử dụng
                 </Space>
             ),
-            dataIndex: "servicePrice",
-            key: "servicePrice",
-            width: 130,
-            align: 'right',
-            sorter: (a, b) => (a.servicePrice || 0) - (b.servicePrice || 0),
-            render: (servicePrice) => {
-                const color = servicePrice === 0 ? '#52c41a' : 
-                             servicePrice < 100000 ? '#1890ff' :
-                             servicePrice < 500000 ? '#faad14' : '#f5222d';
-                
-                return (
-                    <Text strong style={{ color }}>
-                        {servicePrice === 0 ? 'Miễn phí' : 
-                         new Intl.NumberFormat("vi-VN", {
-                             style: "currency",
-                             currency: "VND"
-                         }).format(servicePrice)
-                        }
-                    </Text>
-                );
-            }
-        },
-        {
-            title: "Trạng thái",
-            key: "status",
-            width: 100,
-            align: 'center',
-            render: () => (
-                <Badge status="success" text={<Tag color="green">Đang sử dụng</Tag>} />
+            dataIndex: "services",
+            key: "services",
+            render: (services) => (
+                <Space wrap size={[8, 12]}>
+                    {services.map(s => (
+                        <Tag
+                            color="blue"
+                            key={s.id}
+                            // closable
+                            onClose={(e) => {
+                                e.preventDefault();
+                                handleDelete(s);
+                            }}
+                            style={{
+                                padding: '6px 12px',
+                                borderRadius: '6px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                fontSize: '14px',
+                                border: '1px solid #91d5ff',
+                                background: '#e6f7ff'
+                            }}
+                        >
+                            <Space size={8}>
+                                <CheckCircleOutlined style={{ color: '#52c41a' }} />
+                                <Text strong>{s.serviceName}</Text>
+                                <Divider type="vertical" />
+                                <Text type="secondary" style={{ fontSize: '12px' }}>
+                                    {new Intl.NumberFormat("vi-VN").format(s.servicePrice)}đ
+                                </Text>
+                                <Tooltip title="Chỉnh sửa">
+                                    <EditOutlined
+                                        style={{ cursor: 'pointer', color: '#1890ff', marginLeft: 4 }}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleEdit(s.id);
+                                        }}
+                                    />
+                                </Tooltip>
+                            </Space>
+                        </Tag>
+                    ))}
+                </Space>
             )
         },
         {
-            title: "Thao tác",
-            key: "action",
-            width: 120,
-            fixed: 'right',
-            render: (_, record) => (
-                <Space size="small">
-                    <Tooltip title="Chỉnh sửa">
-                        <Button 
-                            type="primary" 
-                            size="small"
-                            icon={<EditOutlined />}
-                            onClick={() => handleEdit(record.id)}
-                        />
-                    </Tooltip>
-                    <Tooltip title="Xóa dịch vụ">
-                        <Button 
-                            danger 
-                            size="small"
-                            icon={<DeleteOutlined />}
-                            onClick={() => handleDelete(record)}
-                        />
-                    </Tooltip>
+            title: (
+                <Space>
+                    <DollarOutlined />
+                    Tổng cộng / Tháng
                 </Space>
             ),
-        },
+            dataIndex: "totalPrice",
+            key: "totalPrice",
+            width: 200,
+            align: 'right',
+            render: (totalPrice) => (
+                <div style={{ textAlign: 'right' }}>
+                    <Text strong style={{ color: '#f5222d', fontSize: '18px' }}>
+                        {new Intl.NumberFormat("vi-VN", {
+                            style: "currency",
+                            currency: "VND"
+                        }).format(totalPrice)}
+                    </Text>
+                    <br />
+                    <Text type="secondary" style={{ fontSize: '11px' }}>Tổng chi phí dịch vụ</Text>
+                </div>
+            )
+        }
     ];
 
     return (
-        <div style={{ padding: "24px", background: '#f0f2f5', minHeight: '100vh' }}>
-            {/* Header */}
-            <Card style={{ marginBottom: 24 }}>
-                <Title level={2} style={{ textAlign: "center", marginBottom: 0, color: '#1890ff' }}>
-                    <Space>
-                        <LinkOutlined />
-                        Quản lý dịch vụ phòng trọ
-                    </Space>
-                </Title>
-                <Text type="secondary" style={{ display: 'block', textAlign: 'center', marginTop: 8 }}>
-                    Quản lý các dịch vụ được áp dụng cho từng phòng trọ
-                </Text>
-            </Card>
+        <div>
+            {/* Page Header */}
+            <div className="page-header">
+                <div>
+                    <Title level={4} style={{ margin: 0, fontWeight: 600 }}>
+                        Quản lý dịch vụ theo phòng
+                    </Title>
+                    <Text type="secondary" style={{ fontSize: '13px' }}>
+                        Xem nhanh danh sách dịch vụ được gán cho từng phòng trọ
+                    </Text>
+                </div>
+                <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={handleAdd}
+                >
+                    Gán dịch vụ
+                </Button>
+            </div>
 
             {/* Statistics */}
-            <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+            <Row gutter={16} className="stat-row">
                 <Col xs={24} sm={6}>
-                    <Card>
+                    <Card size="small">
                         <Statistic
-                            title="Tổng gán dịch vụ"
+                            title="Số lần gán dịch vụ"
                             value={totalAssignments}
-                            prefix={<LinkOutlined />}
-                            valueStyle={{ color: '#1890ff' }}
+                            prefix={<LinkOutlined style={{ color: '#1890ff' }} />}
                         />
                     </Card>
                 </Col>
                 <Col xs={24} sm={6}>
-                    <Card>
+                    <Card size="small">
                         <Statistic
-                            title="Phòng có dịch vụ"
+                            title="Phòng đang dùng"
                             value={uniqueRooms}
-                            prefix={<HomeOutlined />}
-                            valueStyle={{ color: '#52c41a' }}
+                            prefix={<HomeOutlined style={{ color: '#52c41a' }} />}
                         />
                     </Card>
                 </Col>
                 <Col xs={24} sm={6}>
-                    <Card>
+                    <Card size="small">
                         <Statistic
-                            title="Dịch vụ đang dùng"
+                            title="Loại dịch vụ dùng"
                             value={uniqueServices}
-                            prefix={<ToolOutlined />}
-                            valueStyle={{ color: '#faad14' }}
+                            prefix={<ToolOutlined style={{ color: '#faad14' }} />}
                         />
                     </Card>
                 </Col>
                 <Col xs={24} sm={6}>
-                    <Card>
+                    <Card size="small">
                         <Statistic
-                            title="Tổng giá trị dịch vụ"
+                            title="Tổng giá trị / Tháng"
                             value={totalValue}
-                            prefix={<DollarOutlined />}
-                            formatter={(value) => 
+                            prefix={<DollarOutlined style={{ color: '#722ed1' }} />}
+                            formatter={(value) =>
                                 new Intl.NumberFormat('vi-VN', {
                                     style: 'currency',
                                     currency: 'VND'
                                 }).format(value)
                             }
-                            valueStyle={{ color: '#722ed1' }}
                         />
                     </Card>
                 </Col>
             </Row>
 
             {/* Filter Section */}
-            <Card style={{ marginBottom: 24 }}>
-                <Row gutter={[16, 16]} align="middle">
-                    <Col xs={24} sm={8}>
-                        <Input
-                            placeholder="Tìm kiếm theo tên dịch vụ, phòng..."
-                            value={searchText}
-                            onChange={(e) => setSearchText(e.target.value)}
-                            prefix={<SearchOutlined />}
-                            allowClear
-                        />
-                    </Col>
-                    <Col xs={24} sm={5}>
-                        <Select
-                            placeholder="Lọc theo phòng"
-                            value={roomFilter}
-                            onChange={setRoomFilter}
-                            style={{ width: '100%' }}
-                            showSearch
-                            optionFilterProp="label"
-                        >
-                            <Option value="ALL">Tất cả phòng</Option>
-                            {roomOptions.map(option => (
-                                <Option key={option.value} value={option.value} label={option.label}>
-                                    {option.label}
-                                </Option>
-                            ))}
-                        </Select>
-                    </Col>
-                    <Col xs={24} sm={5}>
-                        <Select
-                            placeholder="Lọc theo dịch vụ"
-                            value={serviceFilter}
-                            onChange={setServiceFilter}
-                            style={{ width: '100%' }}
-                            showSearch
-                            optionFilterProp="label"
-                        >
-                            <Option value="ALL">Tất cả dịch vụ</Option>
-                            {serviceOptions.map(option => (
-                                <Option key={option.value} value={option.value} label={option.label}>
-                                    {option.label}
-                                </Option>
-                            ))}
-                        </Select>
-                    </Col>
-                    <Col xs={24} sm={4}>
-                        <Space>
-                            <Button 
-                                type="primary" 
-                                icon={<SearchOutlined />}
-                                onClick={handleFilter}
-                            >
-                                Lọc
-                            </Button>
-                            <Button 
-                                icon={<ReloadOutlined />}
-                                onClick={resetFilters}
-                            >
-                                Reset
-                            </Button>
-                        </Space>
-                    </Col>
-                    <Col xs={24} sm={2} style={{ textAlign: 'right' }}>
-                        <Button
-                            type="primary"
-                            size="large"
-                            icon={<PlusOutlined />}
-                            onClick={handleAdd}
-                            style={{ 
-                                background: 'linear-gradient(45deg, #1890ff, #36cfc9)',
-                                border: 'none',
-                                boxShadow: '0 4px 12px rgba(24, 144, 255, 0.3)'
-                            }}
-                        >
-                            Gán dịch vụ
-                        </Button>
-                    </Col>
-                </Row>
+            <Card size="small" style={{ marginBottom: 16 }}>
+                <div className="filter-bar">
+                    <Input
+                        placeholder="Tìm kiếm..."
+                        prefix={<SearchOutlined style={{ color: '#9ca3af' }} />}
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                        onPressEnter={handleFilter}
+                        style={{ width: 240 }}
+                        allowClear
+                    />
+                    <Select
+                        placeholder="Lọc theo phòng"
+                        value={roomFilter}
+                        onChange={setRoomFilter}
+                        style={{ width: 180 }}
+                        showSearch
+                        optionFilterProp="label"
+                    >
+                        <Option value="ALL">Tất cả phòng</Option>
+                        {roomOptions.map(option => (
+                            <Option key={option.value} value={option.value} label={option.label}>
+                                {option.label}
+                            </Option>
+                        ))}
+                    </Select>
+                    <Select
+                        placeholder="Lọc theo dịch vụ"
+                        value={serviceFilter}
+                        onChange={setServiceFilter}
+                        style={{ width: 180 }}
+                        showSearch
+                        optionFilterProp="label"
+                    >
+                        <Option value="ALL">Tất cả dịch vụ</Option>
+                        {serviceOptions.map(option => (
+                            <Option key={option.value} value={option.value} label={option.label}>
+                                {option.label}
+                            </Option>
+                        ))}
+                    </Select>
+                    <Button icon={<SearchOutlined />} onClick={handleFilter}>
+                        Tìm
+                    </Button>
+                    <Button icon={<ReloadOutlined />} onClick={resetFilters}>
+                        Làm mới
+                    </Button>
+                </div>
             </Card>
 
             {/* Data Table */}
-            <Card>
+            <Card size="small">
                 <Table
                     columns={columns}
                     dataSource={filteredData}
                     loading={loading}
-                    rowKey="id"
+                    rowKey="key"
                     pagination={{
                         pageSize: 10,
                         showSizeChanger: true,
                         showQuickJumper: true,
-                        showTotal: (total, range) => 
-                            `${range[0]}-${range[1]} của ${total} dịch vụ phòng`,
-                        pageSizeOptions: ['5', '10', '20', '50']
+                        showTotal: (total, range) =>
+                            `${range[0]}-${range[1]} của ${total} bản ghi`,
                     }}
                     scroll={{ x: 1000 }}
                     size="middle"
-                    bordered
-                    style={{ 
-                        background: 'white',
-                        borderRadius: '8px'
-                    }}
-                    rowClassName={(record) => {
-                        const price = record.servicePrice || 0;
-                        if (price === 0) return 'free-service';
-                        if (price >= 500000) return 'premium-service';
-                        if (price >= 100000) return 'standard-service';
-                        return 'basic-service';
-                    }}
                 />
             </Card>
 
             {/* Modals */}
             <ModalCreateRoomService
                 visible={isModalVisible}
-                onClose={() => setIsModalVisible(false)}
+                onClose={() => {
+                    setIsModalVisible(false);
+                    fetchAllData();
+                }}
             />
 
             <ModalUpdateRoomService
                 visible={isModalUpdate}
-                onClose={() => setIsModalUpdate(false)}
+                onClose={() => {
+                    setIsModalUpdate(false);
+                    fetchAllData();
+                }}
                 serviceId={selectedServiceId}
             />
 
             <style jsx>{`
-                .free-service {
-                    background-color: #f6ffed !important;
-                }
-                .basic-service {
-                    background-color: #e6f7ff !important;
-                }
-                .standard-service {
-                    background-color: #fffbe6 !important;
-                }
-                .premium-service {
-                    background-color: #fff1f0 !important;
-                }
-                .free-service:hover,
-                .basic-service:hover,
-                .standard-service:hover,
-                .premium-service:hover {
-                    background-color: #bae7ff !important;
+                .ant-statistic-content-value {
+                    font-weight: bold;
                 }
             `}</style>
         </div>

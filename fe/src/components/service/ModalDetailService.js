@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Form, Input, Button, Radio, Select, InputNumber } from "antd";
-import { message } from "antd";
-import HostService from "../../services/HostService";
-import HouseForRentService from "../../services/HouseForRentService";
 import Services from "../../services/Services";
-const { Option } = Select; // Import Option from Select
+const { Option } = Select;
 const ModalDetailService = ({ visible, onClose, serviceId }) => {
     const token = localStorage.getItem("token");
     const [form] = Form.useForm();
@@ -30,7 +27,7 @@ const ModalDetailService = ({ visible, onClose, serviceId }) => {
         fetchServiceData();
     }, [token, serviceId])
 
-    
+
     const handleCancel = () => {
         form.resetFields();
         onClose();
@@ -90,7 +87,7 @@ const ModalDetailService = ({ visible, onClose, serviceId }) => {
 
                 <Form.Item style={{ textAlign: 'center' }}>
                     <Button type="primary" htmlType="submit" loading={loading} onClick={handleCancel}>
-                        Quay lại 
+                        Quay lại
                     </Button>
                 </Form.Item>
             </Form>

@@ -2,9 +2,13 @@ import axiosInstance from "./AxoisInstance";
 
 const BASE_URL = "/admin/water";
 
-const getAllWater = async () => {
+const getAllWater = async (token) => {
     try {
-        const response = await axiosInstance.get(`${BASE_URL}/getAll`);
+        const response = await axiosInstance.get(`${BASE_URL}/getAll`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
         console.log("Check service water", response.data);
         return response.data;
     } catch (error) {
@@ -12,36 +16,52 @@ const getAllWater = async () => {
     }
 };
 
-const createWater = async (values) => {
+const createWater = async (token, values) => {
     try {
-        const response = await axiosInstance.post(`${BASE_URL}/create`, values);
+        const response = await axiosInstance.post(`${BASE_URL}/create`, values, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
         return response.data;
     } catch (error) {
         throw error;
     }
 };
 
-const detailWater = async (id) => {
+const detailWater = async (token, id) => {
     try {
-        const response = await axiosInstance.get(`${BASE_URL}/detail/${id}`);
+        const response = await axiosInstance.get(`${BASE_URL}/detail/${id}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
         return response.data;
     } catch (error) {
         throw error;
     }
 };
 
-const updateWater = async (id, values) => {
+const updateWater = async (token, id, values) => {
     try {
-        const response = await axiosInstance.put(`${BASE_URL}/update/${id}`, values);
+        const response = await axiosInstance.put(`${BASE_URL}/update/${id}`, values, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
         return response.data;
     } catch (error) {
         throw error;
     }
 };
 
-const historyWater = async (id) => {
+const historyWater = async (token, id) => {
     try {
-        const response = await axiosInstance.get(`${BASE_URL}/history/${id}`);
+        const response = await axiosInstance.get(`${BASE_URL}/history/${id}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
         return response.data;
     } catch (error) {
         throw error;

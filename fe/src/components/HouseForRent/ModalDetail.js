@@ -71,14 +71,14 @@ const ModalDetail = ({ visible, onClose, houseData, hostId }) => {
           name="name"
           rules={[{ required: true, message: "Vui lòng nhập tên nhà thuê" }]}
         >
-          <Input placeholder="Nhập tên nhà thuê" />
+          <Input placeholder="Nhập tên nhà thuê" disabled />
         </Form.Item>
         <Form.Item
           label="Địa chỉ"
           name="address"
           rules={[{ required: true, message: "Vui lòng nhập địa chỉ" }]}
         >
-          <Input placeholder="Nhập địa chỉ" />
+          <Input placeholder="Nhập địa chỉ" disabled />
         </Form.Item>
         <Form.Item
           label="Giá"
@@ -93,6 +93,7 @@ const ModalDetail = ({ visible, onClose, houseData, hostId }) => {
             }
             parser={(value) => value?.replace(/\₫\s?|(,*)/g, "")}
             min={0}
+            disabled
           />
         </Form.Item>
         <Form.Item
@@ -100,7 +101,7 @@ const ModalDetail = ({ visible, onClose, houseData, hostId }) => {
           name="host"
           rules={[{ required: true, message: "Vui lòng chọn chủ nhà" }]}
         >
-          <Select placeholder="Chọn chủ nhà" allowClear>
+          <Select placeholder="Chọn chủ nhà" allowClear disabled>
             {hostData.map((host) => (
               <Option key={host.id} value={host.id}>
                 {host.name}
@@ -113,14 +114,14 @@ const ModalDetail = ({ visible, onClose, houseData, hostId }) => {
           name="discription"
           rules={[{ required: true, message: "Vui lòng nhập ghi chú" }]}
         >
-          <Input.TextArea placeholder="Nhập ghi chú" rows={4} />
+          <Input.TextArea placeholder="Nhập ghi chú" rows={4} disabled />
         </Form.Item>
         <Form.Item
           label="Trạng thái"
           name="status"
           rules={[{ required: true, message: "Vui lòng chọn trạng thái" }]}
         >
-          <Select placeholder="Chọn trạng thái">
+          <Select placeholder="Chọn trạng thái" disabled>
             <Option  value="DANG_THUE">Đang thuê</Option>
             <Option value="NGUNG_THUE">Dừng thuê</Option>
           </Select>

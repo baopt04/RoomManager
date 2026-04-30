@@ -1,29 +1,34 @@
 import React, { useState, useEffect } from "react";
-import { 
-    Table, 
-    Input, 
-    Button, 
-    Space, 
-    Card, 
-    Tag, 
+import {
+    Table,
+    Input,
+    Button,
+    Space,
+    Card,
+    Tag,
     Tooltip,
     Row,
     Col,
     Typography,
-    Divider,
-    Badge
+    Badge,
+    Statistic
 } from "antd";
-import { 
-    SearchOutlined, 
-    PlusOutlined, 
-    EditOutlined, 
-    EyeOutlined, 
+import {
+    SearchOutlined,
+    PlusOutlined,
+    EditOutlined,
+    EyeOutlined,
     HistoryOutlined,
     ReloadOutlined,
-    FilterOutlined 
+    HomeOutlined,
+    CheckCircleOutlined,
+    StopOutlined,
+    ExclamationCircleOutlined,
+    DollarCircleOutlined
 } from "@ant-design/icons";
 import RoomService from "../../services/RoomService";
 import ContractService from "../../services/ContractService";
+import HouseForRentService from "../../services/HouseForRentService";
 import { useNavigate } from "react-router-dom";
 import ModalContractHistory from "./ModalContractHistory";
 
@@ -32,18 +37,24 @@ const { Title, Text } = Typography;
 const GetAllContract = () => {
     const navigate = useNavigate();
     const token = localStorage.getItem('token');
-    
-    // States
+
     const [dataContract, setDataContract] = useState([]);
     const [dataRoom, setDataRoom] = useState([]);
+    const [dataHouse, setDataHouse] = useState([]);
     const [keyWord, setKeyWord] = useState("");
     const [filterData, setFilterData] = useState([]);
     const [originalData, setOriginalData] = useState([]);
     const [modalHistory, setModalHistory] = useState(false);
     const [selectIdRoom, setSelectIdRoom] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
-    // Fetch contracts
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 768);
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
     useEffect(() => {
         const fetchAllContract = async () => {
             setLoading(true);
@@ -59,7 +70,6 @@ const GetAllContract = () => {
         fetchAllContract();
     }, [token]);
 
-    // Fetch rooms
     useEffect(() => {
         const fetchAllRoom = async () => {
             try {
@@ -69,34 +79,43 @@ const GetAllContract = () => {
                 console.log("Error khi gọi server!", error);
             }
         }
+        const fetchAllHouse = async () => {
+            try {
+                const response = await HouseForRentService.getAllHouseForRent(token);
+                setDataHouse(response);
+            } catch (error) {
+                console.log("Error khi gọi server!", error);
+            }
+        }
         fetchAllRoom();
+        fetchAllHouse();
     }, [token]);
 
-    // Map contract data with room info
     useEffect(() => {
-        if (dataContract.length > 0 && dataRoom.length > 0) {
+        if (dataContract.length > 0 && dataRoom.length > 0 && dataHouse.length > 0) {
             const mapped = dataContract.map((item, index) => {
                 const room = dataRoom.find(r => r.id === item.room);
+                const house = room ? dataHouse.find(h => h.id === room.houseForRent) : null;
                 return {
                     ...item,
                     key: item.id,
                     stt: index + 1,
                     roomName: room ? room.name : "",
-                    roomPrice: room ? room.price : 0
+                    roomPrice: room ? room.price : 0,
+                    houseName: house ? house.name : "Chưa xác định",
+                    houseId: house ? house.id : null
                 };
             });
             setFilterData(mapped);
             setOriginalData(mapped);
         }
-    }, [dataContract, dataRoom]);
+    }, [dataContract, dataRoom, dataHouse]);
 
-    // Search functionality
     const searchContract = () => {
         if (!keyWord.trim()) {
             setFilterData(originalData);
             return;
         }
-        
         const filtered = originalData.filter((item) =>
             Object.values(item).some((value) =>
                 value &&
@@ -106,13 +125,11 @@ const GetAllContract = () => {
         setFilterData(filtered);
     };
 
-    // Reset search
     const resetSearch = () => {
         setKeyWord("");
         setFilterData(originalData);
     };
 
-    // Navigation functions
     const openModalCreate = () => {
         navigate("/contract-management/createContract");
     };
@@ -130,20 +147,16 @@ const GetAllContract = () => {
         setModalHistory(true);
     };
 
-    // Status render function
     const renderStatus = (status) => {
         const statusConfig = {
-            "KICH_HOAT": { color: "success", text: "Đang sử dụng" },
-            "NGUNG_KICH_HOAT": { color: "warning", text: "Ngưng sử dụng" },
-            "DUNG_KINH_DOANH": { color: "error", text: "Ngưng kinh doanh" }
+            "KICH_HOAT": { color: "green", text: "Đang sử dụng" },
+            "NGUNG_KICH_HOAT": { color: "orange", text: "Ngưng sử dụng" },
+            "DUNG_KINH_DOANH": { color: "default", text: "Ngưng KD" }
         };
-        
         const config = statusConfig[status] || { color: "default", text: "Không xác định" };
-        
         return <Tag color={config.color}>{config.text}</Tag>;
     };
 
-    // Currency formatter
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat("vi-VN", {
             style: "currency",
@@ -151,7 +164,6 @@ const GetAllContract = () => {
         }).format(amount);
     };
 
-    // Date formatter
     const formatDate = (date) => {
         return new Intl.DateTimeFormat("vi-VN", {
             year: "numeric",
@@ -160,220 +172,249 @@ const GetAllContract = () => {
         }).format(new Date(date));
     };
 
-    // Table columns
-    const columns = [
+    const getGroupedData = (dataList) => {
+        const groups = {};
+        dataList.forEach((item) => {
+            const houseId = item.houseId || "unknown";
+            if (!groups[houseId]) {
+                groups[houseId] = {
+                    houseId: houseId,
+                    houseName: item.houseName,
+                    contracts: [],
+                    totalDeposit: 0,
+                    activeCount: 0,
+                    key: houseId
+                };
+            }
+            groups[houseId].contracts.push(item);
+            groups[houseId].totalDeposit += item.contractDeponsit || 0;
+            if (item.status === "KICH_HOAT") {
+                groups[houseId].activeCount += 1;
+            }
+        });
+        return Object.values(groups);
+    };
+
+    const groupedData = getGroupedData(filterData);
+
+    const stats = {
+        total: filterData.length,
+        active: filterData.filter(c => c.status === "KICH_HOAT").length,
+        expired: filterData.filter(c => c.status === "NGUNG_KICH_HOAT").length,
+        totalDeposit: filterData.reduce((sum, c) => sum + (c.contractDeponsit || 0), 0)
+    };
+
+    const mainColumns = [
         {
             title: "STT",
-            dataIndex: "stt",
             key: "stt",
             width: 70,
-            align: "center",
-            sorter: (a, b) => a.stt - b.stt
+            align: 'center',
+            render: (_, __, index) => index + 1,
         },
         {
-            title: "Mã hợp đồng",
-            dataIndex: "code",
-            key: "code",
-            width: 120,
-            sorter: (a, b) => a.code.localeCompare(b.code),
-            render: (code) => <Text strong>{code}</Text>
-        },
-        {
-            title: "Ngày ký",
-            dataIndex: "dateStart",
-            key: "dateStart",
-            width: 110,
-            sorter: (a, b) => new Date(a.dateStart) - new Date(b.dateStart),
-            render: (date) => formatDate(date)
-        },
-        {
-            title: "Ngày hết hạn",
-            dataIndex: "dateEnd",
-            key: "dateEnd",
-            width: 110,
-            sorter: (a, b) => new Date(a.dateEnd) - new Date(b.dateEnd),
-            render: (date) => formatDate(date)
-        },
-        {
-            title: "Tiền đặt cọc",
-            dataIndex: "contractDeponsit",
-            key: "contractDeponsit",
-            width: 130,
-            sorter: (a, b) => a.contractDeponsit - b.contractDeponsit,
-            render: (amount) => <Text type="success">{formatCurrency(amount)}</Text>
-        },
-        {
-            title: "Ngày thanh toán",
-            dataIndex: "nextDueDate",
-            key: "nextDueDate",
-            width: 130,
-            sorter: (a, b) => new Date(a.nextDueDate) - new Date(b.nextDueDate),
-            render: (date) => formatDate(date)
-        },
-        {
-            title: "Phòng",
-            dataIndex: "roomName",
-            key: "roomName",
-            width: 100,
-            render: (roomName, record) => {
-                const roomData = dataRoom.find((item) => item.id === record.room);
-                return roomData ? (
-                    <Badge status="processing" text={roomName} />
-                ) : (
-                    <Text type="secondary">Không tìm thấy</Text>
-                );
-            }
-        },
-        {
-            title: "Giá phòng",
-            dataIndex: "roomPrice",
-            key: "roomPrice",
-            width: 120,
-            sorter: (a, b) => a.roomPrice - b.roomPrice,
-            render: (_, record) => {
-                const roomData = dataRoom.find((item) => item.id === record.room);
-                return roomData ? (
-                    <Text strong>{formatCurrency(roomData.price)}</Text>
-                ) : (
-                    <Text type="secondary">--</Text>
-                );
-            }
-        },
-        {
-            title: "Trạng thái",
-            dataIndex: "status",
-            key: "status",
-            width: 120,
-            align: "center",
-            render: renderStatus
-        },
-        {
-            title: "Thao tác",
-            key: "action",
-            width: 200,
-            fixed: "right",
+            title: "Nhà cho thuê",
+            key: "houseName",
             render: (_, record) => (
-                <Space size="small">
-                    <Tooltip title="Chỉnh sửa">
-                        <Button
-                            type="primary"
-                            icon={<EditOutlined />}
-                            size="small"
-                            onClick={() => handleUpdateContract(record)}
-                        />
-                    </Tooltip>
-                    <Tooltip title="Xem chi tiết">
-                        <Button
-                            icon={<EyeOutlined />}
-                            size="small"
-                            onClick={() => detailContract(record)}
-                        />
-                    </Tooltip>
-                    <Tooltip title="Lịch sử">
-                        <Button
-                            type="default"
-                            icon={<HistoryOutlined />}
-                            size="small"
-                            style={{ backgroundColor: "#52c41a", borderColor: "#52c41a", color: "white" }}
-                            onClick={() => getHistoryContact(record.id)}
-                        />
-                    </Tooltip>
+                <Space>
+                    <HomeOutlined style={{ color: '#1677ff', fontSize: '18px' }} />
+                    <Text strong style={{ fontSize: '15px' }}>{record.houseName}</Text>
                 </Space>
-            )
-        }
+            ),
+            sorter: (a, b) => a.houseName.localeCompare(b.houseName),
+        },
+        {
+            title: "Số lượng hợp đồng",
+            key: "contractCount",
+            align: 'center',
+            render: (_, record) => (
+                <Space>
+                    <Tag color="blue">{record.contracts.length} HĐ</Tag>
+                    {record.activeCount > 0 && <Tag color="green">{record.activeCount} Đang sử dụng</Tag>}
+                </Space>
+            ),
+        },
+        {
+            title: "Tổng tiền cọc",
+            key: "totalDeposit",
+            align: 'right',
+            render: (_, record) => <Text strong>{formatCurrency(record.totalDeposit)}</Text>,
+            sorter: (a, b) => a.totalDeposit - b.totalDeposit,
+        },
     ];
 
-    return (
-        <div style={{ padding: "24px", backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
-            {/* Header */}
-            <Card style={{ marginBottom: "24px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-                <Title level={2} style={{ textAlign: "center", margin: 0, color: "#1890ff" }}>
-                    Quản lý hợp đồng phòng trọ
-                </Title>
-            </Card>
+    const expandedRowRender = (record) => {
+        const subColumns = [
+            {
+                title: "Mã HĐ",
+                dataIndex: "code",
+                key: "code",
+                width: 100,
+                render: (code) => <Text style={{ fontSize: '13px', fontWeight: 500 }}>{code}</Text>
+            },
+            {
+                title: "Ngày ký",
+                dataIndex: "dateStart",
+                key: "dateStart",
+                width: 100,
+                render: (date) => <Text style={{ fontSize: '13px' }}>{formatDate(date)}</Text>
+            },
+            {
+                title: "Ngày hết hạn",
+                dataIndex: "dateEnd",
+                key: "dateEnd",
+                width: 100,
+                render: (date) => <Text style={{ fontSize: '13px' }}>{formatDate(date)}</Text>
+            },
+            {
+                title: "Tiền cọc",
+                dataIndex: "contractDeponsit",
+                key: "contractDeponsit",
+                width: 120,
+                align: 'right',
+                render: (amount) => <Text style={{ fontSize: '13px' }}>{formatCurrency(amount)}</Text>
+            },
+            {
+                title: "Phòng",
+                dataIndex: "roomName",
+                key: "roomName",
+                width: 90,
+                render: (roomName) => <Tag color="cyan">{roomName}</Tag>
+            },
+            {
+                title: "Trạng thái",
+                dataIndex: "status",
+                key: "status",
+                width: 120,
+                align: "center",
+                render: renderStatus
+            },
+            {
+                title: "Hành động",
+                key: "action",
+                width: 120,
+                render: (_, item) => (
+                    <Space size={4}>
+                        <Tooltip title="Sửa">
+                            <Button type="text" size="small" icon={<EditOutlined />} onClick={() => handleUpdateContract(item)} />
+                        </Tooltip>
+                        <Tooltip title="Chi tiết">
+                            <Button type="text" size="small" icon={<EyeOutlined />} onClick={() => detailContract(item)} />
+                        </Tooltip>
+                        <Tooltip title="Lịch sử">
+                            <Button type="text" size="small" icon={<HistoryOutlined />} onClick={() => getHistoryContact(item.id)} />
+                        </Tooltip>
+                    </Space>
+                )
+            }
+        ];
 
-            {/* Search and Actions */}
-            <Card style={{ marginBottom: "24px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-                <Row gutter={[16, 16]} align="middle">
-                    <Col xs={24} md={12} lg={8}>
-                        <Space.Compact style={{ width: "100%" }}>
-                            <Input
-                                placeholder="Tìm kiếm hợp đồng..."
-                                value={keyWord}
-                                onChange={(e) => setKeyWord(e.target.value)}
-                                onPressEnter={searchContract}
-                                prefix={<SearchOutlined />}
-                            />
-                            <Button 
-                                type="primary" 
-                                icon={<SearchOutlined />}
-                                onClick={searchContract}
-                            >
-                                Tìm
-                            </Button>
-                            <Button 
-                                icon={<ReloadOutlined />}
-                                onClick={resetSearch}
-                                title="Reset"
-                            />
-                        </Space.Compact>
-                    </Col>
-                    <Col xs={24} md={12} lg={16}>
-                        <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                            <Button
-                                type="primary"
-                                icon={<PlusOutlined />}
-                                size="large"
-                                onClick={openModalCreate}
-                                style={{ 
-                                    background: "linear-gradient(135deg, #1890ff 0%, #096dd9 100%)",
-                                    border: "none",
-                                    boxShadow: "0 4px 12px rgba(24, 144, 255, 0.3)"
-                                }}
-                            >
-                                Thêm hợp đồng mới
-                            </Button>
-                        </div>
-                    </Col>
-                </Row>
-
-                <Divider style={{ margin: "16px 0" }} />
-                
-                <Row gutter={[16, 16]}>
-                    <Col>
-                        <Text type="secondary">
-                            Tổng số hợp đồng: <Text strong>{filterData.length}</Text>
-                        </Text>
-                    </Col>
-                </Row>
-            </Card>
-
-            {/* Table */}
-            <Card style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+        return (
+            <div style={{ padding: '8px 16px', background: '#fafafa', borderRadius: '8px' }}>
                 <Table
-                    columns={columns}
-                    dataSource={filterData}
+                    columns={subColumns}
+                    dataSource={record.contracts}
+                    pagination={false}
+                    rowKey="id"
+                    size="small"
+                    scroll={{ x: 980 }}
+                />
+            </div>
+        );
+    };
+
+    return (
+        <div>
+            <div className="page-header">
+                <div>
+                    <Title level={4} style={{ margin: 0, fontWeight: 600 }}>Quản lý hợp đồng</Title>
+                    <Text type="secondary" style={{ fontSize: '13px' }}>
+                        {filterData.length} hợp đồng
+                    </Text>
+                </div>
+                <Button type="primary" icon={<PlusOutlined />} onClick={openModalCreate}>Thêm hợp đồng</Button>
+            </div>
+
+            <Row gutter={[16, 16]} style={{ marginBottom: '16px' }}>
+                <Col xs={12} sm={6}>
+                    <Card size="small" style={{ borderLeft: '4px solid #1677ff' }}>
+                        <Statistic
+                            title="Tổng hợp đồng"
+                            value={stats.total}
+                            prefix={<HomeOutlined style={{ color: '#1677ff' }} />}
+                            valueStyle={{ fontSize: '20px', fontWeight: 'bold' }}
+                        />
+                    </Card>
+                </Col>
+                <Col xs={12} sm={6}>
+                    <Card size="small" style={{ borderLeft: '4px solid #52c41a' }}>
+                        <Statistic
+                            title="Đang hoạt động"
+                            value={stats.active}
+                            prefix={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
+                            valueStyle={{ color: '#52c41a', fontSize: '20px', fontWeight: 'bold' }}
+                        />
+                    </Card>
+                </Col>
+                <Col xs={12} sm={6}>
+                    <Card size="small" style={{ borderLeft: '4px solid #ff4d4f' }}>
+                        <Statistic
+                            title="Hết hạn"
+                            value={stats.expired}
+                            prefix={<ExclamationCircleOutlined style={{ color: '#ff4d4f' }} />}
+                            valueStyle={{ color: '#ff4d4f', fontSize: '20px', fontWeight: 'bold' }}
+                        />
+                    </Card>
+                </Col>
+                <Col xs={12} sm={6}>
+                    <Card size="small" style={{ borderLeft: '4px solid #faad14' }}>
+                        <Statistic
+                            title="Tổng tiền cọc"
+                            value={stats.totalDeposit}
+                            prefix={<DollarCircleOutlined style={{ color: '#faad14' }} />}
+                            valueStyle={{ fontSize: '18px', fontWeight: 'bold' }}
+                            formatter={(value) => formatCurrency(value)}
+                        />
+                    </Card>
+                </Col>
+            </Row>
+
+            <Card size="small" style={{ marginBottom: 16 }}>
+                <div className="filter-bar">
+                    <Input
+                        placeholder="Tìm kiếm hợp đồng..."
+                        value={keyWord}
+                        onChange={(e) => setKeyWord(e.target.value)}
+                        onPressEnter={searchContract}
+                        prefix={<SearchOutlined style={{ color: '#9ca3af' }} />}
+                        style={{ width: isMobile ? "100%" : 280 }}
+                        allowClear
+                    />
+                    <Button icon={<SearchOutlined />} onClick={searchContract}>Tìm</Button>
+                    <Button icon={<ReloadOutlined />} onClick={resetSearch}>Làm mới</Button>
+                </div>
+            </Card>
+
+            <Card size="small">
+                <Table
+                    columns={mainColumns}
+                    dataSource={groupedData}
                     loading={loading}
+                    scroll={{ x: 1000 }}
                     pagination={{
                         pageSize: 10,
-                        showSizeChanger: true,
-                        showQuickJumper: true,
-                        showTotal: (total, range) => 
-                            `${range[0]}-${range[1]} của ${total} hợp đồng`,
+                        showSizeChanger: !isMobile,
+                        showTotal: (total) => `${total} nhà có hợp đồng`,
                     }}
-                    scroll={{ x: 1200 }}
-                    bordered
-                    size="middle"
-                    style={{
-                        "& .ant-table-thead > tr > th": {
-                            backgroundColor: "#fafafa",
-                            fontWeight: "600"
-                        }
+                    size={isMobile ? "small" : "middle"}
+                    rowKey="key"
+                    expandable={{
+                        expandedRowRender,
+                        defaultExpandAllRows: false,
                     }}
                 />
             </Card>
 
-            {/* Modal */}
             <ModalContractHistory
                 visible={modalHistory}
                 onClose={() => setModalHistory(false)}

@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Form, InputNumber, Button, Select, message, Input, } from "antd";
-import WaterService from "../../services/WaterService";
 import RoomService from "../../services/RoomService";
 import MaintencanceService from "../../services/MaintencanceService";
-const ModalUpdateMain = ({ visible, onClose, id }) => {
-    const [form] = Form.useForm(); // Tạo form instance
+const ModalUpdateMain = ({ visible, onClose, id, onSuccess }) => {
+    const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const [room, setRoom] = useState([]);
     const token = localStorage.getItem("token");
@@ -48,34 +47,38 @@ const ModalUpdateMain = ({ visible, onClose, id }) => {
         fetchMain();
     }, [token, id])
 
-    const updateMain = async (values) => {
-        setLoading(true);
-        try {
-            const payload = {
-                ...values,
-                room: { id: values.room },
-            };
-            await MaintencanceService.updateMainTen(token, id, payload);
-            message.success("Cập nhật thành công!");
-            window.location.reload();
-            form.resetFields();
-            onClose();
-        } catch (error) {
-            if (error.response) {
-                console.error("Error response:", error.response);
-                const messageError = error.response.data?.message;
-                if (messageError) {
-                    message.error(messageError);
-                } else {
-                    message.error("Đã xảy ra lỗi không xác định từ server!");
+    const updateMain = (values) => {
+        Modal.confirm({
+            title: 'Xác nhận cập nhật phiếu bảo trì',
+            content: 'Bạn có chắc chắn muốn lưu các thay đổi cho phiếu bảo trì này không?',
+            okText: 'Cập nhật',
+            cancelText: 'Hủy',
+            onOk: async () => {
+                setLoading(true);
+                try {
+                    const payload = {
+                        ...values,
+                        room: { id: values.room },
+                    };
+                    await MaintencanceService.updateMainTen(token, id, payload);
+                    message.success("Cập nhật thành công!");
+                    form.resetFields();
+                    if (onSuccess) {
+                        await onSuccess();
+                    }
+                    onClose();
+                } catch (error) {
+                    if (error.response) {
+                        const messageError = error.response.data?.message;
+                        message.error(messageError || "Đã xảy ra lỗi từ server!");
+                    } else {
+                        message.error("Không thể kết nối đến server!");
+                    }
+                } finally {
+                    setLoading(false);
                 }
-            } else {
-                console.error("Error:", error);
-                message.error("Không thể kết nối đến server, vui lòng thử lại!");
             }
-        } finally {
-            setLoading(false);
-        }
+        });
     };
     const handleCancel = () => {
         form.resetFields();
@@ -195,6 +198,7 @@ const ModalUpdateMain = ({ visible, onClose, id }) => {
                     rules={[{ required: true, message: "Vui lòng chọn trạng thái" }]}
                 >
                     <Select placeholder="Chọn trạng thái" allowClear>
+                        <Select.Option value="TAO_PHIEU">Chờ sửa chữa</Select.Option>
                         <Select.Option value="HOAN_THANH">Đã hoàn thành</Select.Option>
                         <Select.Option value="DANG_SUA_CHUA">Chưa hoàn thành</Select.Option>
                     </Select>

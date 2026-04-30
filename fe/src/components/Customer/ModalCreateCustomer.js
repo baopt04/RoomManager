@@ -2,37 +2,45 @@ import React, { useState, useEffect } from "react";
 import { Modal, Form, Input, Button, Radio, Select, InputNumber } from "antd";
 import { message } from "antd";
 import CustomerService from "../../services/CustomerService";
-const { Option } = Select; // Import Option from Select
-const ModalCreateCustomer = ({ visible, onClose, houseId }) => {
+const { Option } = Select;
+const ModalCreateCustomer = ({ visible, onClose, houseId, onSuccess }) => {
     const token = localStorage.getItem("token");
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
 
-    const addCustomer = async (values) => {
-        setLoading(true);
-        try {
-            await CustomerService.createCustomer(token, values);
-            message.success("Thêm khách hàng thành công!");
-            window.location.reload();
-            onClose();
-        } catch (error) {
-            if (error.response) {
-                const data = error.response.data;
-
-                if (typeof data.message === "string") {
-                    message.error(data.message);
+    const addCustomer = (values) => {
+        Modal.confirm({
+            title: "Xác nhận thêm khách hàng",
+            content: "Bạn có chắc chắn muốn thêm khách hàng này không?",
+            okText: "Xác nhận",
+            cancelText: "Hủy",
+            onOk: async () => {
+                setLoading(true);
+                try {
+                    await CustomerService.createCustomer(token, values);
+                    message.success("Thêm khách hàng thành công!");
+                    form.resetFields();
+                    if (onSuccess) {
+                        await onSuccess();
+                    }
+                    onClose();
+                } catch (error) {
+                    if (error.response) {
+                        const data = error.response.data;
+                        if (typeof data.message === "string") {
+                            message.error(data.message);
+                        } else if (typeof data === "object") {
+                            Object.values(data).forEach((msg) => {
+                                message.error(msg);
+                            });
+                        }
+                    } else {
+                        message.error("Không thể kết nối đến server, vui lòng kiểm tra lại.");
+                    }
+                    setLoading(false);
                 }
-                else if (typeof data === "object") {
-                    Object.values(data).forEach((msg) => {
-                        message.error(msg);
-                    });
-                }
-
-            } else {
-                message.error("Không thể kết nối đến server, vui lòng kiểm tra lại.");
-            }
-            setLoading(false);
-        };
+            },
+        });
     };
     const handleCancel = () => {
         form.resetFields();
@@ -129,7 +137,7 @@ const ModalCreateCustomer = ({ visible, onClose, houseId }) => {
                         <Radio value={0}>Nữ</Radio>
                     </Radio.Group>
                 </Form.Item>
-               
+
 
                 <Form.Item style={{ textAlign: 'center' }}>
                     <Button type="primary" htmlType="submit" loading={loading}>

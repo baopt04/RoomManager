@@ -9,4 +9,7 @@ public interface StatisticalService {
     TotalRevenueProjection getTotalPriceMonth();
     List<MonthlyTotalDTO> getTotalPriceForMonth();
     List<SearchRoomProjection> searchRoomHistoryByIdRoom(String roomId);
+    List<RoomStatisticalProjection> findAllRoomStatistical();
+    List<CustomerStatisticalProjection> findAllCustomerStatistical();
+    List<RevenueStatisticalProjection> findAllRevenueStatistical();
 }

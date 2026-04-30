@@ -9,11 +9,10 @@ public class ConfigWeb implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        // Cho phép tất cả các domain truy cập API của bạn
-        registry.addMapping("/**") // Áp dụng CORS cho tất cả các API endpoint
-                .allowedOrigins("http://localhost:3000") // Chỉ cho phép origin này
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // Các phương thức HTTP được phép
-                .allowedHeaders("*") // Cho phép tất cả các header
-                .allowCredentials(true); // Nếu bạn cần gửi cookie hoặc thông tin xác thực
+        registry.addMapping("/**")
+              .allowedOriginPatterns("http://localhost:*")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true);
     }
 }

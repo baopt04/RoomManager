@@ -1,0 +1,18 @@
+package com.example.roommanagement.repository;
+
+import com.example.roommanagement.entity.Room;
+import com.example.roommanagement.infrastructure.constant.StatusRoom;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface RoomCustomerRepository extends JpaRepository<Room, String> {
+    List<Room> findAllByStatus(StatusRoom status);
+
+    @Query("SELECT r FROM Room r WHERE r.houseForRent.address LIKE %:address% AND r.status = :status")
+    List<Room> searchByAddress(@Param("address") String address, @Param("status") StatusRoom status);
+}

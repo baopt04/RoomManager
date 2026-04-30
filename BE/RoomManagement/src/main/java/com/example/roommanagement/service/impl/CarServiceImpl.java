@@ -54,7 +54,7 @@ public class CarServiceImpl implements CarService {
     @Override
     public UpdateCarDTO update(String id, UpdateCarDTO updateCarDTO) {
         Optional<Car> optional = carRepository.findById(id);
-        if (optional.isEmpty()) { // Sửa lại điều kiện kiểm tra
+        if (optional.isEmpty()) {
             throw new BusinessException(Constrants.CAR_NOT_FOUND);
         }
         if (!updateCarDTO.getLicensePlate().equals(optional.get().getLicensePlate())) {

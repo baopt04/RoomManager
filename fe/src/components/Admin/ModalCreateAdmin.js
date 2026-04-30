@@ -5,7 +5,7 @@ import AdminService from "../../services/AdminService";
 const { Title, Text } = Typography;
 const { Option } = Select;
 
-const ModalCreateAdmin = ({ visible, onclose }) => {
+const ModalCreateAdmin = ({ visible, onclose, onSuccess }) => {
     const [loading, setLoading] = useState(false);
     const [form] = Form.useForm();
     const token = localStorage.getItem('token')
@@ -30,11 +30,10 @@ const ModalCreateAdmin = ({ visible, onclose }) => {
             const response = await AdminService.createAdmin(token, values);
             console.log("response regestier", response);
             message.success("Thêm người quản lý mới thành công")
-            setTimeout(() => {
-                close();
-                // window.location.reload();
-
-            }, 1000);
+            if (onSuccess) {
+                await onSuccess();
+            }
+            close();
         } catch (error) {
             if (error.response) {
                 const messageError = error.response.data?.message;
@@ -50,7 +49,6 @@ const ModalCreateAdmin = ({ visible, onclose }) => {
     }
     return (
         <Modal
-            // title='Thêm admin mới '
             visible={visible}
             onCancel={close}
             footer={null}

@@ -1,10 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Form, InputNumber, Button, Select, Table, message, Space } from "antd";
 import WaterService from "../../services/WaterService";
-import { title } from "framer-motion/client";
-import { keyboard } from "@testing-library/user-event/dist/keyboard";
-import { render } from "@testing-library/react";
-import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 
 
 const ModalDetailWaterHistory = ({ visible, onClose, id }) => {

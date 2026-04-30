@@ -32,4 +32,16 @@ private StatisticalRepository statisticalRepository;
     public List<SearchRoomProjection> searchRoomHistoryByIdRoom(String roomId) {
         return statisticalRepository.findRoomDetailsByRoomId(roomId);
     }
+    @Override
+    public List<RoomStatisticalProjection> findAllRoomStatistical() {
+        return statisticalRepository.findAllRoomStatistical();
+    }
+    @Override
+    public List<CustomerStatisticalProjection> findAllCustomerStatistical() {
+        return statisticalRepository.findAllCustomerStatistical();
+    }
+    @Override
+    public List<RevenueStatisticalProjection> findAllRevenueStatistical() {
+        return statisticalRepository.findAllRevenueStatistical();
+    }
 }

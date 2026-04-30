@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Form, Input, Button, Select, InputNumber, DatePicker, Upload, Row, Col, message, Typography } from "antd";
-import { PlusOutlined, UploadOutlined } from "@ant-design/icons";
 import RoomService from "../../services/RoomService";
 import ContractService from "../../services/ContractService";
 import HouseForRentService from "../../services/HouseForRentService";
 import CustomerService from "../../services/CustomerService";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
-import moment from "moment";
 import dayjs from "dayjs";
 const { Option } = Select;
 const { Title } = Typography;

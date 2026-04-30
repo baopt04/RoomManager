@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { 
-    Table, 
-    Input, 
-    Button, 
-    Space, 
-    Card, 
-    Tag, 
+import {
+    Table,
+    Input,
+    Button,
+    Space,
+    Card,
+    Tag,
     Tooltip,
     Row,
     Col,
@@ -14,16 +14,17 @@ import {
     Badge,
     Statistic
 } from "antd";
-import { 
-    SearchOutlined, 
-    PlusOutlined, 
-    EditOutlined, 
+import {
+    SearchOutlined,
+    PlusOutlined,
+    EditOutlined,
     EyeOutlined,
     ReloadOutlined,
     ThunderboltOutlined,
     DollarOutlined,
     CalendarOutlined,
-    BulbOutlined
+    BulbOutlined,
+    CheckCircleOutlined
 } from "@ant-design/icons";
 import RoomService from "../../services/RoomService";
 import ElectricityService from "../../services/ElectricityService";
@@ -35,8 +36,7 @@ const { Title, Text } = Typography;
 
 const GetAllElectricity = () => {
     const token = localStorage.getItem('token');
-    
-    // States
+
     const [dataElectricity, setDataElectricity] = useState([]);
     const [dataRoom, setDataRoom] = useState([]);
     const [isModalCreate, setIsModaCreate] = useState(false);
@@ -49,19 +49,20 @@ const GetAllElectricity = () => {
     const [isModalDetailHistory, setIsModalDetailHistory] = useState(false);
     const [loading, setLoading] = useState(false);
 
+    const fetchAllElectricity = async () => {
+        setLoading(true);
+        try {
+            const response = await ElectricityService.getAllElectricity(token);
+            setDataElectricity(response);
+        } catch (error) {
+            console.log("Error khi gọi server!", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     // Fetch electricity data
     useEffect(() => {
-        const fetchAllElectricity = async () => {
-            setLoading(true);
-            try {
-                const response = await ElectricityService.getAllElectricity(token);
-                setDataElectricity(response);
-            } catch (error) {
-                console.log("Error khi gọi server!", error);
-            } finally {
-                setLoading(false);
-            }
-        }
         fetchAllElectricity();
     }, [token]);
 
@@ -101,7 +102,7 @@ const GetAllElectricity = () => {
             setFilterData(originalData);
             return;
         }
-        
+
         const filtered = originalData.filter((item) =>
             Object.values(item).some((value) =>
                 value &&
@@ -111,7 +112,6 @@ const GetAllElectricity = () => {
         setFilterData(filtered);
     };
 
-    // Reset search
     const resetSearch = () => {
         setKeyWord("");
         setFilterData(originalData);
@@ -132,7 +132,6 @@ const GetAllElectricity = () => {
         setIsModalDetailHistory(true);
     };
 
-    // Currency formatter
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat("vi-VN", {
             style: "currency",
@@ -140,7 +139,6 @@ const GetAllElectricity = () => {
         }).format(amount || 0);
     };
 
-    // Number formatter (for electricity readings)
     const formatNumber = (number) => {
         return new Intl.NumberFormat("vi-VN").format(number || 0);
     };
@@ -156,15 +154,14 @@ const GetAllElectricity = () => {
 
     // Calculate statistics
     const totalAmount = filterData.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
-    const totalConsumption = filterData.reduce((sum, item) => 
+    const totalConsumption = filterData.reduce((sum, item) =>
         sum + ((item.numberLast || 0) - (item.numberFirst || 0)), 0
     );
     const paidCount = filterData.filter(item => item.status === "DA_THANH_TOAN").length;
     const unpaidCount = filterData.length - paidCount;
-    const averagePrice = filterData.length > 0 ? 
+    const averagePrice = filterData.length > 0 ?
         filterData.reduce((sum, item) => sum + (item.unitPrice || 0), 0) / filterData.length : 0;
 
-    // Table columns
     const columns = [
         {
             title: "STT",
@@ -189,8 +186,8 @@ const GetAllElectricity = () => {
             width: 110,
             sorter: (a, b) => a.roomName.localeCompare(b.roomName),
             render: (roomName) => (
-                <Badge 
-                    status="processing" 
+                <Badge
+                    status="processing"
                     text={roomName || "Chưa có dữ liệu"}
                 />
             )
@@ -224,7 +221,7 @@ const GetAllElectricity = () => {
         },
         {
             title: "Chỉ số cuối",
-            dataIndex: "numberLast", 
+            dataIndex: "numberLast",
             key: "numberLast",
             width: 100,
             align: "right",
@@ -296,20 +293,20 @@ const GetAllElectricity = () => {
             width: 140,
             fixed: "right",
             render: (_, record) => (
-                <Space size="small">
+                <Space size={4}>
                     <Tooltip title="Chỉnh sửa">
                         <Button
-                            type="primary"
-                            icon={<EditOutlined />}
+                            type="text"
                             size="small"
+                            icon={<EditOutlined />}
                             onClick={() => editRoomElectricity(record.id)}
                         />
                     </Tooltip>
                     <Tooltip title="Xem chi tiết">
                         <Button
-                            icon={<EyeOutlined />}
+                            type="text"
                             size="small"
-                            style={{ backgroundColor: "#ff9c6e", borderColor: "#ff9c6e", color: "white" }}
+                            icon={<EyeOutlined />}
                             onClick={() => detailHistory(record.id)}
                         />
                     </Tooltip>
@@ -319,120 +316,92 @@ const GetAllElectricity = () => {
     ];
 
     return (
-        <div style={{ padding: "24px", backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
-            {/* Header */}
-            <Card style={{ marginBottom: "24px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-                <Title level={2} style={{ textAlign: "center", margin: 0, color: "#fa8c16" }}>
-                    <ThunderboltOutlined style={{ marginRight: "8px" }} />
-                    Quản lý điện phòng trọ
-                </Title>
-            </Card>
+        <div>
+            {/* Page Header */}
+            <div className="page-header">
+                <div>
+                    <Title level={4} style={{ margin: 0, fontWeight: 600 }}>
+                        Quản lý điện phòng trọ
+                    </Title>
+                    <Text type="secondary" style={{ fontSize: '13px' }}>
+                        Danh sách và quản lý thông tin tiêu thụ điện
+                    </Text>
+                </div>
+                <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={openModalCreate}
+                >
+                    Thêm thông tin điện
+                </Button>
+            </div>
 
-            {/* Statistics */}
-            <Row gutter={[16, 16]} style={{ marginBottom: "24px" }}>
+            <Row gutter={16} className="stat-row">
                 <Col xs={24} sm={12} lg={6}>
-                    <Card>
+                    <Card size="small">
                         <Statistic
                             title="Tổng doanh thu"
                             value={totalAmount}
                             formatter={(value) => formatCurrency(value)}
-                            valueStyle={{ color: '#3f8600' }}
-                            prefix={<DollarOutlined />}
+                            prefix={<DollarOutlined style={{ color: '#52c41a' }} />}
                         />
                     </Card>
                 </Col>
                 <Col xs={24} sm={12} lg={6}>
-                    <Card>
+                    <Card size="small">
                         <Statistic
                             title="Tổng điện tiêu thụ"
                             value={totalConsumption}
-                            valueStyle={{ color: '#fa8c16' }}
                             suffix="kWh"
-                            prefix={<ThunderboltOutlined />}
+                            prefix={<ThunderboltOutlined style={{ color: '#fa8c16' }} />}
                         />
                     </Card>
                 </Col>
                 <Col xs={12} sm={6} lg={6}>
-                    <Card>
+                    <Card size="small">
                         <Statistic
                             title="Đã thanh toán"
                             value={paidCount}
-                            valueStyle={{ color: '#3f8600' }}
+                            prefix={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
                             suffix={`/ ${filterData.length}`}
                         />
                     </Card>
                 </Col>
                 <Col xs={12} sm={6} lg={6}>
-                    <Card>
+                    <Card size="small">
                         <Statistic
                             title="Giá TB/kWh"
                             value={averagePrice}
                             formatter={(value) => formatCurrency(value)}
-                            valueStyle={{ color: '#1890ff' }}
-                            prefix={<BulbOutlined />}
+                            prefix={<BulbOutlined style={{ color: '#1890ff' }} />}
                         />
                     </Card>
                 </Col>
             </Row>
 
-            {/* Search and Actions */}
-            <Card style={{ marginBottom: "24px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-                <Row gutter={[16, 16]} align="middle">
-                    <Col xs={24} md={12} lg={8}>
-                        <Space.Compact style={{ width: "100%" }}>
-                            <Input
-                                placeholder="Tìm kiếm thông tin điện..."
-                                value={keyWord}
-                                onChange={(e) => setKeyWord(e.target.value)}
-                                onPressEnter={searchElectricity}
-                                prefix={<SearchOutlined />}
-                            />
-                            <Button 
-                                type="primary" 
-                                icon={<SearchOutlined />}
-                                onClick={searchElectricity}
-                            >
-                                Tìm
-                            </Button>
-                            <Button 
-                                icon={<ReloadOutlined />}
-                                onClick={resetSearch}
-                                title="Reset"
-                            />
-                        </Space.Compact>
-                    </Col>
-                    <Col xs={24} md={12} lg={16}>
-                        <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                            <Button
-                                type="primary"
-                                icon={<PlusOutlined />}
-                                size="large"
-                                onClick={openModalCreate}
-                                style={{ 
-                                    background: "linear-gradient(135deg, #fa8c16 0%, #d46b08 100%)",
-                                    border: "none",
-                                    boxShadow: "0 4px 12px rgba(250, 140, 22, 0.3)"
-                                }}
-                            >
-                                Thêm thông tin điện
-                            </Button>
-                        </div>
-                    </Col>
-                </Row>
-
-                <Divider style={{ margin: "16px 0" }} />
-                
-                <Row gutter={[16, 16]}>
-                    <Col>
-                        <Text type="secondary">
-                            Tổng số bản ghi: <Text strong>{filterData.length}</Text>
-                        </Text>
-                    </Col>
-                </Row>
+            {/* Filters */}
+            <Card size="small" style={{ marginBottom: 16 }}>
+                <div className="filter-bar">
+                    <Input
+                        placeholder="Tìm kiếm thông tin điện..."
+                        prefix={<SearchOutlined style={{ color: '#9ca3af' }} />}
+                        value={keyWord}
+                        onChange={(e) => setKeyWord(e.target.value)}
+                        onPressEnter={searchElectricity}
+                        style={{ width: 240 }}
+                        allowClear
+                    />
+                    <Button icon={<SearchOutlined />} onClick={searchElectricity}>
+                        Tìm
+                    </Button>
+                    <Button icon={<ReloadOutlined />} onClick={resetSearch}>
+                        Làm mới
+                    </Button>
+                </div>
             </Card>
 
             {/* Table */}
-            <Card style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+            <Card size="small">
                 <Table
                     columns={columns}
                     dataSource={filterData}
@@ -441,16 +410,15 @@ const GetAllElectricity = () => {
                         pageSize: 10,
                         showSizeChanger: true,
                         showQuickJumper: true,
-                        showTotal: (total, range) => 
+                        showTotal: (total, range) =>
                             `${range[0]}-${range[1]} của ${total} bản ghi`,
                     }}
                     scroll={{ x: 1400 }}
-                    bordered
                     size="middle"
                     summary={(pageData) => {
                         let totalAmount = 0;
                         let totalConsumption = 0;
-                        
+
                         pageData.forEach(({ totalPrice, numberFirst, numberLast }) => {
                             totalAmount += totalPrice || 0;
                             totalConsumption += (numberLast || 0) - (numberFirst || 0);
@@ -483,17 +451,24 @@ const GetAllElectricity = () => {
             <ModalCreateElectricity
                 visible={isModalCreate}
                 onClose={() => setIsModaCreate(false)}
+                onSuccess={fetchAllElectricity}
             />
             <ModalUpdateElectricity
                 visible={isModalUpdate}
                 onClose={() => setIsModalUpdate(false)}
                 id={selectIdRoom}
+                onSuccess={fetchAllElectricity}
             />
             <ModalDetailHistory
                 visible={isModalDetailHistory}
                 onClose={() => setIsModalDetailHistory(false)}
                 id={selectIdElectricity}
             />
+            <style jsx>{`
+                .ant-statistic-content-value {
+                    font-weight: bold;
+                }
+            `}</style>
         </div>
     );
 };

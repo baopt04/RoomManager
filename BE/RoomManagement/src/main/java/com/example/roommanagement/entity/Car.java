@@ -29,7 +29,7 @@ public class Car extends BaseEntity{
     private String licensePlate;
 
     @Column
-    private String type; // Ví dụ: "Xe máy", "Ô tô"
+    private String type;
 
     @Column(name = "brand_car")
     private String brandCar;
