@@ -77,7 +77,7 @@ const CreateRoom = () => {
 
                     await RoomService.createRoom(token, formData);
                     message.success("Thêm phòng trọ thành công!");
-                    navigate("/room-management");
+                    navigate("/admin/rooms");
                 } catch (error) {
                     if (error.message && error.response.data && error.response.data.message) {
                         message.error(error.response.data.message);
@@ -96,7 +96,7 @@ const CreateRoom = () => {
                 <Button
                     type="text"
                     icon={<ArrowLeftOutlined />}
-                    onClick={() => navigate('/room-management')}
+                    onClick={() => navigate('/admin/rooms')}
                     style={{ paddingLeft: 0, fontWeight: 500 }}
                 >
                     Quay lại

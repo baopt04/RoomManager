@@ -104,7 +104,7 @@ const CreateContract = () => {
           message.success("Thêm hợp đồng thành công!");
           form.resetFields();
           setFileList([]);
-          navigate("/contract-management");
+          navigate("/admin/contracts");
         } catch (error) {
           if (error.response && error.response.data && error.response.data.message) {
             message.error(error.response.data.message);
@@ -116,7 +116,7 @@ const CreateContract = () => {
     });
   };
   const returnBack = () => {
-    navigate("/contract-management");
+    navigate("/admin/contracts");
     form.resetFields();
     setFileList([]);
   }

@@ -157,11 +157,11 @@ const GetAllCar = () => {
     };
 
     const addCar = () => {
-        navigate("/car-management/createCar");
+        navigate("/admin/cars/create");
     };
 
     const editCar = (record) => {
-        navigate(`/car-management/updateCar/${record.id}`);
+        navigate(`/admin/cars/${record.id}/edit`);
     };
 
     const CAR_TYPE_MAP = {
@@ -196,7 +196,7 @@ const GetAllCar = () => {
             title: "Thông tin xe",
             key: "carInfo",
             render: (_, record) => {
-                const typeInfo = CAR_TYPE_MAP[record.carType] || { icon: <CarOutlined />, color: '#1890ff' };
+                const typeInfo = CAR_TYPE_MAP[record.type] || { icon: <CarOutlined />, color: '#1890ff' };
                 return (
                     <Space direction="vertical" size={0}>
                         <Space>
@@ -244,8 +244,8 @@ const GetAllCar = () => {
         },
         {
             title: "Loại xe",
-            dataIndex: "carType",
-            key: "carType",
+            dataIndex: "type",
+            key: "type",
             render: (carType) => {
                 const typeInfo = CAR_TYPE_MAP[carType] || { label: carType, color: 'default' };
                 return (

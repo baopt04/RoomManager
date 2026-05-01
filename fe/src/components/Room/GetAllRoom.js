@@ -128,15 +128,15 @@ const GetAllRoom = () => {
     };
 
     const handleAddRoom = () => {
-        navigate("/room-management/createRoom");
+        navigate("/admin/rooms/create");
     };
 
     const handleUpdate = (record) => {
-        navigate(`/room-management/updateRoom/${record.id}`);
+        navigate(`/admin/rooms/${record.id}/edit`);
     };
 
     const detailRoom = (record) => {
-        navigate(`/room-management/detailRoom/${record.id}`);
+        navigate(`/admin/rooms/${record.id}`);
     };
 
     const detailRoomHistory = (id) => {

@@ -100,7 +100,7 @@ const DetailContract = () => {
   }, [form, token]);
 
 const returnBack = () => {
-  navigator("/contract-management");
+  navigator("/admin/contracts");
   form.resetFields();
   setFileList([]);
 }

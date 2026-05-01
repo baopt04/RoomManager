@@ -1,6 +1,6 @@
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import { Form, Input, Button, Select, InputNumber, message, Upload } from "antd";
-import { data, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import RoomService from "../../services/RoomService";
 import "./CreateRoom.css";
 import HouseForRentService from "../../services/HouseForRentService";
@@ -75,7 +75,12 @@ const DetailRoom = () => {
 
     return (
         <div className="create-room-container">
-            <h2 style={{ textAlign: 'center ', fontSize: '30px' }}>Cập nhật phòng trọ</h2>
+            <div style={{ marginBottom: 16 }}>
+                <Button type="text" onClick={() => navigate('/admin/rooms')} style={{ paddingLeft: 0, fontWeight: 500 }}>
+                    Quay lại
+                </Button>
+            </div>
+            <h2 style={{ textAlign: 'center ', fontSize: '30px' }}>Chi tiết phòng trọ</h2>
             <Form
                 form={form}
                 layout="vertical"
@@ -206,8 +211,11 @@ const DetailRoom = () => {
                 </div>
                 <div className="form-submit">
 
-                    <Button type="primary" danger style={{ marginLeft: "10px" }} onClick={() => { form.resetFields(); }}>
-                        Quay lại
+                    <Button type="primary" onClick={() => navigate(`/admin/rooms/${roomId}/edit`)}>
+                        Sửa
+                    </Button>
+                    <Button style={{ marginLeft: "10px" }} onClick={() => navigate('/admin/rooms')}>
+                        Về danh sách
                     </Button>
                 </div>
 

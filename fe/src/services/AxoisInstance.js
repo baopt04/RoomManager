@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-    baseURL: 'http://localhost:8080',
+    baseURL: process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080',
     withCredentials: true,
 });
 
@@ -59,7 +59,7 @@ axiosInstance.interceptors.response.use(
                 console.log('🔄 Đang refresh token...');
 
                 const res = await axios.post(
-                    'http://localhost:8080/public/refresh-token',
+                    `${process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080'}/public/refresh-token`,
                     {},
                     { withCredentials: true }
                 );

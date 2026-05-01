@@ -26,7 +26,7 @@ const CreateHost = () => {
         try {
           await HostService.createHost(token, values);
           message.success("Thêm chủ nhà thành công!");
-          navigate("/host-management");
+          navigate("/admin/hosts");
         } catch (error) {
           console.error("Lỗi từ catch:", error);
           if (error.response && error.response.data) {
@@ -54,7 +54,7 @@ const CreateHost = () => {
   
 const navigate = useNavigate();
   const handleReturn = () => {
-    navigate("/host-management"); 
+    navigate("/admin/hosts"); 
   };
   return (
     <div className="create-host-container">

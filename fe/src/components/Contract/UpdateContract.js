@@ -144,7 +144,7 @@ const UpdateContract = () => {
           message.success("Cập nhật hợp đồng thành công!");
           form.resetFields();
           setFileList([]);
-          navigator("/contract-management");
+          navigator("/admin/contracts");
         } catch (error) {
           if (error.response && error.response.data && error.response.data.message) {
             message.error(error.response.data.message);
@@ -171,7 +171,7 @@ const UpdateContract = () => {
   };
 
   const returnBack = () => {
-    navigator("/contract-management");
+    navigator("/admin/contracts");
     form.resetFields();
     setFileList([]);
   }

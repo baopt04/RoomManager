@@ -1,6 +1,6 @@
 import axios from "axios";
 import axiosInstance from "./AxoisInstance";
-const BASE_URL = "http://localhost:8080/admin/host"; 
+const BASE_URL = "/admin/host";
 
 const getAllHosts = async (token) => {
   try {

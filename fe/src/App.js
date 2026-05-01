@@ -65,35 +65,55 @@ function App() {
               <PrivateRoute>
                 <DashboardLayout>
                   <Routes>
-                    <Route path="/sidebar" element={<SidebarMenu />} />
-                    <Route path="/dashboard" element={<DashboardLayout />} />
-                    <Route path="/host-management" element={<GetAllHost />} />
-                    <Route path="/houseForRent-management" element={<GetAllHouseForRent />} />
-                    <Route path="/createHost" element={<CreateHost />} />
-                    <Route path="/room-management" element={<GetAllRoom />} />
-                    <Route path="/room-management/createRoom" element={<CreateRoom />} />
-                    <Route path="/room-management/updateRoom/:roomId" element={<UpdateRoom />} />
-                    <Route path="/room-management/detailRoom/:roomId" element={<DetailRoom />} />
-                    <Route path="/water-management" element={<GetAllWater />} />
-                    <Route path="/electricity-management" element={<GetAllElectricity />} />
-                    <Route path="/service-management" element={<GetAllService />} />
-                    <Route path="/roomSerivce-management" element={<GetAllRoomServiceDetail />} />
-                    <Route path="/maintenance-management" element={<GetAllMain />} />
-                    <Route path="/customer-management" element={<GetAllCustomer />} />
-                    <Route path="/contract-management" element={<GetAllContract />} />
-                    <Route path="/contract-management/createContract" element={<CreateContract />} />
-                    <Route path="/contract-management/updateContract/:contractId" element={<UpdateContract />} />
-                    <Route path="/contract-management/detailContract/:contractId" element={<DetailContract />} />
-                    <Route path="/car-management" element={<GetAllCar />} />
-                    <Route path="/car-management/createCar" element={<CreateCar />} />
-                    <Route path="/car-management/updateCar/:carId" element={<UpdateCar />} />
-                    <Route path="/sale-counter" element={<SaleBill />} />
-                    <Route path="/bill-management" element={<GetAllBill />} />
-                    <Route path="/bill-management/detail/:billId" element={<DetailBill />} />
-                    <Route path="/bill-management/update/:billId" element={<UpdateBill />} />
-                    <Route path="/statistical" element={<Statistical />} />
-                    <Route path="/admin-management" element={<GetAllAdmin />} />
-                    <Route path="/room-viewing-management" element={<GetAllRoomViewing />} />
+                    <Route path="/admin/sidebar" element={<SidebarMenu />} />
+                    <Route path="/admin/dashboard" element={<DashboardLayout />} />
+
+                    {/* Hosts */}
+                    <Route path="/admin/hosts" element={<GetAllHost />} />
+                    <Route path="/admin/hosts/create" element={<CreateHost />} />
+
+                    {/* Houses for rent */}
+                    <Route path="/admin/houses-for-rent" element={<GetAllHouseForRent />} />
+
+                    {/* Rooms */}
+                    <Route path="/admin/rooms" element={<GetAllRoom />} />
+                    <Route path="/admin/rooms/create" element={<CreateRoom />} />
+                    <Route path="/admin/rooms/:roomId" element={<DetailRoom />} />
+                    <Route path="/admin/rooms/:roomId/edit" element={<UpdateRoom />} />
+
+                    {/* Utilities & services */}
+                    <Route path="/admin/waters" element={<GetAllWater />} />
+                    <Route path="/admin/electricities" element={<GetAllElectricity />} />
+                    <Route path="/admin/services" element={<GetAllService />} />
+                    <Route path="/admin/room-services" element={<GetAllRoomServiceDetail />} />
+                    <Route path="/admin/maintenances" element={<GetAllMain />} />
+
+                    {/* Customers */}
+                    <Route path="/admin/customers" element={<GetAllCustomer />} />
+
+                    {/* Contracts */}
+                    <Route path="/admin/contracts" element={<GetAllContract />} />
+                    <Route path="/admin/contracts/create" element={<CreateContract />} />
+                    <Route path="/admin/contracts/:contractId" element={<DetailContract />} />
+                    <Route path="/admin/contracts/:contractId/edit" element={<UpdateContract />} />
+
+                    {/* Cars */}
+                    <Route path="/admin/cars" element={<GetAllCar />} />
+                    <Route path="/admin/cars/create" element={<CreateCar />} />
+                    <Route path="/admin/cars/:carId/edit" element={<UpdateCar />} />
+
+                    {/* Bills */}
+                    <Route path="/admin/bills" element={<GetAllBill />} />
+                    <Route path="/admin/bills/create" element={<SaleBill />} />
+                    <Route path="/admin/bills/:billId" element={<DetailBill />} />
+                    <Route path="/admin/bills/:billId/edit" element={<UpdateBill />} />
+
+                    {/* Statistics */}
+                    <Route path="/admin/statistics" element={<Statistical />} />
+
+                    {/* System */}
+                    <Route path="/admin/admins" element={<GetAllAdmin />} />
+                    <Route path="/admin/room-viewings" element={<GetAllRoomViewing />} />
                   </Routes>
                 </DashboardLayout>
               </PrivateRoute>

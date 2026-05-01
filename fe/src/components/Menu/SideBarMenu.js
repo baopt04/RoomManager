@@ -19,7 +19,7 @@ import {
   EyeOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from "react-router-dom";
-import logo from '../../assets/logo.png';
+import logo from '../../assets/tien_duc_land_logo_2.png';
 
 const { Sider } = Layout;
 
@@ -30,22 +30,22 @@ const SidebarMenu = ({ onClose }) => {
   const getSelectedKey = () => {
     const path = location.pathname;
     const map = {
-      '/statistical': '1',
-      '/host-management': '2',
-      '/houseForRent-management': '3',
-      '/room-management': '4',
-      '/contract-management': '5',
-      '/customer-management': '6',
-      '/water-management': '7',
-      '/electricity-management': '8',
-      '/service-management': '9',
-      '/roomSerivce-management': '10',
-      '/maintenance-management': '11',
-      '/car-management': '12',
-      '/bill-management': '13',
-      '/sale-counter': '14',
-      '/admin-management': '15',
-      '/room-viewing-management': '16',
+      '/admin/statistics': '1',
+      '/admin/hosts': '2',
+      '/admin/houses-for-rent': '3',
+      '/admin/rooms': '4',
+      '/admin/contracts': '5',
+      '/admin/customers': '6',
+      '/admin/waters': '7',
+      '/admin/electricities': '8',
+      '/admin/services': '9',
+      '/admin/room-services': '10',
+      '/admin/maintenances': '11',
+      '/admin/cars': '12',
+      '/admin/bills': '13',
+      '/admin/bills/create': '14',
+      '/admin/admins': '15',
+      '/admin/room-viewings': '16',
     };
     for (const [key, value] of Object.entries(map)) {
       if (path.startsWith(key)) return value;
@@ -58,46 +58,46 @@ const SidebarMenu = ({ onClose }) => {
       type: 'group',
       label: 'TỔNG QUAN',
       children: [
-        { key: '1', icon: <BarChartOutlined />, label: 'Thống kê', path: '/statistical' },
+        { key: '1', icon: <BarChartOutlined />, label: 'Thống kê', path: '/admin/statistics' },
       ],
     },
     {
       type: 'group',
       label: 'QUẢN LÝ',
       children: [
-        { key: '2', icon: <UserOutlined />, label: 'Chủ nhà', path: '/host-management' },
-        { key: '3', icon: <HomeOutlined />, label: 'Nhà cho thuê', path: '/houseForRent-management' },
-        { key: '4', icon: <ApartmentOutlined />, label: 'Phòng trọ', path: '/room-management' },
-        { key: '5', icon: <FileTextOutlined />, label: 'Hợp đồng', path: '/contract-management' },
-        { key: '6', icon: <TeamOutlined />, label: 'Khách hàng', path: '/customer-management' },
-        { key: '16', icon: <EyeOutlined />, label: 'Người xem nhà', path: '/room-viewing-management' },
+        { key: '2', icon: <UserOutlined />, label: 'Chủ nhà', path: '/admin/hosts' },
+        { key: '3', icon: <HomeOutlined />, label: 'Nhà cho thuê', path: '/admin/houses-for-rent' },
+        { key: '4', icon: <ApartmentOutlined />, label: 'Phòng trọ', path: '/admin/rooms' },
+        { key: '5', icon: <FileTextOutlined />, label: 'Hợp đồng', path: '/admin/contracts' },
+        { key: '6', icon: <TeamOutlined />, label: 'Khách hàng', path: '/admin/customers' },
+        { key: '16', icon: <EyeOutlined />, label: 'Người xem nhà', path: '/admin/room-viewings' },
       ],
     },
     {
       type: 'group',
       label: 'DỊCH VỤ',
       children: [
-        { key: '7', icon: <CloudOutlined />, label: 'Nước', path: '/water-management' },
-        { key: '8', icon: <ThunderboltOutlined />, label: 'Điện', path: '/electricity-management' },
-        { key: '9', icon: <SettingOutlined />, label: 'Dịch vụ', path: '/service-management' },
-        { key: '10', icon: <AppstoreOutlined />, label: 'DV phòng trọ', path: '/roomSerivce-management' },
-        { key: '11', icon: <ToolOutlined />, label: 'Bảo trì', path: '/maintenance-management' },
-        { key: '12', icon: <CarOutlined />, label: 'Xe máy', path: '/car-management' },
+        { key: '7', icon: <CloudOutlined />, label: 'Nước', path: '/admin/waters' },
+        { key: '8', icon: <ThunderboltOutlined />, label: 'Điện', path: '/admin/electricities' },
+        { key: '9', icon: <SettingOutlined />, label: 'Dịch vụ', path: '/admin/services' },
+        { key: '10', icon: <AppstoreOutlined />, label: 'DV phòng trọ', path: '/admin/room-services' },
+        { key: '11', icon: <ToolOutlined />, label: 'Bảo trì', path: '/admin/maintenances' },
+        { key: '12', icon: <CarOutlined />, label: 'Xe máy', path: '/admin/cars' },
       ],
     },
     {
       type: 'group',
       label: 'TÀI CHÍNH',
       children: [
-        { key: '13', icon: <DollarOutlined />, label: 'Hóa đơn', path: '/bill-management' },
-        { key: '14', icon: <PlusCircleOutlined />, label: 'Tạo hóa đơn', path: '/sale-counter' },
+        { key: '13', icon: <DollarOutlined />, label: 'Hóa đơn', path: '/admin/bills' },
+        { key: '14', icon: <PlusCircleOutlined />, label: 'Tạo hóa đơn', path: '/admin/bills/create' },
       ],
     },
     {
       type: 'group',
       label: 'HỆ THỐNG',
       children: [
-        { key: '15', icon: <CrownOutlined />, label: 'Admin', path: '/admin-management' },
+        { key: '15', icon: <CrownOutlined />, label: 'Admin', path: '/admin/admins' },
       ],
     },
   ];
@@ -137,7 +137,7 @@ const SidebarMenu = ({ onClose }) => {
           src={logo}
           alt="Logo"
           style={{
-            width: '32px',
+            width: '45px',
             height: '32px',
             borderRadius: '6px',
           }}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Form, Input, Button, Select, InputNumber, message, Upload, Modal } from "antd";
-import { data, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import RoomService from "../../services/RoomService";
 import { UploadOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import "./CreateRoom.css";
@@ -125,7 +125,7 @@ const UpdateRoom = () => {
                     message.success("Cập nhật hợp đồng thành công!");
                     form.resetFields();
                     setFileList([]);
-                    navigate('/room-management')
+                    navigate('/admin/rooms')
                 } catch (error) {
                     if (error.response && error.response.data && error.response.data.message) {
                         message.error(error.response.data.message);
@@ -145,7 +145,7 @@ const UpdateRoom = () => {
                 <Button
                     type="text"
                     icon={<ArrowLeftOutlined />}
-                    onClick={() => navigate('/room-management')}
+                    onClick={() => navigate('/admin/rooms')}
                     style={{ paddingLeft: 0, fontWeight: 500 }}
                 >
                     Quay lại

@@ -81,7 +81,7 @@ const updateCar = (values) => {
 
         message.success("Cập nhật xe thành công!");
         form.resetFields();
-        navigator("/car-management");
+        navigator("/admin/cars");
       } catch (error) {
         const msg = error?.response?.data?.message || "Có lỗi xảy ra khi cập nhật xe!";
         message.error(msg);
@@ -97,7 +97,7 @@ const updateCar = (values) => {
       <Button 
         type="text" 
         icon={<ArrowLeftOutlined />} 
-        onClick={() => navigator("/car-management")}
+        onClick={() => navigator("/admin/cars")}
         style={{ position: 'absolute', top: 32, left: 32, fontWeight: 500 }}
       >
         Quay lại

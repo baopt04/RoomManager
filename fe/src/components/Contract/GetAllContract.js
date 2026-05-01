@@ -131,15 +131,15 @@ const GetAllContract = () => {
     };
 
     const openModalCreate = () => {
-        navigate("/contract-management/createContract");
+        navigate("/admin/contracts/create");
     };
 
     const handleUpdateContract = (record) => {
-        navigate(`/contract-management/updateContract/${record.id}`);
+        navigate(`/admin/contracts/${record.id}/edit`);
     };
 
     const detailContract = (record) => {
-        navigate(`/contract-management/detailContract/${record.id}`);
+        navigate(`/admin/contracts/${record.id}`);
     };
 
     const getHistoryContact = (id) => {

@@ -96,9 +96,9 @@ const GetAllBill = () => {
         setFilteredBills(listBill);
     };
 
-    const createBill = () => navigate("/sale-counter");
-    const detailBill = (record) => navigate(`/bill-management/detail/${record.id}`);
-    const updateBill = (record) => navigate(`/bill-management/update/${record.id}`);
+    const createBill = () => navigate("/admin/bills/create");
+    const detailBill = (record) => navigate(`/admin/bills/${record.id}`);
+    const updateBill = (record) => navigate(`/admin/bills/${record.id}/edit`);
 
     const formatCurrency = (amount) =>
         new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount || 0);

@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = 'http://localhost:8080';
+const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
 
 
 const loginRoom = async (values) => {
@@ -23,7 +23,11 @@ const loginRoom = async (values) => {
 
 const changePassword = async(email , passwordOld , passwordNew) => {
     try {
-        const response = await axios.post(`${BASE_URL}/public/change-password/${email}` , passwordOld , passwordNew) 
+        const response = await axios.post(
+            `${BASE_URL}/public/change-password/${email}`,
+            { passwordOld, passwordNew },
+            { withCredentials: true }
+        );
         return response.data;
     }catch (error){
         throw error;

@@ -171,7 +171,7 @@ const UpdateBill = () => {
                         await SaleService.update(token, billId, billUpdateData);
                     }
                     message.success("Cập nhật hóa đơn thành công");
-                    setTimeout(() => navigate("/bill-management"), 1500);
+                    setTimeout(() => navigate("/admin/bills"), 1500);
                 } catch (error) {
                     message.error("Lỗi khi cập nhật hóa đơn");
                 }

@@ -96,7 +96,7 @@ const GetAllCustomer = () => {
     };
 
     const changeSearchRoom = (customerId) => {
-        navigate('/room-management');
+        navigate('/admin/rooms');
         localStorage.setItem("search", true);
         localStorage.setItem("customerIdSearch", customerId);
     };
