@@ -10,7 +10,12 @@ public class ConfigWeb implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-              .allowedOriginPatterns("http://localhost:*")
+                .allowedOriginPatterns(
+                        "http://localhost:*",
+                        "https://room-manager-vgas.vercel.app",
+                        "https://room-manager-vgas-*.vercel.app",
+                        "https://*-baopt04s-projects.vercel.app"
+                )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);
