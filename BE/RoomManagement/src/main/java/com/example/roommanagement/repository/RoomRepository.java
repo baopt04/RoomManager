@@ -34,10 +34,12 @@ public interface RoomRepository extends JpaRepository<Room, String> {
             r.decription as description ,
             r.type as type , 
             r.status as status ,
-            r.id_customer as customer ,
-            r.id_house_for_rent as houseForRent
-            from room r join customer c on c.id = r.id_customer 
-                        where c.id = :idCustomer
+            c.name as customer ,
+            h.name as houseForRent
+            from room r 
+            left join customer c on c.id = r.id_customer 
+            left join house_for_rent h on h.id = r.id_house_for_rent
+            where c.id = :idCustomer
             """, nativeQuery = true)
     List<FindAllRoomDTO> findByCustomer_Id(@Param("idCustomer") String idCustomer);
     @Query(value = """
@@ -53,9 +55,11 @@ public interface RoomRepository extends JpaRepository<Room, String> {
             r.decription as description ,
             r.type as type , 
             r.status as status ,
-            r.id_customer as customer ,
-            r.id_house_for_rent as houseForRent
+            c.name as customer ,
+            h.name as houseForRent
             from room r
+            left join customer c on c.id = r.id_customer
+            left join house_for_rent h on h.id = r.id_house_for_rent
             """, nativeQuery = true)
     List<FindAllRoomDTO> findRoom();
 
@@ -72,9 +76,11 @@ public interface RoomRepository extends JpaRepository<Room, String> {
                 r.decription as description,
                 r.type as type,
                 r.status as status,
-                r.id_customer as customer,
-                r.id_house_for_rent as houseForRent
+                c.name as customer,
+                h.name as houseForRent
             from room r
+            left join customer c on c.id = r.id_customer
+            left join house_for_rent h on h.id = r.id_house_for_rent
             where 
                 (:houseForRentId is null or r.id_house_for_rent = :houseForRentId)
                 and (:customerId is null or r.id_customer = :customerId)
@@ -98,12 +104,14 @@ public interface RoomRepository extends JpaRepository<Room, String> {
                         r.decription as description ,
                          r.type as type , 
                         r.status as status ,
-                        r.id_customer as customer ,
-                        r.id_house_for_rent as houseForRent
+                        c.name as customer ,
+                        h.name as houseForRent
              from room r 
+             left join customer c on c.id = r.id_customer
+             left join house_for_rent h on h.id = r.id_house_for_rent
              where 
-             (:customer is null or r.id_customer like %:customer%)
-             and (:houseForRent is null or r.id_house_for_rent like %:houseForRent%)
+             (:customer is null or c.name like %:customer%)
+             and (:houseForRent is null or h.name like %:houseForRent%)
             """, nativeQuery = true)
     FindAllRoomDTO getCustomerAndHouseForRent(@Param("customer") String customer, @Param("houseForRent") String houseForRent);
 

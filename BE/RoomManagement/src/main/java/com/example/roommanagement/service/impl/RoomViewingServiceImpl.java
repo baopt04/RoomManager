@@ -86,7 +86,7 @@ String message = formatMessage(roomViewing);
 
     @Override
     public List<RoomViewingResponse> getAll() {
-        return roomViewingRepository.findAllByOrderByCreateDateDesc()
+        return roomViewingRepository.findAllWithRoom()
                 .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -94,7 +94,7 @@ String message = formatMessage(roomViewing);
 
     @Override
     public List<RoomViewingResponse> getByStatus(StatusRoomViewing status) {
-        return roomViewingRepository.findByStatusOrderByCreateDateDesc(status)
+        return roomViewingRepository.findByStatusWithRoom(status)
                 .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());

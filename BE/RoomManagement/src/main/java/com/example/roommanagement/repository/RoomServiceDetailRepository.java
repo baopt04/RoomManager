@@ -12,11 +12,13 @@ import java.util.List;
 public interface RoomServiceDetailRepository extends JpaRepository<RoomService , String> {
     @Query(value = """
             select 
-            row_number() over(order by r.last_modified_date desc ) as stt ,
-                        r.id as id, 
-            r.id_service as service ,
-            r.id_room as room
-            from room_services r
+            row_number() over(order by rs.last_modified_date desc ) as stt ,
+                        rs.id as id, 
+            s.name as service ,
+            r.name as room
+            from room_services rs
+            left join room r on r.id = rs.id_room
+            left join service s on s.id = rs.id_service
             """, nativeQuery = true)
     List<FindAllRoomServiceDetail> findAllRoomService();
     boolean existsByRoom_IdAndServiceS_Id(String room_id , String service_id);

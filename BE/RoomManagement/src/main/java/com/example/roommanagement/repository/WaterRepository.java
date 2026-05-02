@@ -32,8 +32,9 @@ boolean existsByRoom_Id(String id);
                         r.mother as mother ,
                                     r.year as year ,
                         r.status as status ,
-            r.id_room as room
+            rm.name as room
             from water r
+            left join room rm on rm.id = r.id_room
             """, nativeQuery = true)
     List<FindAllWaterDTO> findAllWaters();
 

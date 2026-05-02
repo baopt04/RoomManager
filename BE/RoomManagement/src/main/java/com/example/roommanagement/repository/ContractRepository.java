@@ -29,11 +29,15 @@ public interface ContractRepository extends JpaRepository<Contract, String> {
              r.next_due_date as nextDueDate ,
              r.status as status ,
              r.discription as discription ,
-             r.id_room as room ,
-             r.id_house_for_rent as houseForRent ,
-             r.id_admin as admin ,
-             r.id_customer as customer
+             rm.name as room ,
+             h.name as houseForRent ,
+             adm.name as admin ,
+             c.name as customer
              from contract r
+             left join room rm on rm.id = r.id_room
+             left join house_for_rent h on h.id = r.id_house_for_rent
+             left join admin adm on adm.id = r.id_admin
+             left join customer c on c.id = r.id_customer
             """, nativeQuery = true)
     List<FindAllContractDTO> findAllContracts();
 

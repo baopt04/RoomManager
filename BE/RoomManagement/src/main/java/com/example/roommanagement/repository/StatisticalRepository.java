@@ -93,29 +93,33 @@ public interface StatisticalRepository extends JpaRepository<RoomHistory , Strin
 //  Query by current list for month totals
     @Query(
             value = """
+        with all_months as (
+            select month, year from water_history where status = 'DA_THANH_TOAN'
+            union
+            select month, year from electricity_history where status = 'DA_THANH_TOAN'
+            union
+            select month(last_modified_date) as month, year(last_modified_date) as year 
+            from room where status = 'DANG_CHO_THUE'
+        ),
+        service_total as (
+            select ifnull(sum(s.price), 0) as tong_tien_dich_vu
+            from room_services rs
+            join service s on rs.id_service = s.id
+        )
         select 
             am.month as month,
             am.year as year,
             ifnull(w.tong_tien_nuoc, 0) as totalWater,
             ifnull(e.tong_tien_dien, 0) as totalElectricity,
             ifnull(r.tong_tien_phong, 0) as totalRoom,
-            ifnull(s.tong_tien_dich_vu, 0) as totalService,
+            st.tong_tien_dich_vu as totalService,
             (
                 ifnull(w.tong_tien_nuoc, 0) +
                 ifnull(e.tong_tien_dien, 0) +
                 ifnull(r.tong_tien_phong, 0) +
-                ifnull(s.tong_tien_dich_vu, 0)
+                st.tong_tien_dich_vu
             ) as totalMonth
-        from (
-            select month, year from (
-                select month, year from water_history where status = 'DA_THANH_TOAN'
-                union
-                select month, year from electricity_history where status = 'DA_THANH_TOAN'
-                union
-                select month(last_modified_date) as month, year(last_modified_date) as year 
-                from room where status = 'DANG_CHO_THUE'
-            ) as all_months
-        ) as am
+        from all_months am
         left join (
             select month, year, sum(total_price) as tong_tien_nuoc
             from water_history
@@ -134,11 +138,7 @@ public interface StatisticalRepository extends JpaRepository<RoomHistory , Strin
             where status = 'DANG_CHO_THUE'
             group by year(last_modified_date), month(last_modified_date)
         ) as r on am.month = r.month and am.year = r.year
-        cross join (
-            select sum(s.price) as tong_tien_dich_vu
-            from room_services rs
-            join service s on rs.id_service = s.id
-        ) as s
+        join service_total st on 1=1
         order by am.year, am.month
     """,
             nativeQuery = true

@@ -34,9 +34,10 @@ public interface ElectricityRepository extends CrudRepository<Electricity, Strin
             r.total_price as totalPrice ,
                         r.mother as mother ,
                                     r.year as year ,
-                        r.status as stautus,
-            r.id_room as room
+                        r.status as status,
+            rm.name as room
             from electricity r
+            left join room rm on rm.id = r.id_room
             """, nativeQuery = true)
     List<FindAllElectricityDTO> findAllElectricity();
 

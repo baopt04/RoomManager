@@ -35,11 +35,15 @@ boolean existsByCode(String code);
                           b.date_create as dateCreate,         
                           b.status as status,           
                              b.description as description, 
-             b.id_room as room ,
-             b.id_customer as customer ,
-             b.id_contract as contract  ,
-                         b.id_admin as admin
+             r.name as room ,
+             c.name as customer ,
+             con.code as contract  ,
+                         adm.name as admin
              from bill b
+             left join room r on r.id = b.id_room
+             left join customer c on c.id = b.id_customer
+             left join contract con on con.id = b.id_contract
+             left join admin adm on adm.id = b.id_admin
             """, nativeQuery = true)
     List<FindAllBillProjection> findAllBills();
 
@@ -63,11 +67,16 @@ boolean existsByCode(String code);
                           b.date_create as dateCreate,         
                           b.status as status,           
                              b.description as description, 
-             b.id_room as room ,
-             b.id_customer as customer ,
-             b.id_contract as contract  ,
-                         b.id_admin as admin
-             from bill b where b.id_room is null and b.id_customer is null and b.id_contract is null
+             r.name as room ,
+             c.name as customer ,
+             con.code as contract  ,
+                         adm.name as admin
+             from bill b 
+             left join room r on r.id = b.id_room
+             left join customer c on c.id = b.id_customer
+             left join contract con on con.id = b.id_contract
+             left join admin adm on adm.id = b.id_admin
+             where b.id_room is null and b.id_customer is null and b.id_contract is null
             """, nativeQuery = true)
     List<FindAllBillProjection> findAllBillNoCreateBill();
 
@@ -92,12 +101,16 @@ boolean existsByCode(String code);
                           b.status as status,           
                              b.description as description, 
                                          ph.method as meThod ,
-             b.id_room as room ,
-             b.id_customer as customer ,
-             b.id_contract as contract  ,
-                         b.id_admin as admin 
+             r.name as room ,
+             c.name as customer ,
+             con.code as contract  ,
+                         adm.name as admin 
              from bill b
                          left join payment_history ph on ph.id_bill = b.id
+                         left join room r on r.id = b.id_room
+                         left join customer c on c.id = b.id_customer
+                         left join contract con on con.id = b.id_contract
+                         left join admin adm on adm.id = b.id_admin
                          where b.id = :id
             """, nativeQuery = true)
     FindAllBillProjection detailBill(@Param("id")String id);
