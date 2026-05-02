@@ -33,7 +33,7 @@ public interface CustomerRepository extends JpaRepository<Customer, String> {
             ct.citizen_identification as cccd ,
             ct.date_of_birth as date ,
             ct.status as status
-            from Customer ct 
+            from customer ct 
             """, nativeQuery = true)
     List<FindAllCustomerDTO> findAllCustomers();
 
@@ -48,7 +48,7 @@ public interface CustomerRepository extends JpaRepository<Customer, String> {
              ct.gender as gender , 
              ct.citizen_identification as cccd , 
              ct.date_of_birth as date 
-             FROM Customer ct where ct.email =:email
+             FROM customer ct where ct.email =:email
             """, nativeQuery = true)
     FindAllCustomerDTO getOneByEmail(@Param("email") String email);
 
@@ -63,7 +63,7 @@ public interface CustomerRepository extends JpaRepository<Customer, String> {
              ct.gender as gender , 
              ct.citizen_identification as cccd , 
              ct.date_of_birth as date 
-             FROM Customer ct where ct.number_phone =:numberPhone
+             FROM customer ct where ct.number_phone =:numberPhone
             """, nativeQuery = true)
     FindAllCustomerDTO getOneByNumberPhone(@Param("numberPhone") String numberPhone);
 }
