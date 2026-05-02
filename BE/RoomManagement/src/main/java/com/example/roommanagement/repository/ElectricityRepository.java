@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import com.example.roommanagement.dto.request.electricity.ElectricityPriceProjection;
 
 import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 
@@ -45,4 +46,16 @@ public interface ElectricityRepository extends CrudRepository<Electricity, Strin
              and e.status = "CHUA_THANH_TOAN"
             """, nativeQuery = true)
     void updateElectricityStatus(@Param("id_room") String id_room);
+
+    @Query(value = """
+        select e.id_room as roomId, e.unit_price as unitPrice 
+        from electricity e 
+        inner join (
+            select id_room, max(last_modified_date) as max_date 
+            from electricity 
+            where id_room in :roomIds 
+            group by id_room
+        ) as max_e on e.id_room = max_e.id_room and e.last_modified_date = max_e.max_date
+    """, nativeQuery = true)
+    List<ElectricityPriceProjection> findLatestUnitPricesByRoomIds(@Param("roomIds") List<String> roomIds);
 }

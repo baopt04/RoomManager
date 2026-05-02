@@ -15,7 +15,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,7 +32,7 @@ public class RoomCustomerServiceImpl implements RoomCustomerService {
     @Override
     public List<RoomCustomerResponse> getAllRoomsForCustomer() {
         List<Room> rooms = roomCustomerRepository.findAllByStatus(StatusRoom.TRONG);
-        return rooms.stream().map(this::mapToResponse).collect(Collectors.toList());
+        return mapToResponses(rooms);
     }
 
     @Override
@@ -39,30 +41,42 @@ public class RoomCustomerServiceImpl implements RoomCustomerService {
         if (room == null || !room.getStatus().equals(StatusRoom.TRONG)) {
             return null;
         }
-        return mapToResponse(room);
+        List<RoomCustomerResponse> responses = mapToResponses(List.of(room));
+        return responses.isEmpty() ? null : responses.get(0);
     }
 
     @Override
     public List<RoomCustomerResponse> searchRoomsByAddress(String address) {
         List<Room> rooms = roomCustomerRepository.searchByAddress(address, StatusRoom.TRONG);
-        return rooms.stream().map(this::mapToResponse).collect(Collectors.toList());
+        return mapToResponses(rooms);
     }
 
-    private RoomCustomerResponse mapToResponse(Room room) {
-        List<String> images = imageRepository.findByRoomId(room.getId())
-                .stream()
-                .map(Image::getName)
-                .collect(Collectors.toList());
+    private List<RoomCustomerResponse> mapToResponses(List<Room> rooms) {
+        if (rooms.isEmpty()) {
+            return Collections.emptyList();
+        }
 
-        BigDecimal electricPrice = electricityRepository.findTopByRoomIdOrderByLastModifiedDateDesc(room.getId())
-                .map(Electricity::getUnitPrice)
-                .orElse(BigDecimal.ZERO);
+        List<String> roomIds = rooms.stream().map(Room::getId).collect(Collectors.toList());
 
-        BigDecimal waterPrice = waterRepository.findTopByRoomIdOrderByLastModifiedDateDesc(room.getId())
-                .map(Water::getUnitPrice)
-                .orElse(BigDecimal.ZERO);
+        Map<String, List<String>> imagesMap = imageRepository.findByRoomIdIn(roomIds).stream()
+                .filter(img -> img.getRoom() != null)
+                .collect(Collectors.groupingBy(img -> img.getRoom().getId(), Collectors.mapping(Image::getName, Collectors.toList())));
 
-        return RoomCustomerResponse.builder()
+        Map<String, BigDecimal> electricityMap = electricityRepository.findLatestUnitPricesByRoomIds(roomIds).stream()
+                .collect(Collectors.toMap(
+                        com.example.roommanagement.dto.request.electricity.ElectricityPriceProjection::getRoomId,
+                        com.example.roommanagement.dto.request.electricity.ElectricityPriceProjection::getUnitPrice,
+                        (price1, price2) -> price1
+                ));
+
+        Map<String, BigDecimal> waterMap = waterRepository.findLatestUnitPricesByRoomIds(roomIds).stream()
+                .collect(Collectors.toMap(
+                        com.example.roommanagement.dto.request.water.WaterPriceProjection::getRoomId,
+                        com.example.roommanagement.dto.request.water.WaterPriceProjection::getUnitPrice,
+                        (price1, price2) -> price1
+                ));
+
+        return rooms.stream().map(room -> RoomCustomerResponse.builder()
                 .id(room.getId())
                 .name(room.getName())
                 .slug(room.getSlug())
@@ -72,10 +86,10 @@ public class RoomCustomerServiceImpl implements RoomCustomerService {
                 .description(room.getDecription())
                 .status(room.getStatus())
                 .type(room.getType())
-                .images(images)
-                .electricUnitPrice(electricPrice)
-                .waterUnitPrice(waterPrice)
+                .images(imagesMap.getOrDefault(room.getId(), Collections.emptyList()))
+                .electricUnitPrice(electricityMap.getOrDefault(room.getId(), BigDecimal.ZERO))
+                .waterUnitPrice(waterMap.getOrDefault(room.getId(), BigDecimal.ZERO))
                 .lastModifiedDate(room.getLastModifiedDate())
-                .build();
+                .build()).collect(Collectors.toList());
     }
 }

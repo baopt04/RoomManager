@@ -28,6 +28,7 @@ List<Image> findByContractId(String idContract);
 """, nativeQuery = true)
     List<FindAllImageProjection> findByRoomIdImage(@Param("id") String idRoom);
 
-
+    List<Image> findByRoomIdIn(List<String> roomIds);
 
 }
+

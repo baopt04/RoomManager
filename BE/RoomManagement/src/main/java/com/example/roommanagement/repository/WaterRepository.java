@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import com.example.roommanagement.dto.request.water.WaterPriceProjection;
 
 @Repository
 public interface WaterRepository extends JpaRepository<Water, String> {
@@ -42,4 +43,16 @@ boolean existsByRoom_Id(String id);
             and w.status = "CHUA_THANH_TOAN"
             """, nativeQuery = true)
     void updateWaterStatus(@Param("id_room") String id_room);
+
+    @Query(value = """
+        select w.id_room as roomId, w.unit_price as unitPrice 
+        from water w 
+        inner join (
+            select id_room, max(last_modified_date) as max_date 
+            from water 
+            where id_room in :roomIds 
+            group by id_room
+        ) as max_w on w.id_room = max_w.id_room and w.last_modified_date = max_w.max_date
+    """, nativeQuery = true)
+    List<WaterPriceProjection> findLatestUnitPricesByRoomIds(@Param("roomIds") List<String> roomIds);
 }
