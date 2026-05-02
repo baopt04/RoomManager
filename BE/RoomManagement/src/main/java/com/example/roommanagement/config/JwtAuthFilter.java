@@ -33,8 +33,17 @@ public class JwtAuthFilter  extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
+        if (!authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
         token = authHeader.substring(7);
-        userEmail = jwtUtils.extractUserName(token);
+        try {
+            userEmail = jwtUtils.extractUserName(token);
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = adminDetailService.loadUserByUsername(userEmail);
             if (jwtUtils.validateToken(token, userDetails)) {
@@ -44,7 +53,11 @@ public class JwtAuthFilter  extends OncePerRequestFilter {
             tokenAuthentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             securityContext.setAuthentication(tokenAuthentication);
             SecurityContextHolder.setContext(securityContext);
-            };
+            } else {
+                // Expired/invalid access token while Authorization header is present → force client refresh flow
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
 
         }
         filterChain.doFilter(request, response);

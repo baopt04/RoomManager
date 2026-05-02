@@ -13,6 +13,7 @@ import com.example.roommanagement.service.RefreshTokenService;
 import com.example.roommanagement.util.Generate;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +29,9 @@ import java.util.Optional;
 
 @Service
 public class AdminServiceImpl implements AdminSerive {
+    @Value("${app.auth.cookie.secure:false}")
+    private boolean authCookieSecure;
+
     @Autowired
     private AdminRepository adminRepository;
     @Autowired
@@ -127,17 +131,26 @@ public class AdminServiceImpl implements AdminSerive {
                 String accessToken = jwtUtils.generateAccessToken(user);
                 String refreshToken = jwtUtils.generateRefreshToken(user);
         refreshTokenService.createRefreshToken(user.getId() , refreshToken);
-        ResponseCookie cookie = ResponseCookie.from("refreshToken" , refreshToken)
-                .httpOnly(true)
-                .secure(false)
-                .path("/")
-                .maxAge(7 * 24 *60 * 60) // 7 ngày
-                .sameSite("Lax")
-                .build();
+        ResponseCookie cookie = buildRefreshTokenCookie(refreshToken, 7L * 24 * 60 * 60);
         SignIn response = new SignIn(user.getEmail() , null , user.getName() , user.getRole().toString() , accessToken );
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(response);
+    }
+
+    private ResponseCookie buildRefreshTokenCookie(String refreshTokenValue, long maxAgeSeconds) {
+        ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from("refreshToken", refreshTokenValue)
+                .httpOnly(true)
+                .secure(authCookieSecure)
+                .path("/")
+                .maxAge(maxAgeSeconds);
+        // Cross-site cookies require SameSite=None + Secure (HTTPS). Local http dev uses Lax + Secure=false.
+        if (authCookieSecure) {
+            builder.sameSite("None");
+        } else {
+            builder.sameSite("Lax");
+        }
+        return builder.build();
     }
 
 

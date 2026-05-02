@@ -27,6 +27,8 @@ import java.util.UUID;
 public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Value("${jwt.refresh.expiration}") //  1 ngày
     private Long refreshTokenDurationMs;
+    @Value("${app.auth.cookie.secure:false}")
+    private boolean authCookieSecure;
     @Autowired
     private RefreshTokenRepository refreshTokenRepository;
     @Autowired
@@ -83,13 +85,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                 .expiryDate(Instant.now().plusMillis(refreshTokenDurationMs))
                 .build());
 
-        ResponseCookie cookie = ResponseCookie.from("refreshToken" , newRefreshToken)
-                .httpOnly(true)
-                .secure(false)
-                .path("/")
-                .maxAge(refreshTokenDurationMs /1000)
-                .sameSite("Lax")
-                .build();
+        ResponseCookie cookie = buildRefreshTokenCookie(newRefreshToken, refreshTokenDurationMs / 1000);
 
         SignIn response = new SignIn(
                 user.getEmail() ,
@@ -102,6 +98,20 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                 .header(HttpHeaders.SET_COOKIE , cookie.toString())
                 .body(response);
 
+    }
+
+    private ResponseCookie buildRefreshTokenCookie(String refreshTokenValue, long maxAgeSeconds) {
+        ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from("refreshToken", refreshTokenValue)
+                .httpOnly(true)
+                .secure(authCookieSecure)
+                .path("/")
+                .maxAge(maxAgeSeconds);
+        if (authCookieSecure) {
+            builder.sameSite("None");
+        } else {
+            builder.sameSite("Lax");
+        }
+        return builder.build();
     }
 
     @Override
