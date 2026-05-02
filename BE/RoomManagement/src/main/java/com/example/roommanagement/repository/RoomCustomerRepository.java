@@ -11,8 +11,9 @@ import java.util.List;
 
 @Repository
 public interface RoomCustomerRepository extends JpaRepository<Room, String> {
-    List<Room> findAllByStatus(StatusRoom status);
+    @Query("SELECT r FROM Room r LEFT JOIN FETCH r.customer LEFT JOIN FETCH r.houseForRent hr LEFT JOIN FETCH hr.host WHERE r.status = :status")
+    List<Room> findAllByStatus(@Param("status") StatusRoom status);
 
-    @Query("SELECT r FROM Room r WHERE r.houseForRent.address LIKE %:address% AND r.status = :status")
+    @Query("SELECT r FROM Room r LEFT JOIN FETCH r.customer LEFT JOIN FETCH r.houseForRent hr LEFT JOIN FETCH hr.host WHERE hr.address LIKE %:address% AND r.status = :status")
     List<Room> searchByAddress(@Param("address") String address, @Param("status") StatusRoom status);
 }

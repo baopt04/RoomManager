@@ -58,9 +58,9 @@ public class RoomCustomerServiceImpl implements RoomCustomerService {
 
         List<String> roomIds = rooms.stream().map(Room::getId).collect(Collectors.toList());
 
-        Map<String, List<String>> imagesMap = imageRepository.findByRoomIdIn(roomIds).stream()
-                .filter(img -> img.getRoom() != null)
-                .collect(Collectors.groupingBy(img -> img.getRoom().getId(), Collectors.mapping(Image::getName, Collectors.toList())));
+        Map<String, List<String>> imagesMap = imageRepository.findByRoomIdInImage(roomIds).stream()
+                .filter(img -> img.getIdRoom() != null)
+                .collect(Collectors.groupingBy(com.example.roommanagement.dto.request.image.FindAllImageProjection::getIdRoom, Collectors.mapping(com.example.roommanagement.dto.request.image.FindAllImageProjection::getName, Collectors.toList())));
 
         Map<String, BigDecimal> electricityMap = electricityRepository.findLatestUnitPricesByRoomIds(roomIds).stream()
                 .collect(Collectors.toMap(

@@ -28,7 +28,10 @@ List<Image> findByContractId(String idContract);
 """, nativeQuery = true)
     List<FindAllImageProjection> findByRoomIdImage(@Param("id") String idRoom);
 
-    List<Image> findByRoomIdIn(List<String> roomIds);
+    @Query(value = """
+    select i.id , i.name , i.id_room as idRoom from image i where i.id_room in :roomIds and i.image_type = 'ROOM'
+""", nativeQuery = true)
+    List<FindAllImageProjection> findByRoomIdInImage(@Param("roomIds") List<String> roomIds);
 
 }
 
