@@ -25,8 +25,8 @@ public interface AdminRepository extends JpaRepository<Admin, String> {
     Optional<Admin> findByEmail(String email);
 
     @Query(value = """
-              SELECT 
-             ROW_NUMBER() over(order by ad.last_modified_date desc) as stt ,
+              select 
+             row_number() over(order by ad.last_modified_date desc) as stt ,
                          ad.id as id,
               ad.code as code,
               ad.name as name,
@@ -35,32 +35,32 @@ public interface AdminRepository extends JpaRepository<Admin, String> {
               ad.role as role ,
               ad.status as status ,
               ad.description as description
-              FROM Admin ad
+              from admin ad
             """, nativeQuery = true)
     List<FindAllAdminDTO> getAllAdmins();
 
     @Query(value = """
-            SELECT 
-          ROW_NUMBER() over(order by ad.last_modified_date desc) as stt ,
+            select 
+          row_number() over(order by ad.last_modified_date desc) as stt ,
                     ad.id as id,
              ad.code as code ,
              ad.name as name , 
              ad.email as email ,
              ad.number_phone as numberPhone ,
              ad.role as role 
-             FROM Admin ad WHERE ad.email =:email
+             from admin ad where ad.email =:email
             """, nativeQuery = true)
     FindAllAdminDTO getOneAdminByEmail(@Param("email") String email);
     @Query(value = """
-            SELECT 
-          ROW_NUMBER() over(order by ad.last_modified_date desc) as stt ,
+            select 
+          row_number() over(order by ad.last_modified_date desc) as stt ,
                     ad.id as id,
              ad.code as code ,
              ad.name as name , 
              ad.email as email ,
              ad.number_phone as numberPhone ,
              ad.role as role 
-             FROM Admin ad WHERE ad.number_phone =:numberPhone
+             from admin ad where ad.number_phone =:numberPhone
             """, nativeQuery = true)
     FindAllAdminDTO getOneAdminByNumberPhone(@Param("numberPhone") String numberPhone);
 

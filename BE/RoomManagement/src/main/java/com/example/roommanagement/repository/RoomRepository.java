@@ -22,8 +22,8 @@ public interface RoomRepository extends JpaRepository<Room, String> {
     Boolean existsByName(String name);
 
     @Query(value = """
-            SELECT 
-            ROW_NUMBER() over(order by r.last_modified_date desc ) as stt ,
+            select 
+            row_number() over(order by r.last_modified_date desc ) as stt ,
                         r.id as id, 
             r.code as code ,
             r.name as name , 
@@ -36,13 +36,13 @@ public interface RoomRepository extends JpaRepository<Room, String> {
             r.status as status ,
             r.id_customer as customer ,
             r.id_house_for_rent as houseForRent
-            FROM Room r join customer c on c.id = r.id_customer 
+            from room r join customer c on c.id = r.id_customer 
                         where c.id = :idCustomer
             """, nativeQuery = true)
     List<FindAllRoomDTO> findByCustomer_Id(@Param("idCustomer") String idCustomer);
     @Query(value = """
-            SELECT 
-            ROW_NUMBER() over(order by r.last_modified_date desc ) as stt ,
+            select 
+            row_number() over(order by r.last_modified_date desc ) as stt ,
                         r.id as id, 
             r.code as code ,
             r.name as name , 
@@ -55,29 +55,29 @@ public interface RoomRepository extends JpaRepository<Room, String> {
             r.status as status ,
             r.id_customer as customer ,
             r.id_house_for_rent as houseForRent
-            FROM Room r
+            from room r
             """, nativeQuery = true)
     List<FindAllRoomDTO> findRoom();
 
     @Query(value = """
-            SELECT 
-                ROW_NUMBER() OVER (ORDER BY r.last_modified_date DESC) AS stt,
-                r.id AS id,
-                r.code AS code,
-                r.name AS name,
-                r.slug AS slug,
-                r.price AS price,
-                r.acreage AS acreage,
-                r.people_Max AS peopleMax,
-                r.decription AS description,
-                r.type AS type,
-                r.status AS status,
-                r.id_customer AS customer,
-                r.id_house_for_rent AS houseForRent
-            FROM Room r
-            WHERE 
-                (:houseForRentId IS NULL OR r.id_house_for_rent = :houseForRentId)
-                AND (:customerId IS NULL OR r.id_customer = :customerId)
+            select 
+                row_number() over (order by r.last_modified_date desc) as stt,
+                r.id as id,
+                r.code as code,
+                r.name as name,
+                r.slug as slug,
+                r.price as price,
+                r.acreage as acreage,
+                r.people_Max as peopleMax,
+                r.decription as description,
+                r.type as type,
+                r.status as status,
+                r.id_customer as customer,
+                r.id_house_for_rent as houseForRent
+            from room r
+            where 
+                (:houseForRentId is null or r.id_house_for_rent = :houseForRentId)
+                and (:customerId is null or r.id_customer = :customerId)
             """, nativeQuery = true)
     List<FindAllRoomDTO> findAllRoomsByHouseForRentAndCustomer(
             @Param("houseForRentId") String houseForRentId,
@@ -86,8 +86,8 @@ public interface RoomRepository extends JpaRepository<Room, String> {
 
 
     @Query(value = """
-            SELECT 
-             ROW_NUMBER() over(order by r.last_modified_date desc ) as stt ,
+            select 
+             row_number() over(order by r.last_modified_date desc ) as stt ,
              r.id as id ,
                   r.code as code ,
                         r.name as name , 
@@ -100,26 +100,26 @@ public interface RoomRepository extends JpaRepository<Room, String> {
                         r.status as status ,
                         r.id_customer as customer ,
                         r.id_house_for_rent as houseForRent
-             from Room r 
-             WHERE 
-             (:customer IS NULL OR r.id_customer LIKE %:customer%)
-             AND (:houseForRent IS NULL OR r.id_house_for_rent LIKE %:houseForRent%)
+             from room r 
+             where 
+             (:customer is null or r.id_customer like %:customer%)
+             and (:houseForRent is null or r.id_house_for_rent like %:houseForRent%)
             """, nativeQuery = true)
     FindAllRoomDTO getCustomerAndHouseForRent(@Param("customer") String customer, @Param("houseForRent") String houseForRent);
 
     @Query(value = """
-                SELECT 
+                select 
             
-                    COALESCE(SUM(s.price), 0) AS totalPriceService,
-                    COALESCE(SUM(w.total_price), 0) AS totalPriceWater,
-                    COALESCE(SUM(e.total_price), 0) AS totalPriceElectricity ,
+                    coalesce(sum(s.price), 0) as totalPriceService,
+                    coalesce(sum(w.total_price), 0) as totalPriceWater,
+                    coalesce(sum(e.total_price), 0) as totalPriceElectricity ,
                                 r.id_customer as customer 
-                FROM Room r
-                LEFT JOIN service s ON r.id = s.id_room
-                LEFT JOIN water w ON r.id = w.id_room AND w.status = 'CHUA_THANH_TOAN'
-                LEFT JOIN electricity e ON r.id = e.id_room AND e.status = 'CHUA_THANH_TOAN'
-                WHERE r.id = :id_room
-                GROUP BY r.id
+                from room r
+                left join service s on r.id = s.id_room
+                left join water w on r.id = w.id_room and w.status = 'CHUA_THANH_TOAN'
+                left join electricity e on r.id = e.id_room and e.status = 'CHUA_THANH_TOAN'
+                where r.id = :id_room
+                group by r.id
             """, nativeQuery = true)
     List<Object[]> getTotalPriceForRoom(@Param("id_room") String id_room);
 
@@ -151,32 +151,32 @@ public interface RoomRepository extends JpaRepository<Room, String> {
 
 
     @Query(value = """
-            SELECT 
-                r.id AS room_id,
-                r.name AS room_name,
-                r.slug AS room_slug,
-                r.price AS room_price,
+            select 
+                r.id as room_id,
+                r.name as room_name,
+                r.slug as room_slug,
+                r.price as room_price,
             
-                e.data_close AS total_electric_usage,
-                e.unit_price AS electric_unit_price,
-                e.total_price AS total_electric_price,
+                e.data_close as total_electric_usage,
+                e.unit_price as electric_unit_price,
+                e.total_price as total_electric_price,
             
-                w.data_close AS total_water_usage,
-                w.unit_price AS water_unit_price,
-                w.total_price AS total_water_price,
+                w.data_close as total_water_usage,
+                w.unit_price as water_unit_price,
+                w.total_price as total_water_price,
             
-                COALESCE(SUM(sv.price), 0) AS total_service_price
+                coalesce(sum(sv.price), 0) as total_service_price
             
-            FROM room r
+            from room r
             
-            LEFT JOIN electricity e ON e.id_room = r.id
-            LEFT JOIN water w ON w.id_room = r.id
-            LEFT JOIN room_services su ON su.id_room = r.id
-            LEFT JOIN service sv ON sv.id = su.id_service
+            left join electricity e on e.id_room = r.id
+            left join water w on w.id_room = r.id
+            left join room_services su on su.id_room = r.id
+            left join service sv on sv.id = su.id_service
             
-            WHERE r.id = :roomId
+            where r.id = :roomId
             
-            GROUP BY 
+            group by 
                 r.id, r.name, r.slug, r.price,
                 e.data_close, e.unit_price, e.total_price,
                 w.data_close, w.unit_price, w.total_price
@@ -184,10 +184,10 @@ public interface RoomRepository extends JpaRepository<Room, String> {
     RoomDetailProjection findTotalPriceRoomDetailById(@Param("roomId") String roomId);
 
     @Query(value = """
-                SELECT 
-                    COUNT(CASE WHEN r.status = 'TRONG' THEN 1 END) AS roomEmpty,
-                    COUNT(CASE WHEN r.status = 'DANG_CHO_THUE' THEN 1 END) AS roomRenting
-                FROM room r
+                select 
+                    count(CASE WHEN r.status = 'TRONG' THEN 1 END) as roomEmpty,
+                    count(CASE WHEN r.status = 'DANG_CHO_THUE' THEN 1 END) as roomRenting
+                from room r
             """, nativeQuery = true)
     List<RoomStatusCountProjection> getAllStatusRoom();
     @Query("SELECT c.status FROM Contract c WHERE c.room.id = :roomId")

@@ -16,8 +16,8 @@ public interface ContractHistoryRepository extends JpaRepository<ContractHistory
     Optional<ContractHistory> findByRoomId(String idRoom);
 
     @Query(value = """
-            SELECT 
-             ROW_NUMBER() over (order by r.last_modified_date desc ) as stt ,
+            select 
+             row_number() over (order by r.last_modified_date desc ) as stt ,
              r.id as id ,
              r.date_start as dateStart ,
              r.date_end as dateEnd , 
@@ -28,7 +28,7 @@ public interface ContractHistoryRepository extends JpaRepository<ContractHistory
              r.id_room as room ,
              r.id_house_for_rent as houseForRent ,
              r.id_customer as customer
-             FROM contract_history r where id_contract = :id_contract
+             from contract_history r where id_contract = :id_contract
             """, nativeQuery = true)
     List<ContractHistoryProjection> getAllContractHistory(@RequestParam("id_contract")String id_contract);
 

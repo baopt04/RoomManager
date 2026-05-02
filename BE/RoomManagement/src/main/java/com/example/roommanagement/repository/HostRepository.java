@@ -18,42 +18,42 @@ public interface HostRepository extends JpaRepository<Host, String> {
     Optional<Host> findById(String id);
 
     @Query(value = """
-            SELECT 
-            ROW_NUMBER() over (order by ht.last_modified_date desc ) as stt ,
+            select 
+            row_number() over (order by ht.last_modified_date desc ) as stt ,
             ht.id as id ,
             ht.code as code ,
             ht.name as name ,
             ht.email as email ,
             ht.number_phone as numberPhone ,
             ht.gender as gender
-             FROM host ht 
+             from host ht 
             """, nativeQuery = true)
     List<FindAllHostDTO> findAllHosts();
 
     @Query(value = """
-            SELECT 
-            ROW_NUMBER() over (order by ht.last_modified_date desc ) as stt ,
+            select 
+            row_number() over (order by ht.last_modified_date desc ) as stt ,
             ht.id as id ,
             ht.code as code ,
             ht.name as name ,
             ht.email as email ,
             ht.number_phone as numberPhone ,
             ht.gender as gender
-             FROM host ht 
+             from host ht 
                         where ht.email = :email
             """, nativeQuery = true)
     FindAllHostDTO getOneHostByEmail(String email);
 
     @Query(value = """
-            SELECT 
-            ROW_NUMBER() over (order by ht.last_modified_date desc ) as stt ,
+            select 
+            row_number() over (order by ht.last_modified_date desc ) as stt ,
             ht.id as id ,
             ht.code as code ,
             ht.name as name ,
             ht.email as email ,
             ht.number_phone as numberPhone ,
             ht.gender as gender
-             FROM host ht 
+             from host ht 
                         where ht.number_phone = :numberPhone
             """, nativeQuery = true)
     FindAllHostDTO getOneHostByNumberPhone(String numberPhone);

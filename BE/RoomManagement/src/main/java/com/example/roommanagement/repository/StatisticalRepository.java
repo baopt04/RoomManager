@@ -14,73 +14,73 @@ import java.util.List;
 public interface StatisticalRepository extends JpaRepository<RoomHistory , String> {
 
     @Query(value = """
-    SELECT
-      (SELECT IFNULL(SUM(price), 0) FROM room_history WHERE is_paid = 1) AS totalRoomPrice,
+    select
+      (select ifnull(sum(price), 0) from room_history where is_paid = 1) as totalRoomPrice,
 
-      (SELECT IFNULL(SUM(total_price), 0) FROM water_history) AS totalWaterPrice,
+      (select ifnull(sum(total_price), 0) from water_history) as totalWaterPrice,
 
-      (SELECT IFNULL(SUM(total_price), 0) FROM electricity_history) AS totalElectricityPrice,
-
-      (
-        SELECT IFNULL(SUM(s.price), 0)
-        FROM room_services rs
-        JOIN service s ON rs.id_service = s.id
-      ) AS totalServicePrice,
-
-      (SELECT COUNT(*) FROM room WHERE status = 'TRONG') AS totalAvailable,
-
-      (SELECT COUNT(*) FROM room WHERE status = 'DANG_CHO_THUE') AS totalRented,
+      (select ifnull(sum(total_price), 0) from electricity_history) as totalElectricityPrice,
 
       (
-        (SELECT IFNULL(SUM(price), 0) FROM room_history WHERE is_paid = 1)
+        select ifnull(sum(s.price), 0)
+        from room_services rs
+        join service s on rs.id_service = s.id
+      ) as totalServicePrice,
+
+      (select count(*) from room where status = 'TRONG') as totalAvailable,
+
+      (select count(*) from room where status = 'DANG_CHO_THUE') as totalRented,
+
+      (
+        (select ifnull(sum(price), 0) from room_history where is_paid = 1)
         +
-        (SELECT IFNULL(SUM(total_price), 0) FROM water_history)
+        (select ifnull(sum(total_price), 0) from water_history)
         +
-        (SELECT IFNULL(SUM(total_price), 0) FROM electricity_history)
+        (select ifnull(sum(total_price), 0) from electricity_history)
         +
         (
-          SELECT IFNULL(SUM(s.price), 0)
-          FROM room_services rs
-          JOIN service s ON rs.id_service = s.id
+          select ifnull(sum(s.price), 0)
+          from room_services rs
+          join service s on rs.id_service = s.id
         )
-      ) AS totalSystemRevenue
+      ) as totalSystemRevenue
     """, nativeQuery = true)
     FindAllStatisticalProjection getTotalSystemRevenue();
 
  // Query by current month now
  @Query(value = """
-    SELECT 
-        MONTH(CURDATE()) AS monthNow,
-        COALESCE(SUM(r.price), 0) AS totalRoomPrice,
-        COALESCE(SUM(w.totalWater), 0) AS totalWater,
-        COALESCE(SUM(e.totalElectricity), 0) AS totalElectricity,
-        COALESCE(SUM(s.totalService), 0) AS totalService,
+    select 
+        month(curdate()) as monthNow,
+        coalesce(sum(r.price), 0) as totalRoomPrice,
+        coalesce(sum(w.totalWater), 0) as totalWater,
+        coalesce(sum(e.totalElectricity), 0) as totalElectricity,
+        coalesce(sum(s.totalService), 0) as totalService,
         (
-            COALESCE(SUM(r.price), 0) 
-            + COALESCE(SUM(w.totalWater), 0) 
-            + COALESCE(SUM(e.totalElectricity), 0) 
-            + COALESCE(SUM(s.totalService), 0)
-        ) AS totalAll
-    FROM room r
-    LEFT JOIN (
-        SELECT id_room, SUM(total_price) AS totalWater
-        FROM water
-        WHERE mother = MONTH(CURDATE()) AND year = YEAR(CURDATE())
-        GROUP BY id_room
-    ) w ON w.id_room = r.id
-    LEFT JOIN (
-        SELECT id_room, SUM(total_price) AS totalElectricity
-        FROM electricity
-        WHERE mother = MONTH(CURDATE()) AND year = YEAR(CURDATE())
-        GROUP BY id_room
-    ) e ON e.id_room = r.id
-    LEFT JOIN (
-        SELECT rs.id_room, SUM(s.price) AS totalService
-        FROM room_services rs
-        JOIN service s ON rs.id_service = s.id
-        GROUP BY rs.id_room
-    ) s ON s.id_room = r.id
-    WHERE r.status = 'DANG_CHO_THUE'
+            coalesce(sum(r.price), 0) 
+            + coalesce(sum(w.totalWater), 0) 
+            + coalesce(sum(e.totalElectricity), 0) 
+            + coalesce(sum(s.totalService), 0)
+        ) as totalAll
+    from room r
+    left join (
+        select id_room, sum(total_price) as totalWater
+        from water
+        where mother = month(curdate()) and year = year(curdate())
+        group by id_room
+    ) w on w.id_room = r.id
+    left join (
+        select id_room, sum(total_price) as totalElectricity
+        from electricity
+        where mother = month(curdate()) and year = year(curdate())
+        group by id_room
+    ) e on e.id_room = r.id
+    left join (
+        select rs.id_room, sum(s.price) as totalService
+        from room_services rs
+        join service s on rs.id_service = s.id
+        group by rs.id_room
+    ) s on s.id_room = r.id
+    where r.status = 'DANG_CHO_THUE'
     """, nativeQuery = true)
  TotalRevenueProjection getTotalRevenueForCurrentMonth();
 
@@ -93,118 +93,118 @@ public interface StatisticalRepository extends JpaRepository<RoomHistory , Strin
 //  Query by current list for month totals
     @Query(
             value = """
-        SELECT 
-            am.month AS month,
-            am.year AS year,
-            IFNULL(w.tong_tien_nuoc, 0) AS totalWater,
-            IFNULL(e.tong_tien_dien, 0) AS totalElectricity,
-            IFNULL(r.tong_tien_phong, 0) AS totalRoom,
-            IFNULL(s.tong_tien_dich_vu, 0) AS totalService,
+        select 
+            am.month as month,
+            am.year as year,
+            ifnull(w.tong_tien_nuoc, 0) as totalWater,
+            ifnull(e.tong_tien_dien, 0) as totalElectricity,
+            ifnull(r.tong_tien_phong, 0) as totalRoom,
+            ifnull(s.tong_tien_dich_vu, 0) as totalService,
             (
-                IFNULL(w.tong_tien_nuoc, 0) +
-                IFNULL(e.tong_tien_dien, 0) +
-                IFNULL(r.tong_tien_phong, 0) +
-                IFNULL(s.tong_tien_dich_vu, 0)
-            ) AS totalMonth
-        FROM (
-            SELECT month, year FROM (
-                SELECT month, year FROM water_history WHERE status = 'DA_THANH_TOAN'
-                UNION
-                SELECT month, year FROM electricity_history WHERE status = 'DA_THANH_TOAN'
-                UNION
-                SELECT MONTH(last_modified_date) AS month, YEAR(last_modified_date) AS year 
-                FROM room WHERE status = 'DANG_CHO_THUE'
-            ) AS all_months
-        ) AS am
-        LEFT JOIN (
-            SELECT month, year, SUM(total_price) AS tong_tien_nuoc
-            FROM water_history
-            WHERE status = 'DA_THANH_TOAN'
-            GROUP BY month, year
-        ) AS w ON am.month = w.month AND am.year = w.year
-        LEFT JOIN (
-            SELECT month, year, SUM(total_price) AS tong_tien_dien
-            FROM electricity_history
-            WHERE status = 'DA_THANH_TOAN'
-            GROUP BY month, year
-        ) AS e ON am.month = e.month AND am.year = e.year
-        LEFT JOIN (
-            SELECT MONTH(last_modified_date) AS month, YEAR(last_modified_date) AS year, SUM(price) AS tong_tien_phong
-            FROM room
-            WHERE status = 'DANG_CHO_THUE'
-            GROUP BY YEAR(last_modified_date), MONTH(last_modified_date)
-        ) AS r ON am.month = r.month AND am.year = r.year
-        CROSS JOIN (
-            SELECT SUM(s.price) AS tong_tien_dich_vu
-            FROM room_services rs
-            JOIN service s ON rs.id_service = s.id
-        ) AS s
-        ORDER BY am.year, am.month
+                ifnull(w.tong_tien_nuoc, 0) +
+                ifnull(e.tong_tien_dien, 0) +
+                ifnull(r.tong_tien_phong, 0) +
+                ifnull(s.tong_tien_dich_vu, 0)
+            ) as totalMonth
+        from (
+            select month, year from (
+                select month, year from water_history where status = 'DA_THANH_TOAN'
+                union
+                select month, year from electricity_history where status = 'DA_THANH_TOAN'
+                union
+                select month(last_modified_date) as month, year(last_modified_date) as year 
+                from room where status = 'DANG_CHO_THUE'
+            ) as all_months
+        ) as am
+        left join (
+            select month, year, sum(total_price) as tong_tien_nuoc
+            from water_history
+            where status = 'DA_THANH_TOAN'
+            group by month, year
+        ) as w on am.month = w.month and am.year = w.year
+        left join (
+            select month, year, sum(total_price) as tong_tien_dien
+            from electricity_history
+            where status = 'DA_THANH_TOAN'
+            group by month, year
+        ) as e on am.month = e.month and am.year = e.year
+        left join (
+            select month(last_modified_date) as month, year(last_modified_date) as year, sum(price) as tong_tien_phong
+            from room
+            where status = 'DANG_CHO_THUE'
+            group by year(last_modified_date), month(last_modified_date)
+        ) as r on am.month = r.month and am.year = r.year
+        cross join (
+            select sum(s.price) as tong_tien_dich_vu
+            from room_services rs
+            join service s on rs.id_service = s.id
+        ) as s
+        order by am.year, am.month
     """,
             nativeQuery = true
     )
     List<MonthlyTotalDTO> findMonthlyTotals();
 
     @Query(value = """
-    SELECT 
-        r.name AS roomName,
-        b.mother_pay AS month,
-        b.year_pay AS year,
-        b.total_room AS roomPrice,
-        b.total_electricity_service AS electricityPrice,
-        b.total_water_service AS waterPrice,
-        b.total_room_service AS servicePrice,
-        b.total_amount AS totalAmount
-    FROM bill b
-    JOIN room r ON b.id_room = r.id
-    WHERE b.status = 'DA_THANH_TOAN'
-    AND b.mother_pay = MONTH(CURDATE())
-    AND b.year_pay = YEAR(CURDATE())
+    select 
+        r.name as roomName,
+        b.mother_pay as month,
+        b.year_pay as year,
+        b.total_room as roomPrice,
+        b.total_electricity_service as electricityPrice,
+        b.total_water_service as waterPrice,
+        b.total_room_service as servicePrice,
+        b.total_amount as totalAmount
+    from bill b
+    join room r on b.id_room = r.id
+    where b.status = 'DA_THANH_TOAN'
+    and b.mother_pay = month(curdate())
+    and b.year_pay = year(curdate())
     """, nativeQuery = true)
     List<RevenueStatisticalProjection> findAllRevenueStatistical();
 
     @Query(value = """
-    SELECT 
-        c.name AS name,
-        c.number_phone AS numberPhone,
-        c.citizen_identification AS cccd,
-        COALESCE(r.name, 'Chưa thuê') AS roomName,
-        con.date_start AS dateStart
-    FROM customer c
-    LEFT JOIN contract con ON c.id = con.id_customer AND con.status = 'KICH_HOAT'
-    LEFT JOIN room r ON con.id_room = r.id
+    select 
+        c.name as name,
+        c.number_phone as numberPhone,
+        c.citizen_identification as cccd,
+        coalesce(r.name, 'Chưa thuê') as roomName,
+        con.date_start as dateStart
+    from customer c
+    left join contract con on c.id = con.id_customer and con.status = 'KICH_HOAT'
+    left join room r on con.id_room = r.id
     """, nativeQuery = true)
     List<CustomerStatisticalProjection> findAllCustomerStatistical();
 
     @Query(value = """
-    SELECT 
-        r.code AS code,
-        r.name AS name,
-        r.price AS price,
-        r.status AS status,
-        h.name AS houseName,
-        r.acreage AS acreage
-    FROM room r
-    LEFT JOIN house_for_rent h ON r.id_house_for_rent = h.id
+    select 
+        r.code as code,
+        r.name as name,
+        r.price as price,
+        r.status as status,
+        h.name as houseName,
+        r.acreage as acreage
+    from room r
+    left join house_for_rent h on r.id_house_for_rent = h.id
     """, nativeQuery = true)
     List<RoomStatisticalProjection> findAllRoomStatistical();
 
     @Query(value = """
-    SELECT 
-        r.id AS roomId,
-        w.id AS waterId,
-        e.id AS electricityId,
-        rh.id AS roomHistoryId,
-        s.id AS serviceId,
-        s.name AS serviceName,
-        s.price AS servicePrice
-    FROM room r
-    LEFT JOIN water w ON r.id = w.id_room
-    LEFT JOIN electricity e ON r.id = e.id_room
-    LEFT JOIN room_history rh ON r.id = rh.id_room
-    LEFT JOIN room_services rs ON r.id = rs.id_room
-    LEFT JOIN service s ON rs.id_service = s.id
-    WHERE r.id = :roomId
+    select 
+        r.id as roomId,
+        w.id as waterId,
+        e.id as electricityId,
+        rh.id as roomHistoryId,
+        s.id as serviceId,
+        s.name as serviceName,
+        s.price as servicePrice
+    from room r
+    left join water w on r.id = w.id_room
+    left join electricity e on r.id = e.id_room
+    left join room_history rh on r.id = rh.id_room
+    left join room_services rs on r.id = rs.id_room
+    left join service s on rs.id_service = s.id
+    where r.id = :roomId
 """, nativeQuery = true)
 List<SearchRoomProjection> findRoomDetailsByRoomId(@Param("roomId") String roomId);
 }

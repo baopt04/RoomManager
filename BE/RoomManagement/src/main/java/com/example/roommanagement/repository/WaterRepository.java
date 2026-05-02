@@ -19,8 +19,8 @@ boolean existsByRoom_Id(String id);
     Optional<Water> findTopByRoomIdOrderByLastModifiedDateDesc(String roomId);
 
     @Query(value = """
-            SELECT 
-            ROW_NUMBER() over(order by r.last_modified_date desc ) as stt ,
+            select 
+            row_number() over(order by r.last_modified_date desc ) as stt ,
                         r.id as id,
             r.code as code ,
             r.number_first as numberFirst ,
@@ -32,13 +32,13 @@ boolean existsByRoom_Id(String id);
                                     r.year as year ,
                         r.status as status ,
             r.id_room as room
-            FROM Water r
+            from water r
             """, nativeQuery = true)
     List<FindAllWaterDTO> findAllWaters();
 
     @Modifying
     @Query(value = """
-            UPDATE Water w set w.status = "DA_THANH_TOAN" where w.id_room = :id_room
+            update water w set w.status = "DA_THANH_TOAN" where w.id_room = :id_room
             and w.status = "CHUA_THANH_TOAN"
             """, nativeQuery = true)
     void updateWaterStatus(@Param("id_room") String id_room);

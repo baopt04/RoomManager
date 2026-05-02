@@ -14,18 +14,18 @@ import java.util.Optional;
 public interface ElectricityHistoryRepository extends JpaRepository<ElectricityHistory , String> {
     Optional<ElectricityHistory> findByElectricity_IdAndMonthAndYear(String id , Integer mother , Integer year);
     @Query(value = """
-    SELECT 
-        el.id AS id,
-        el.number_first AS numberFirst,
-        el.number_last AS numberLast,
-        el.used_number AS usedNumber,
-        el.unit_price AS unitPrice,
-        el.total_price AS totalPrice,
-        el.month AS month,
-        el.year AS year,
-        el.status AS status
-    FROM electricity_history el 
-    WHERE el.id_electricity = :idElectricity
+    select 
+        el.id as id,
+        el.number_first as numberFirst,
+        el.number_last as numberLast,
+        el.used_number as usedNumber,
+        el.unit_price as unitPrice,
+        el.total_price as totalPrice,
+        el.month as month,
+        el.year as year,
+        el.status as status
+    from electricity_history el 
+    where el.id_electricity = :idElectricity
 """, nativeQuery = true)
     List<FindAllElectricityAndWaterHistoryProjection> findByIdElectricity(@Param("idElectricity") String idElectricity);
 

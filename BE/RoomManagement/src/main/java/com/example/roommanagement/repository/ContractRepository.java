@@ -19,8 +19,8 @@ public interface ContractRepository extends JpaRepository<Contract, String> {
     boolean existsByRoom_Id(String roomId);
     boolean existsByRoom_IdAndIdNot(String roomId, String id);
     @Query(value = """
-            SELECT 
-             ROW_NUMBER() over (order by r.last_modified_date desc ) as stt ,
+            select 
+             row_number() over (order by r.last_modified_date desc ) as stt ,
              r.id as id ,
              r.code as code ,
              r.date_start as dateStart ,
@@ -33,12 +33,12 @@ public interface ContractRepository extends JpaRepository<Contract, String> {
              r.id_house_for_rent as houseForRent ,
              r.id_admin as admin ,
              r.id_customer as customer
-             FROM Contract r
+             from contract r
             """, nativeQuery = true)
     List<FindAllContractDTO> findAllContracts();
 
     @Query(value = """
-SELECT c.id FROM Contract c where c.id_room =:id_room
+select c.id from contract c where c.id_room =:id_room
 """ , nativeQuery = true)
     List<Object[]> findIdContract(@Param("id_room")String id_room);
 

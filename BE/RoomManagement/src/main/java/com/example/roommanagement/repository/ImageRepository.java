@@ -24,7 +24,7 @@ List<Image> findByContractId(String idContract);
     @Query("DELETE FROM Image i WHERE i.contract.id = :contractId")
     void deleteByContractId(@Param("contractId") String contractId);
     @Query(value = """
-    SELECT i.id , i.name , i.id_room FROM image i WHERE i.id_room = :id AND i.image_type = 'ROOM'
+    select i.id , i.name , i.id_room from image i where i.id_room = :id and i.image_type = 'ROOM'
 """, nativeQuery = true)
     List<FindAllImageProjection> findByRoomIdImage(@Param("id") String idRoom);
 

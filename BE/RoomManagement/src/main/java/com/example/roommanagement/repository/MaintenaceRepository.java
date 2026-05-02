@@ -16,8 +16,8 @@ public interface MaintenaceRepository extends JpaRepository<Maintenance, String>
     Optional<Maintenance> findById(String id);
 
     @Query(value = """
-            SELECT 
-            ROW_NUMBER() over (order by m.last_modified_date desc) as stt,
+            select 
+            row_number() over (order by m.last_modified_date desc) as stt,
             m.id as id ,
             m.code as code ,
             m.name as name ,
@@ -27,7 +27,7 @@ public interface MaintenaceRepository extends JpaRepository<Maintenance, String>
             m.expense as expense ,
             m.status as status ,
             m.id_room as id_room 
-             FROM Maintenance m
+             from maintenance m
             """, nativeQuery = true)
     List<FindAllMaintencanceDTO> findAllMaintencance();
     @Transactional

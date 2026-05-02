@@ -14,7 +14,7 @@ import java.util.List;
 @Repository
 public interface BillDetailRepository extends JpaRepository<BillDetail , Long> {
     @Query( value ="""
-            SELECT ROW_NUMBER() over (order by bd.last_modified_date desc ) as stt ,
+            select row_number() over (order by bd.last_modified_date desc ) as stt ,
             bd.id as id , 
            
             bd.id_bill as billId , 
@@ -28,7 +28,7 @@ public interface BillDetailRepository extends JpaRepository<BillDetail , Long> {
     List<BillDetailProjection> finAllBillDetails();
 
     @Query( value ="""
-            SELECT ROW_NUMBER() over (order by bd.last_modified_date desc ) as stt ,
+            select row_number() over (order by bd.last_modified_date desc ) as stt ,
             bd.id as id , 
             bd.id_bill as billId , 
             bd.type as type ,

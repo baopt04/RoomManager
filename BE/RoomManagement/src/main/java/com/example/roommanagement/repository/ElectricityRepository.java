@@ -22,8 +22,8 @@ public interface ElectricityRepository extends CrudRepository<Electricity, Strin
     Optional<Electricity> findTopByRoomIdOrderByLastModifiedDateDesc(String roomId);
 
     @Query(value = """
-            SELECT 
-            ROW_NUMBER() over(order by r.last_modified_date desc ) as stt ,
+            select 
+            row_number() over(order by r.last_modified_date desc ) as stt ,
                         r.id as id,
             r.code as code ,
             r.number_first as numberFirst ,
@@ -35,14 +35,14 @@ public interface ElectricityRepository extends CrudRepository<Electricity, Strin
                                     r.year as year ,
                         r.status as stautus,
             r.id_room as room
-            FROM Electricity r
+            from electricity r
             """, nativeQuery = true)
     List<FindAllElectricityDTO> findAllElectricity();
 
     @Modifying
     @Query(value = """
-            UPDATE Electricity e set e.status = "DA_THANH_TOAN" where e.id_room =:id_room
-             AND e.status = "CHUA_THANH_TOAN"
+            update electricity e set e.status = "DA_THANH_TOAN" where e.id_room =:id_room
+             and e.status = "CHUA_THANH_TOAN"
             """, nativeQuery = true)
     void updateElectricityStatus(@Param("id_room") String id_room);
 }

@@ -17,8 +17,8 @@ public interface HouseForRentRepository extends JpaRepository<HouseForRent, Stri
     Optional<HouseForRent> findById(String id);
 
     @Query(value = """
-            SELECT 
-             ROW_NUMBER() over (order by r.last_modified_date desc ) as stt ,
+            select 
+             row_number() over (order by r.last_modified_date desc ) as stt ,
              r.id as id ,
              r.code as code , 
              r.name as name ,
@@ -27,24 +27,24 @@ public interface HouseForRentRepository extends JpaRepository<HouseForRent, Stri
             r.price as price ,
                         r.status as status ,
              r.id_host as id_host
-             FROM  house_for_rent r
+             from  house_for_rent r
             """, nativeQuery = true)
     List<FindAllHouseForRentDTO> findAllHouseForRent();
 
 
     @Query(value = """
-           SELECT 
-            ROW_NUMBER() over (order by r.last_modified_date desc ) as stt ,
+           select 
+            row_number() over (order by r.last_modified_date desc ) as stt ,
             r.id as id ,
             r.code as code , 
             r.name as name ,
             r.address as address ,
             r.discription as discription ,
             r.id_host as id_host
-            FROM house_for_rent r
-            WHERE 
-            (:name IS NULL OR r.name LIKE %:name%) 
-            AND (:address IS NULL OR r.address LIKE %:address%)
+            from house_for_rent r
+            where 
+            (:name is null or r.name like %:name%) 
+            and (:address is null or r.address like %:address%)
            """, nativeQuery = true)
     FindAllHouseForRentDTO findByNameAndAddress(@Param("name") String name, @Param("address") String address);
 

@@ -22,8 +22,8 @@ public interface CustomerRepository extends JpaRepository<Customer, String> {
     Optional<Customer> findByEmail(String email);
 
     @Query(value = """
-            SELECT 
-            ROW_NUMBER() over(order by ct.last_modified_date desc ) as stt , 
+            select 
+            row_number() over(order by ct.last_modified_date desc ) as stt , 
                         ct.id as id,
             ct.code as code , 
             ct.name as name , 
@@ -38,8 +38,8 @@ public interface CustomerRepository extends JpaRepository<Customer, String> {
     List<FindAllCustomerDTO> findAllCustomers();
 
     @Query(value = """
-            SELECT 
-             ROW_NUMBER() over (order by ct.last_modified_date desc ) as stt, 
+            select 
+             row_number() over (order by ct.last_modified_date desc ) as stt, 
              ct.id as id , 
              ct.code as code , 
              ct.name as name , 
@@ -48,13 +48,13 @@ public interface CustomerRepository extends JpaRepository<Customer, String> {
              ct.gender as gender , 
              ct.citizen_identification as cccd , 
              ct.date_of_birth as date 
-             FROM customer ct where ct.email =:email
+             from customer ct where ct.email =:email
             """, nativeQuery = true)
     FindAllCustomerDTO getOneByEmail(@Param("email") String email);
 
     @Query(value = """
-            SELECT 
-             ROW_NUMBER() over (order by ct.last_modified_date desc ) as stt, 
+            select 
+             row_number() over (order by ct.last_modified_date desc ) as stt, 
              ct.id as id , 
              ct.code as code , 
              ct.name as name , 
@@ -63,7 +63,7 @@ public interface CustomerRepository extends JpaRepository<Customer, String> {
              ct.gender as gender , 
              ct.citizen_identification as cccd , 
              ct.date_of_birth as date 
-             FROM customer ct where ct.number_phone =:numberPhone
+             from customer ct where ct.number_phone =:numberPhone
             """, nativeQuery = true)
     FindAllCustomerDTO getOneByNumberPhone(@Param("numberPhone") String numberPhone);
 }

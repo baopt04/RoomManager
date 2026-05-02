@@ -16,8 +16,8 @@ public interface BillRepository extends JpaRepository<Bill, String> {
     Optional<Bill> findById(String id);
 boolean existsByCode(String code);
     @Query(value = """
-            SELECT 
-             ROW_NUMBER() over (order by b.last_modified_date desc) as stt , 
+            select 
+             row_number() over (order by b.last_modified_date desc) as stt , 
              b.id as id,
              b.code as code,
                          b.total_room as totalRoom,
@@ -39,13 +39,13 @@ boolean existsByCode(String code);
              b.id_customer as customer ,
              b.id_contract as contract  ,
                          b.id_admin as admin
-             FROM Bill b
+             from bill b
             """, nativeQuery = true)
     List<FindAllBillProjection> findAllBills();
 
     @Query(value = """
-            SELECT 
-             ROW_NUMBER() over (order by b.last_modified_date desc) as stt , 
+            select 
+             row_number() over (order by b.last_modified_date desc) as stt , 
              b.id as id,
              b.code as code,
                          b.total_room as totalRoom,
@@ -67,13 +67,13 @@ boolean existsByCode(String code);
              b.id_customer as customer ,
              b.id_contract as contract  ,
                          b.id_admin as admin
-             FROM Bill b where b.id_room is null and b.id_customer is null and b.id_contract is null
+             from bill b where b.id_room is null and b.id_customer is null and b.id_contract is null
             """, nativeQuery = true)
     List<FindAllBillProjection> findAllBillNoCreateBill();
 
     @Query(value = """
-            SELECT 
-             ROW_NUMBER() over (order by b.last_modified_date desc) as stt , 
+            select 
+             row_number() over (order by b.last_modified_date desc) as stt , 
              b.id as id,
              b.code as code,
                          b.total_room as totalRoom,
@@ -96,7 +96,7 @@ boolean existsByCode(String code);
              b.id_customer as customer ,
              b.id_contract as contract  ,
                          b.id_admin as admin 
-             FROM Bill b
+             from bill b
                          left join payment_history ph on ph.id_bill = b.id
                          where b.id = :id
             """, nativeQuery = true)

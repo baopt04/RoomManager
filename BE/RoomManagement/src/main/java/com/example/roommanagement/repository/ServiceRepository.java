@@ -16,15 +16,15 @@ public interface ServiceRepository extends JpaRepository<ServiceS, String> {
 
 boolean existsByName(String name);
     @Query(value = """
-            SELECT 
-            ROW_NUMBER() over (order by r.last_modified_date desc ) as stt,
+            select 
+            row_number() over (order by r.last_modified_date desc ) as stt,
             r.id as id ,
             r.code as code ,
             r.name as name,
             r.price as price ,
             r.unit_of_measure as unitOfMeasure ,
             r.discription as discription 
-             FROM Service r 
+             from service r 
             """, nativeQuery = true)
     List<FindAllServiceDTO> findAllServices();
 
