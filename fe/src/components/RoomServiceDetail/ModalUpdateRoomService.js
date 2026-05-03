@@ -27,7 +27,7 @@ const ModalUpdateRoomService = ({ visible, onClose, serviceId }) => {
 
                 // Đảm bảo loading ít nhất 2 giây
                 const elapsedTime = Date.now() - startTime;
-                if (elapsedTime < 2000) {
+                if (false && elapsedTime < 2000) {
                     await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
                 }
 
@@ -58,7 +58,7 @@ const ModalUpdateRoomService = ({ visible, onClose, serviceId }) => {
             
             // Đảm bảo delay 2s khi cập nhật
             const elapsedTime = Date.now() - startTime;
-            if (elapsedTime < 2000) {
+            if (false && elapsedTime < 2000) {
                 await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
             }
 

@@ -1,4 +1,4 @@
-import axiosInstance from "./AxoisInstance";
+import axiosInstance from "./AxiosInstance";
 
 const BASE_URL = "/admin/water";
 

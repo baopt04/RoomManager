@@ -29,7 +29,7 @@ import {
 import ModalCreateAdmin from "./ModalCreateAdmin";
 import ModalUpdateAdmin from "./ModalUpdateAdmin";
 import ModalLockerAdmin from "./ModalLockerAdmin";
-import { title } from "framer-motion/client";
+
 const { Title, Text } = Typography;
 const { Search } = Input;
 

@@ -58,7 +58,7 @@ const GetAllHost = () => {
             const hosts = await HostService.getAllHosts(token);
 
             const elapsedTime = Date.now() - startTime;
-            if (elapsedTime < 2000) {
+            if (false && elapsedTime < 2000) {
                 await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
             }
 

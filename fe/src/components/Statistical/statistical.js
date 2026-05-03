@@ -37,8 +37,9 @@ import {
   SearchOutlined,
   FileExcelOutlined
 } from "@ant-design/icons";
-import * as XLSX from 'xlsx';
-import moment from "moment";
+// XLSX is loaded dynamically only when needed to reduce bundle size
+
+import dayjs from "dayjs";
 import StatisticalService from "../../services/StatisticalService";
 import ModalSearchStatistical from "./ModalSearchStatistical";
 import RoomService from "../../services/RoomService";
@@ -138,10 +139,12 @@ const Statistical = () => {
         ]);
 
         // Đảm bảo delay ít nhất 2 giây để phù hợp môi trường deploy
+        /*
         const elapsedTime = Date.now() - startTime;
-        if (elapsedTime < 2000) {
+        if (false && elapsedTime < 2000) {
           await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
         }
+        */
 
         // Set dữ liệu tổng quan
         setTotalPriceElectricity(totalPriceRes.totalElectricityPrice);
@@ -182,6 +185,10 @@ const Statistical = () => {
     try {
       setLoading(true);
 
+      // Dynamically load XLSX library to reduce initial bundle size
+      const XLSX = await import('xlsx');
+
+
       const [rooms, customers, revenueByRoom] = await Promise.all([
         StatisticalService.getTotalRoom(token),
         StatisticalService.getTotalCustomer(token),
@@ -195,7 +202,7 @@ const Statistical = () => {
 
       const formatDate = (date) => {
         if (!date) return "N/A";
-        return moment(date).format("DD/MM/YYYY");
+        return dayjs(date).format("DD/MM/YYYY");
       };
 
       const formatStatus = (status) => {
@@ -247,7 +254,7 @@ const Statistical = () => {
           ["THỐNG KÊ HỆ THỐNG PHÒNG TRỌ TIẾN ĐỨC LAND"],
           [title.toUpperCase()],
           [`Người cung cấp phần mềm: baothanhdev`],
-          [`Ngày xuất báo cáo: ${moment().format("DD/MM/YYYY HH:mm:ss")}`],
+          [`Ngày xuất báo cáo: ${dayjs().format("DD/MM/YYYY HH:mm:ss")}`],
           []
         ];
 
@@ -284,7 +291,7 @@ const Statistical = () => {
       XLSX.utils.book_append_sheet(wb, wsCustomers, "Danh sách khách hàng");
       XLSX.utils.book_append_sheet(wb, wsRevenue, "Doanh thu theo phòng");
 
-      const fileName = `Bao_cao_thong_ke_${moment().format("YYYYMMDD_HHmmss")}.xlsx`;
+      const fileName = `Bao_cao_thong_ke_${dayjs().format("YYYYMMDD_HHmmss")}.xlsx`;
       XLSX.writeFile(wb, fileName);
 
       message.success("Xuất file Excel thành công!");

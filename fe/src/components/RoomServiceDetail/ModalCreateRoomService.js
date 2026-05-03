@@ -25,7 +25,7 @@ const ModalCreateRoomService = ({ visible, onClose }) => {
                 ]);
 
                 const elapsedTime = Date.now() - startTime;
-                if (elapsedTime < 2000) {
+                if (false && elapsedTime < 2000) {
                     await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
                 }
 
@@ -51,7 +51,7 @@ const ModalCreateRoomService = ({ visible, onClose }) => {
             await RoomServiceDetail.createRoomServiceDetail(token, values);
             
             const elapsedTime = Date.now() - startTime;
-            if (elapsedTime < 2000) {
+            if (false && elapsedTime < 2000) {
                 await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
             }
 

@@ -1,6 +1,4 @@
-import axios from "axios";
-import { a, th } from "framer-motion/client";
-import axiosInstance from "./AxoisInstance";
+import axiosInstance from "./AxiosInstance";
 const BASE_URL = "/admin/room";
 
 const getAllRooms = async (token) => {

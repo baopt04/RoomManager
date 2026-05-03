@@ -1,5 +1,5 @@
 import axios from "axios";
-import axiosInstance from "../AxoisInstance";
+import axiosInstance from "../AxiosInstance";
 
 const BASE_URL = "/api/v1/customer/rooms";
 
