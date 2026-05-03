@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 const SidebarMenu = lazy(() => import('./components/Menu/SideBarMenu'));
 const DashboardLayout = lazy(() => import('./layouts/Dashboard/DashBoardLayout'));
@@ -44,6 +45,7 @@ const AdminLogin = lazy(() => import('./components/Admin/Login/AdminLogin'));
 function App() {
   return (
     <Router>
+      <SpeedInsights />
       <Suspense fallback={<div style={{ padding: 16 }}>Loading...</div>}>
         <Routes>
           {/* Client Routes */}
