@@ -55,59 +55,62 @@ const GetAllContract = () => {
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
-    useEffect(() => {
-        const fetchAllContract = async () => {
-            setLoading(true);
-            try {
-                const response = await ContractService.getAllcontract(token);
-                setDataContract(response);
-            } catch (error) {
-                console.log("Error khi gọi server!", error);
-            } finally {
-                setLoading(false);
+    const fetchAllData = async () => {
+        setLoading(true);
+        const startTime = Date.now();
+        try {
+            const [contractResponse, roomsResponse, houseResponse] = await Promise.all([
+                ContractService.getAllcontract(token),
+                RoomService.getAllRooms(token),
+                HouseForRentService.getAllHouseForRent(token)
+            ]);
+
+            // Đảm bảo loading ít nhất 2 giây để phù hợp với môi trường deploy
+            const elapsedTime = Date.now() - startTime;
+            if (elapsedTime < 2000) {
+                await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
             }
+
+            setDataContract(contractResponse);
+            setDataRoom(roomsResponse);
+            setDataHouse(houseResponse);
+        } catch (error) {
+            console.log("Error khi gọi server!", error);
+        } finally {
+            setLoading(false);
         }
-        fetchAllContract();
+    };
+
+    useEffect(() => {
+        fetchAllData();
     }, [token]);
 
     useEffect(() => {
-        const fetchAllRoom = async () => {
-            try {
-                const response = await RoomService.getAllRooms(token);
-                setDataRoom(response);
-            } catch (error) {
-                console.log("Error khi gọi server!", error);
-            }
-        }
-        const fetchAllHouse = async () => {
-            try {
-                const response = await HouseForRentService.getAllHouseForRent(token);
-                setDataHouse(response);
-            } catch (error) {
-                console.log("Error khi gọi server!", error);
-            }
-        }
-        fetchAllRoom();
-        fetchAllHouse();
-    }, [token]);
-
-    useEffect(() => {
-        if (dataContract.length > 0 && dataRoom.length > 0 && dataHouse.length > 0) {
+        if (dataContract && dataContract.length > 0) {
             const mapped = dataContract.map((item, index) => {
-                const room = dataRoom.find(r => r.id === item.room);
-                const house = room ? dataHouse.find(h => h.id === room.houseForRent) : null;
+                const roomNameFromContract = item.room;
+                const houseNameFromContract = item.houseForRent;
+                const room = dataRoom.find(r => r.name === roomNameFromContract);
+                const house = dataHouse.find(h => h.name === houseNameFromContract);
+                const finalRoomName = roomNameFromContract || (room ? room.name : "N/A");
+                const finalHouseName = houseNameFromContract || (house ? house.name : "Chưa xác định");
+
                 return {
                     ...item,
                     key: item.id,
                     stt: index + 1,
-                    roomName: room ? room.name : "",
-                    roomPrice: room ? room.price : 0,
-                    houseName: house ? house.name : "Chưa xác định",
-                    houseId: house ? house.id : null
+                    roomName: finalRoomName,
+                    roomPrice: room ? room.price : (item.roomPrice || 0),
+                    houseName: finalHouseName,
+                    houseId: finalHouseName !== "Chưa xác định" ? finalHouseName : "unknown"
                 };
             });
             setFilterData(mapped);
             setOriginalData(mapped);
+            console.log("Mapped contracts by name:", mapped);
+        } else if (dataContract && dataContract.length === 0) {
+            setFilterData([]);
+            setOriginalData([]);
         }
     }, [dataContract, dataRoom, dataHouse]);
 
@@ -127,7 +130,7 @@ const GetAllContract = () => {
 
     const resetSearch = () => {
         setKeyWord("");
-        setFilterData(originalData);
+        fetchAllData();
     };
 
     const openModalCreate = () => {

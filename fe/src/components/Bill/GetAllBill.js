@@ -53,12 +53,19 @@ const GetAllBill = () => {
 
     const fetchAllData = async () => {
         setLoading(true);
+        const startTime = Date.now();
         try {
             const [customerResponse, roomResponse, billResponse] = await Promise.all([
                 CustomerService.getAllCustomers(token),
                 RoomService.getAllRooms(token),
                 SaleService.getAllBill(token)
             ]);
+
+            const elapsedTime = Date.now() - startTime;
+            if (elapsedTime < 2000) {
+                await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
+            }
+
             setDataCustomer(customerResponse);
             setListRoom(roomResponse);
             setListBill(billResponse);
@@ -93,7 +100,7 @@ const GetAllBill = () => {
     const resetFilters = () => {
         setKeyword("");
         setStatusFilter("ALL");
-        setFilteredBills(listBill);
+        fetchAllData();
     };
 
     const createBill = () => navigate("/admin/bills/create");

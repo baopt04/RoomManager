@@ -49,11 +49,22 @@ const GetAllElectricity = () => {
     const [isModalDetailHistory, setIsModalDetailHistory] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    const fetchAllElectricity = async () => {
+    const fetchAllData = async () => {
         setLoading(true);
+        const startTime = Date.now();
         try {
-            const response = await ElectricityService.getAllElectricity(token);
-            setDataElectricity(response);
+            const [electricityResponse, roomResponse] = await Promise.all([
+                ElectricityService.getAllElectricity(token),
+                RoomService.getAllRooms(token)
+            ]);
+
+            const elapsedTime = Date.now() - startTime;
+            if (elapsedTime < 2000) {
+                await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
+            }
+
+            setDataElectricity(electricityResponse);
+            setDataRoom(roomResponse);
         } catch (error) {
             console.log("Error khi gọi server!", error);
         } finally {
@@ -61,22 +72,8 @@ const GetAllElectricity = () => {
         }
     };
 
-    // Fetch electricity data
     useEffect(() => {
-        fetchAllElectricity();
-    }, [token]);
-
-    // Fetch rooms
-    useEffect(() => {
-        const fetchAllRoom = async () => {
-            try {
-                const response = await RoomService.getAllRooms(token);
-                setDataRoom(response);
-            } catch (error) {
-                console.log("Error khi gọi server!", error);
-            }
-        }
-        fetchAllRoom();
+        fetchAllData();
     }, [token]);
 
     // Map electricity data with room info
@@ -114,7 +111,7 @@ const GetAllElectricity = () => {
 
     const resetSearch = () => {
         setKeyWord("");
-        setFilterData(originalData);
+        fetchAllData();
     };
 
     // Modal handlers
@@ -181,10 +178,10 @@ const GetAllElectricity = () => {
         },
         {
             title: "Phòng trọ",
-            dataIndex: "roomName",
-            key: "roomName",
+            dataIndex: "room",
+            key: "room",
             width: 110,
-            sorter: (a, b) => a.roomName.localeCompare(b.roomName),
+            sorter: (a, b) => a.room.localeCompare(b.room),
             render: (roomName) => (
                 <Badge
                     status="processing"
@@ -451,13 +448,13 @@ const GetAllElectricity = () => {
             <ModalCreateElectricity
                 visible={isModalCreate}
                 onClose={() => setIsModaCreate(false)}
-                onSuccess={fetchAllElectricity}
+                onSuccess={fetchAllData}
             />
             <ModalUpdateElectricity
                 visible={isModalUpdate}
                 onClose={() => setIsModalUpdate(false)}
                 id={selectIdRoom}
-                onSuccess={fetchAllElectricity}
+                onSuccess={fetchAllData}
             />
             <ModalDetailHistory
                 visible={isModalDetailHistory}

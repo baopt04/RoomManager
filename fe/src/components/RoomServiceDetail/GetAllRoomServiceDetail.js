@@ -61,16 +61,25 @@ const GetAllRoomServiceDetail = () => {
 
     useEffect(() => {
         fetchAllData();
+        console.log("check data service detai;", roomServiceData);
+
     }, [token]);
 
     const fetchAllData = async () => {
         setLoading(true);
+        const startTime = Date.now();
         try {
             const [servicesResponse, roomsResponse, roomServiceResponse] = await Promise.all([
                 Services.getAllService(token),
                 RoomService.getAllRooms(token),
                 RoomServiceDetail.getAllRoomServiceDetail(token)
             ]);
+
+            // Đảm bảo loading ít nhất 2 giây để phù hợp với môi trường deploy
+            const elapsedTime = Date.now() - startTime;
+            if (elapsedTime < 2000) {
+                await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
+            }
 
             setDataService(servicesResponse);
             setDataRoom(roomsResponse);
@@ -87,12 +96,14 @@ const GetAllRoomServiceDetail = () => {
     useEffect(() => {
         if (dataRoom.length > 0 && dataService.length > 0) {
             const assignments = roomServiceData.map((item) => {
-                const room = dataRoom.find(r => r.id === item.room);
-                const service = dataService.find(s => s.id === item.service);
+                // Theo API response mới, item.room và item.service là tên (String)
+                const room = dataRoom.find(r => r.id === item.room || r.name === item.room);
+                const service = dataService.find(s => s.id === item.service || s.name === item.service);
+                
                 return {
                     ...item,
-                    roomName: room ? room.name : "Không xác định",
-                    serviceName: service ? service.name : "Không xác định",
+                    roomName: room ? room.name : (item.room || "Không xác định"),
+                    serviceName: service ? service.name : (item.service || "Không xác định"),
                     servicePrice: service ? service.price : 0,
                     unitOfMeasure: service ? service.unitOfMeasure : "",
                 };
@@ -100,7 +111,8 @@ const GetAllRoomServiceDetail = () => {
 
             // Grouping logic
             const grouped = dataRoom.map((room) => {
-                const roomServices = assignments.filter(a => a.room === room.id);
+                // Lọc dịch vụ dựa trên ID hoặc Tên phòng
+                const roomServices = assignments.filter(a => a.room === room.id || a.room === room.name);
                 return {
                     key: room.id,
                     roomId: room.id,

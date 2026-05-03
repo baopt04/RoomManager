@@ -55,36 +55,33 @@ const GetAllHouseForRent = () => {
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
-    // Fetch houses for rent
-    const fetchHouseForRent = async () => {
+    useEffect(() => {
+        fetchAllData();
+    }, [token]);
+
+    const fetchAllData = async () => {
         setLoading(true);
+        const startTime = Date.now();
         try {
-            const response = await HouseForRentService.getAllHouseForRent(token);
-            setDataHouseForRent(response);
-            setFilteredHouseForRent(response);
+            const [houses, hosts] = await Promise.all([
+                HouseForRentService.getAllHouseForRent(token),
+                HostService.getAllHosts(token)
+            ]);
+
+            const elapsedTime = Date.now() - startTime;
+            if (elapsedTime < 2000) {
+                await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
+            }
+
+            setDataHouseForRent(houses);
+            setFilteredHouseForRent(houses);
+            setDataHost(hosts);
         } catch (error) {
-            console.error("Failed to fetch houses for rent:", error);
+            console.error("Failed to fetch data:", error);
         } finally {
             setLoading(false);
         }
     };
-
-    useEffect(() => {
-        fetchHouseForRent();
-    }, [token]);
-
-    // Fetch hosts data
-    useEffect(() => {
-        const fetchHostData = async () => {
-            try {
-                const data = await HostService.getAllHosts(token);
-                setDataHost(data);
-            } catch (error) {
-                console.error("Error fetching host data:", error);
-            }
-        };
-        fetchHostData();
-    }, [token]);
 
     const handleSearch = (value) => {
         setSearch(value);
@@ -320,7 +317,7 @@ const GetAllHouseForRent = () => {
                     <Button icon={<SearchOutlined />} onClick={() => handleSearch(search)}>
                         Tìm
                     </Button>
-                    <Button icon={<ReloadOutlined />} onClick={() => { setSearch(""); fetchHouseForRent(); }}>
+                    <Button icon={<ReloadOutlined />} onClick={() => { setSearch(""); fetchAllData(); }}>
                         Làm mới
                     </Button>
                 </div>
@@ -349,13 +346,13 @@ const GetAllHouseForRent = () => {
             <ModalCreate
                 visible={isModalVisible}
                 onClose={() => setIsModalVisible(false)}
-                onSuccess={fetchHouseForRent}
+                onSuccess={fetchAllData}
             />
             <ModalUpdate
                 visible={isModalUpdate}
                 onClose={() => setIsModalUpdate(false)}
                 houseData={selectedHouse}
-                onSuccess={fetchHouseForRent}
+                onSuccess={fetchAllData}
             />
             <ModalDetail
                 visible={isModalDetail}

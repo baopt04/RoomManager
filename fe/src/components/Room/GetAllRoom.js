@@ -49,55 +49,40 @@ const GetAllRoom = () => {
     const [isModalDetail, setIsModalDetail] = useState(false);
     const [selectIdRoom, setSelectIdRoom] = useState(null);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        fetchRoomData();
-        fetchHouseForRent();
-        fetchCustomer();
-        fetchRoomStatus();
+        fetchAllData();
     }, [token]);
 
-    useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth <= 768);
-        window.addEventListener("resize", handleResize);
-        return () => window.removeEventListener("resize", handleResize);
-    }, []);
-
-    const fetchRoomData = async () => {
+    const fetchAllData = async () => {
+        setLoading(true);
+        const startTime = Date.now();
         try {
-            const response = await RoomService.getAllRooms(token);
-            setDataRoom(response);
-            setFilterData(response);
-        } catch (error) {
-            console.error("Failed to fetch room data:", error);
-        }
-    };
+            const [rooms, houses, customers, status] = await Promise.all([
+                RoomService.getAllRooms(token),
+                HouseForRentService.getAllHouseForRent(token),
+                CustomerService.getAllCustomers(token),
+                RoomService.getAllStatusRoom(token)
+            ]);
 
-    const fetchHouseForRent = async () => {
-        try {
-            const response = await HouseForRentService.getAllHouseForRent(token);
-            setDataHouseForRent(response);
-        } catch (error) {
-            console.error("Failed to fetch houses:", error);
-        }
-    };
+            const elapsedTime = Date.now() - startTime;
+            if (elapsedTime < 2000) {
+                await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
+            }
 
-    const fetchCustomer = async () => {
-        try {
-            const response = await CustomerService.getAllCustomers(token);
-            setDataCustomer(response);
+            setDataRoom(rooms);
+            setFilterData(rooms);
+            setDataHouseForRent(houses);
+            setDataCustomer(customers);
+            if (status && status.length > 0) {
+                setRoomEmpty(status[0].roomEmpty);
+                setRoomRenting(status[0].roomRenting);
+            }
         } catch (error) {
-            console.error("Failed to fetch customers:", error);
-        }
-    };
-
-    const fetchRoomStatus = async () => {
-        try {
-            const response = await RoomService.getAllStatusRoom(token);
-            setRoomEmpty(response[0].roomEmpty);
-            setRoomRenting(response[0].roomRenting);
-        } catch (error) {
-            console.error("Failed to fetch room status:", error);
+            console.error("Failed to fetch data:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -190,10 +175,10 @@ const GetAllRoom = () => {
         {
             title: "Nhà thuê",
             dataIndex: "houseForRent",
-            render: (id) => {
-                const house = dataHouseForRent.find((h) => h.id === id)?.name;
-                return house || <Text type="secondary">—</Text>;
-            }
+            // render: (id) => {
+            //     const house = dataHouseForRent.find((h) => h.id === id)?.name;
+            //     return house || <Text type="secondary">—</Text>;
+            // }
         },
         {
             title: "Hành động",
@@ -323,7 +308,7 @@ const GetAllRoom = () => {
                     <Button icon={<SearchOutlined />} onClick={handleSearch}>
                         Tìm
                     </Button>
-                    <Button icon={<ReloadOutlined />} onClick={fetchRoomData}>
+                    <Button icon={<ReloadOutlined />} onClick={fetchAllData}>
                         Làm mới
                     </Button>
                 </div>
@@ -334,6 +319,7 @@ const GetAllRoom = () => {
                 <Table
                     columns={columns}
                     dataSource={filterData}
+                    loading={loading}
                     rowKey="id"
                     scroll={{ x: 1200 }}
                     pagination={{ pageSize: 10, showSizeChanger: !isMobile, showTotal: (total) => `${total} phòng` }}

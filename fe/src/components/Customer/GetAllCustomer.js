@@ -47,8 +47,15 @@ const GetAllCustomer = () => {
 
     const fetchCustomer = async () => {
         setLoading(true);
+        const startTime = Date.now();
         try {
             const response = await CustomerService.getAllCustomers(token);
+
+            const elapsedTime = Date.now() - startTime;
+            if (elapsedTime < 2000) {
+                await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
+            }
+
             const mappedData = response.map((item, index) => ({
                 ...item,
                 key: item.id,
@@ -83,7 +90,7 @@ const GetAllCustomer = () => {
 
     const resetSearch = () => {
         setKeyWord("");
-        setFilterData(originalData);
+        fetchCustomer();
     };
 
     const handleAdd = () => {

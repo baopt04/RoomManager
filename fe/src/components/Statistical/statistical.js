@@ -126,66 +126,51 @@ const Statistical = () => {
   const currentMonth = new Date().getMonth() + 1;
 
   useEffect(() => {
-    const fetchAllPrice = async () => {
+    const fetchAllData = async () => {
       setLoading(true);
+      const startTime = Date.now();
       try {
-        const response = await StatisticalService.getTotalPrice(token);
-        setTotalPriceElectricity(response.totalElectricityPrice);
-        setTotalPriceWater(response.totalWaterPrice);
-        setTotalPriceRoom(response.totalRoomPrice);
-        setTotalPriceService(response.totalServicePrice);
-        setTotalPrice(response.totalElectricityPrice + response.totalWaterPrice + response.totalRoomPrice + response.totalServicePrice);
-        setRoomEmpty(response.totalAvailable);
-        setRoomRenting(response.totalRented);
+        const [totalPriceRes, totalPriceMotherRes, allRoomsRes, totalMonthRes] = await Promise.all([
+          StatisticalService.getTotalPrice(token),
+          StatisticalService.getTotalPriceMother(token),
+          RoomService.getAllRooms(token),
+          StatisticalService.getListTotalPriceForMother(token)
+        ]);
+
+        // Đảm bảo delay ít nhất 2 giây để phù hợp môi trường deploy
+        const elapsedTime = Date.now() - startTime;
+        if (elapsedTime < 2000) {
+          await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
+        }
+
+        // Set dữ liệu tổng quan
+        setTotalPriceElectricity(totalPriceRes.totalElectricityPrice);
+        setTotalPriceWater(totalPriceRes.totalWaterPrice);
+        setTotalPriceRoom(totalPriceRes.totalRoomPrice);
+        setTotalPriceService(totalPriceRes.totalServicePrice);
+        setTotalPrice(totalPriceRes.totalElectricityPrice + totalPriceRes.totalWaterPrice + totalPriceRes.totalRoomPrice + totalPriceRes.totalServicePrice);
+        setRoomEmpty(totalPriceRes.totalAvailable);
+        setRoomRenting(totalPriceRes.totalRented);
+
+        // Set dữ liệu tháng hiện tại
+        setTotalPriceElectricityMother(totalPriceMotherRes.totalElectricity);
+        setTotalPriceWaterMother(totalPriceMotherRes.totalWater);
+        setTotalPriceRoomMother(totalPriceMotherRes.totalRoomPrice);
+        setTotalPriceServiceMother(totalPriceMotherRes.totalService);
+        setTotalPriceMother(totalPriceMotherRes.totalElectricity + totalPriceMotherRes.totalWater + totalPriceMotherRes.totalRoomPrice + totalPriceMotherRes.totalService);
+
+        // Set danh sách phòng và dữ liệu tháng
+        setListRoom(allRoomsRes);
+        setListTotalPriceForMonth(totalMonthRes);
+
       } catch (error) {
-        console.error("Error fetching total price:", error);
-        message.error("Không thể tải dữ liệu tổng quan");
+        console.error("Error fetching data:", error);
+        message.error("Lỗi khi tải dữ liệu thống kê!");
       } finally {
         setLoading(false);
       }
     };
-    fetchAllPrice();
-  }, [token]);
-
-  useEffect(() => {
-    const fetchAllPriceMother = async () => {
-      try {
-        const response = await StatisticalService.getTotalPriceMother(token);
-        setTotalPriceElectricityMother(response.totalElectricity);
-        setTotalPriceWaterMother(response.totalWater);
-        setTotalPriceRoomMother(response.totalRoomPrice);
-        setTotalPriceServiceMother(response.totalService);
-        setTotalPriceMother(response.totalElectricity + response.totalWater + response.totalRoomPrice + response.totalService);
-      } catch (error) {
-        console.error("Error fetching total price:", error);
-        message.error("Không thể tải dữ liệu tháng hiện tại");
-      }
-    };
-    fetchAllPriceMother();
-  }, [token]);
-
-  useEffect(() => {
-    const getAllRooms = async () => {
-      try {
-        const response = await RoomService.getAllRooms(token);
-        setListRoom(response);
-      } catch (error) {
-        console.error("Error fetching room data:", error);
-      }
-    };
-    getAllRooms();
-  }, [token]);
-
-  useEffect(() => {
-    const getListTotalPriceForMonther = async () => {
-      try {
-        const response = await StatisticalService.getListTotalPriceForMother(token);
-        setListTotalPriceForMonth(response);
-      } catch (error) {
-        console.error("Error fetching list total price for mother:", error);
-      }
-    };
-    getListTotalPriceForMonther();
+    fetchAllData();
   }, [token]);
 
   const handleFinish = (values) => {

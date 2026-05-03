@@ -58,46 +58,33 @@ const GetAllCar = () => {
         })
     );
 
-    // Fetch all cars
-    useEffect(() => {
-        const fetchAllCar = async () => {
-            setLoading(true);
-            try {
-                const response = await CarService.getAllCar(token);
-                setDataCar(response);
-            } catch (error) {
-                console.log("Error khi gọi server!");
-            } finally {
-                setLoading(false);
-            }
-        }
-        fetchAllCar();
-    }, [token]);
+    const fetchAllData = async () => {
+        setLoading(true);
+        const startTime = Date.now();
+        try {
+            const [carResponse, roomResponse, customerResponse] = await Promise.all([
+                CarService.getAllCar(token),
+                RoomService.getAllRooms(token),
+                CustomerService.getAllCustomers(token)
+            ]);
 
-    // Fetch all rooms
-    useEffect(() => {
-        const fetchAllRoom = async () => {
-            try {
-                const response = await RoomService.getAllRooms(token);
-                setDataRoom(response);
-            } catch (error) {
-                console.log("Error khi gọi server !");
+            const elapsedTime = Date.now() - startTime;
+            if (elapsedTime < 2000) {
+                await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
             }
-        }
-        fetchAllRoom();
-    }, [token]);
 
-    // Fetch all customers
-    useEffect(() => {
-        const fetchAllCustomer = async () => {
-            try {
-                const response = await CustomerService.getAllCustomers(token);
-                setDataCustomer(response);
-            } catch (error) {
-                console.log("Error khi gọi server !");
-            }
+            setDataCar(carResponse);
+            setDataRoom(roomResponse);
+            setDataCustomer(customerResponse);
+        } catch (error) {
+            console.log("Error khi gọi server!");
+        } finally {
+            setLoading(false);
         }
-        fetchAllCustomer();
+    };
+
+    useEffect(() => {
+        fetchAllData();
     }, [token]);
 
     // Map room names to car data
@@ -225,10 +212,10 @@ const GetAllCar = () => {
             render: (room, record) => (
                 <Space>
                     <HomeOutlined style={{ color: '#52c41a' }} />
-                    <Text>{record.roomName}</Text>
+                    <Text>{record.room}</Text>
                 </Space>
             ),
-            sorter: (a, b) => a.roomName.localeCompare(b.roomName),
+            sorter: (a, b) => a.room.localeCompare(b.room),
         },
         {
             title: "Khách hàng",
@@ -237,10 +224,10 @@ const GetAllCar = () => {
             render: (customer, record) => (
                 <Space>
                     <UserOutlined style={{ color: '#faad14' }} />
-                    <Text>{record.customerName}</Text>
+                    <Text>{record.customer}</Text>
                 </Space>
             ),
-            sorter: (a, b) => a.customerName.localeCompare(b.customerName),
+            sorter: (a, b) => a.customer.localeCompare(b.customer),
         },
         {
             title: "Loại xe",
@@ -393,7 +380,7 @@ const GetAllCar = () => {
                         icon={<ReloadOutlined />}
                         onClick={() => {
                             setKeyWord('');
-                            setFilterData(mapCarData(dataCar, dataRoom, dataCustomer));
+                            fetchAllData();
                         }}
                     >
                         Làm mới

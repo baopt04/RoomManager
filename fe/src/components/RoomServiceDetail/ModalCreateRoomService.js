@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Form, Input, Button, Radio, Select, InputNumber } from "antd";
+import { Modal, Form, Input, Button, Radio, Select, InputNumber, Spin } from "antd";
 import { message } from "antd";
 import Services from "../../services/Services";
 import RoomServiceDetail from "../../services/RoomServiceDetail";
@@ -9,53 +9,57 @@ const ModalCreateRoomService = ({ visible, onClose }) => {
     const token = localStorage.getItem("token");
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
-    const [houseData, setHouseData] = useState(null);
+    const [pageLoading, setPageLoading] = useState(false);
     const [dataService, setDataService] = useState([]);
     const [dataRoom, setDataRoom] = useState([]);
-    useEffect(() => {
-        const fetchServices = async () => {
-            try {
-                const response = await Services.getAllService(token);
-                setDataService(response);
-            } catch (error) {
-                console.error("Failed to fetch service:", error);
-            }
-        };
 
-        fetchServices();
-    }, [token]);
     useEffect(() => {
-        const fetchRoomData = async () => {
+        const fetchData = async () => {
+            if (!visible) return;
+            setPageLoading(true);
+            const startTime = Date.now();
             try {
-                const response = await RoomService.getAllRooms(token);
-                setDataRoom(response)
-            }
-            catch (error) {
-                console.error("Failed to fetch room data:", error);
+                const [servicesRes, roomsRes] = await Promise.all([
+                    Services.getAllService(token),
+                    RoomService.getAllRooms(token)
+                ]);
+
+                const elapsedTime = Date.now() - startTime;
+                if (elapsedTime < 2000) {
+                    await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
+                }
+
+                setDataService(servicesRes);
+                setDataRoom(roomsRes);
+            } catch (error) {
+                console.error("Failed to fetch data:", error);
+            } finally {
+                setPageLoading(false);
             }
         };
-        fetchRoomData();
-    }, [token])
+        fetchData();
+    }, [token, visible]);
+
     const handleAddRoomService = async (values) => {
         setLoading(true);
+        const startTime = Date.now();
         try {
             values = {
                 service: { id: values.service },
                 room: { id: values.room }
             }
             await RoomServiceDetail.createRoomServiceDetail(token, values);
+            
+            const elapsedTime = Date.now() - startTime;
+            if (elapsedTime < 2000) {
+                await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
+            }
+
             message.success("Thêm dịch vụ thành công!");
             form.resetFields();
             onClose();
         } catch (error) {
-            if (error.response) {
-                const messageError = error.response.data?.message;
-                if (messageError) {
-                    message.error(messageError)
-                }
-            } else {
-                message.error("Không thể kết nối đến server, vui lòng kiểm tra lại.");
-            }
+            message.error("Thêm dịch vụ thất bại!");
             setLoading(false);
         };
     };
@@ -70,45 +74,45 @@ const ModalCreateRoomService = ({ visible, onClose }) => {
             onCancel={handleCancel}
             footer={null}
         >
-            <Form
-                form={form}
-                layout="vertical"
-                initialValues={houseData}
-                onFinish={handleAddRoomService}
-            >
-
-                <Form.Item
-                    label="Tên phòng trọ"
-                    name="room"
-                    rules={[{ required: true, message: "Vui lòng chọn phòng trọ" }]}
+            <Spin spinning={pageLoading} tip="Đang tải dữ liệu...">
+                <Form
+                    form={form}
+                    layout="vertical"
+                    onFinish={handleAddRoomService}
                 >
-                    <Select placeholder="Vui lòng chọn phòng trọ" allowClear>
-                        {dataRoom.map((item) => (
-                            <Option key={item.id} value={item.id}>
-                                {item.name}
-                            </Option>
-                        ))}
-                    </Select>
-                </Form.Item>
-                <Form.Item
-                    label="Tên dịch vụ"
-                    name="service"
-                    rules={[{ required: true, message: "Vui lòng chọn tên dịch vụ" }]}
-                >
-                    <Select placeholder="Vui lòng chọn tên dịch vụ" allowClear>
-                        {dataService.map((item) => (
-                            <Option key={item.id} value={item.id}>
-                                {item.name}
-                            </Option>
-                        ))}
-                    </Select>
-                </Form.Item>
-                <Form.Item style={{ textAlign: 'center' }}>
-                    <Button type="primary" htmlType="submit" loading={loading}>
-                        Thêm dịch vụ
-                    </Button>
-                </Form.Item>
-            </Form>
+                    <Form.Item
+                        label="Tên phòng trọ"
+                        name="room"
+                        rules={[{ required: true, message: "Vui lòng chọn phòng trọ" }]}
+                    >
+                        <Select placeholder="Vui lòng chọn phòng trọ" allowClear>
+                            {dataRoom.map((item) => (
+                                <Option key={item.id} value={item.id}>
+                                    {item.name}
+                                </Option>
+                            ))}
+                        </Select>
+                    </Form.Item>
+                    <Form.Item
+                        label="Tên dịch vụ"
+                        name="service"
+                        rules={[{ required: true, message: "Vui lòng chọn tên dịch vụ" }]}
+                    >
+                        <Select placeholder="Vui lòng chọn tên dịch vụ" allowClear>
+                            {dataService.map((item) => (
+                                <Option key={item.id} value={item.id}>
+                                    {item.name}
+                                </Option>
+                            ))}
+                        </Select>
+                    </Form.Item>
+                    <Form.Item style={{ textAlign: 'center' }}>
+                        <Button type="primary" htmlType="submit" loading={loading}>
+                            Thêm dịch vụ
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </Spin>
         </Modal>
     )
 }

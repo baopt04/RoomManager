@@ -49,11 +49,22 @@ const GetAllWater = () => {
     const [isModalDetailHistory, setIsModalDetailHistory] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    const fetchAllWater = async () => {
+    const fetchAllData = async () => {
         setLoading(true);
+        const startTime = Date.now();
         try {
-            const response = await WaterService.getAllWater(token);
-            setDataWater(response);
+            const [waterResponse, roomResponse] = await Promise.all([
+                WaterService.getAllWater(token),
+                RoomService.getAllRooms(token)
+            ]);
+
+            const elapsedTime = Date.now() - startTime;
+            if (elapsedTime < 2000) {
+                await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
+            }
+
+            setDataWater(waterResponse);
+            setDataRoom(roomResponse);
         } catch (error) {
             console.log("Error khi gọi server!", error);
         } finally {
@@ -61,22 +72,8 @@ const GetAllWater = () => {
         }
     };
 
-    // Fetch water data
     useEffect(() => {
-        fetchAllWater();
-    }, [token]);
-
-    // Fetch rooms
-    useEffect(() => {
-        const fetchAllRoom = async () => {
-            try {
-                const response = await RoomService.getAllRooms(token);
-                setDataRoom(response);
-            } catch (error) {
-                console.log("Error khi gọi server!", error);
-            }
-        }
-        fetchAllRoom();
+        fetchAllData();
     }, [token]);
 
     // Map water data with room info
@@ -114,7 +111,7 @@ const GetAllWater = () => {
 
     const resetSearch = () => {
         setKeyWord("");
-        setFilterData(originalData);
+        fetchAllData();
     };
 
     const openModalCreate = () => {
@@ -177,10 +174,10 @@ const GetAllWater = () => {
         },
         {
             title: "Phòng trọ",
-            dataIndex: "roomName",
-            key: "roomName",
+            dataIndex: "room",
+            key: "room",
             width: 110,
-            sorter: (a, b) => a.roomName.localeCompare(b.roomName),
+            sorter: (a, b) => a.room.localeCompare(b.room),
             render: (roomName) => (
                 <Badge
                     status="processing"
@@ -433,13 +430,13 @@ const GetAllWater = () => {
             <ModalCreateWater
                 visible={isModalCreate}
                 onClose={() => setIsModaCreate(false)}
-                onSuccess={fetchAllWater}
+                onSuccess={fetchAllData}
             />
             <ModalUpdateWater
                 visible={isModalUpdate}
                 onClose={() => setIsModalUpdate(false)}
                 id={selectIdRoom}
-                onSuccess={fetchAllWater}
+                onSuccess={fetchAllData}
             />
             <ModalDetailWaterHistory
                 visible={isModalDetailHistory}

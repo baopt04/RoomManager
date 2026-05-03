@@ -51,34 +51,32 @@ const GetAllMain = () => {
     const [statusFilter, setStatusFilter] = useState("ALL");
     const [originalData, setOriginalData] = useState([]);
 
-    const fetchAllMainTen = async () => {
+    const fetchAllData = async () => {
         setLoading(true);
+        const startTime = Date.now();
         try {
-            const response = await MaintencanceService.getAllMainTen(token);
-            setDataMain(response);
+            const [mainResponse, roomResponse] = await Promise.all([
+                MaintencanceService.getAllMainTen(token),
+                RoomService.getAllRooms(token)
+            ]);
+
+            const elapsedTime = Date.now() - startTime;
+            if (elapsedTime < 2000) {
+                await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
+            }
+
+            setDataMain(mainResponse);
+            setDataRoom(roomResponse);
         } catch (error) {
             message.error("Lỗi khi tải dữ liệu bảo trì!");
+            console.error("Failed to fetch maintenance data:", error);
         } finally {
             setLoading(false);
         }
     };
 
-    // Fetch maintenance data
     useEffect(() => {
-        fetchAllMainTen();
-    }, [token]);
-
-    // Fetch room data
-    useEffect(() => {
-        const fetchAllRoom = async () => {
-            try {
-                const response = await RoomService.getAllRooms(token);
-                setDataRoom(response);
-            } catch (error) {
-                message.error("Lỗi khi tải dữ liệu phòng!");
-            }
-        };
-        fetchAllRoom();
+        fetchAllData();
     }, [token]);
 
     // Map room data with maintenance data
@@ -132,7 +130,7 @@ const GetAllMain = () => {
     const resetFilters = () => {
         setKeyWord("");
         setStatusFilter("ALL");
-        setFilterData(originalData);
+        fetchAllData();
     };
 
     const deleteMainTen = async (id) => {
@@ -146,8 +144,7 @@ const GetAllMain = () => {
                 try {
                     await MaintencanceService.deleteMainTen(id, token);
                     message.success("Xóa phiếu bảo trì thành công");
-                    const response = await MaintencanceService.getAllMainTen(token);
-                    setDataMain(response);
+                    fetchAllData();
                 } catch (error) {
                     message.error("Xóa phiếu bảo trì thất bại");
                 }
@@ -206,10 +203,10 @@ const GetAllMain = () => {
                     Phòng trọ
                 </Space>
             ),
-            dataIndex: "roomName",
-            key: "roomName",
+            dataIndex: "room",
+            key: "room",
             width: 150,
-            sorter: (a, b) => a.roomName.localeCompare(b.roomName),
+            sorter: (a, b) => a.room.localeCompare(b.room),
             render: (roomName) => (
                 <Tooltip title={roomName}>
                     <Text>{roomName || "Chưa có dữ liệu"}</Text>
@@ -462,14 +459,14 @@ const GetAllMain = () => {
             <ModalCreateMain
                 visible={isModalCreate}
                 onClose={() => setIsModalCreate(false)}
-                onSuccess={fetchAllMainTen}
+                onSuccess={fetchAllData}
             />
 
             <ModalUpdateMain
                 visible={isModalUpdate}
                 onClose={() => setIsModalUpdate(false)}
                 id={selectIdMain}
-                onSuccess={fetchAllMainTen}
+                onSuccess={fetchAllData}
             />
 
             <style jsx>{`
