@@ -2,8 +2,8 @@ const vi = {
   header: {
     home: "Trang chủ",
     rooms: "Thuê phòng",
-    about: "Giới thiệu",
-    contact: "Liên hệ",
+    about: "Khu vực cho thuê",
+    contact: "Giới thiệu",
     login: "Đăng nhập",
     language: "Ngôn ngữ"
   },

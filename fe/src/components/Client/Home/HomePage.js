@@ -15,8 +15,8 @@ import { getAllRooms, searchRoomsByAddress } from '../../../services/customer/Ho
 import logoZalo from '../../../assets/logo-zalo.png';
 import logobanner from '../../../assets/logo_banner.png';
 import logobanner2 from '../../../assets/logo_banner_2.png';
-import { 
-  PRIMARY_IMAGES, HOVER_IMAGES, HOME_HERO_BANNERS, HOME_LOCATIONS, HOME_STATS 
+import {
+  PRIMARY_IMAGES, HOVER_IMAGES, HOME_HERO_BANNERS, HOME_LOCATIONS, HOME_STATS
 } from './HomeConstants';
 import { RoomCard, ShortTermCard } from './subcomponents/HomeCards';
 const { Title, Text } = Typography;
@@ -51,10 +51,8 @@ const HomePage = () => {
     setSearchQuery(null);
     try {
       const response = await getAllRooms();
-      // Filter rooms with status "TRONG"
       const vacantRooms = response.filter(room => room.status === "TRONG");
 
-      // Sort: Rooms within 3 days first, then others, all sorted by date descending
       const sortedRooms = vacantRooms.sort((a, b) => {
         const dateA = new Date(a.lastModifiedDate || 0);
         const dateB = new Date(b.lastModifiedDate || 0);
@@ -69,7 +67,6 @@ const HomePage = () => {
         return dateB - dateA;
       });
 
-      // Map data with fallback images if API images are missing
       const mappedRooms = sortedRooms.map((room, index) => ({
         ...room,
         displayImage: PRIMARY_IMAGES[index % PRIMARY_IMAGES.length],
@@ -144,31 +141,61 @@ const HomePage = () => {
         <AnimatePresence mode="wait">
           <motion.div
             key={currentSlide}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: {
+                  staggerChildren: 0.3,
+                  duration: 0.6
+                }
+              },
+              exit: { opacity: 0, transition: { duration: 0.4 } }
+            }}
             style={{ textAlign: 'center', maxWidth: '1100px', margin: '0 auto', padding: isMobile ? '0 16px' : '0 40px' }}
           >
-            <Title
-              level={1}
-              style={{
-                fontSize: isMobile ? '32px' : isTablet ? '44px' : '52px',
-                fontWeight: 800,
-                letterSpacing: '-2px',
-                color: '#1d1d1f',
-                margin: '0 auto 16px',
-                lineHeight: 1.1,
-                maxWidth: '900px'
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, x: -50 },
+                visible: { opacity: 1, x: 0, transition: { duration: 1.2, ease: [0.16, 1, 0.3, 1] } }
               }}
             >
-              {t(HOME_HERO_BANNERS[currentSlide].titleKey)}
-            </Title>
-            <Text style={{ fontSize: isMobile ? '16px' : '18px', color: '#86868b', maxWidth: '700px', display: 'block', margin: '0 auto 40px' }}>
-              {t(HOME_HERO_BANNERS[currentSlide].descKey)}
-            </Text>
+              <Title
+                level={1}
+                style={{
+                  fontSize: isMobile ? '32px' : isTablet ? '44px' : '52px',
+                  fontWeight: 800,
+                  letterSpacing: '-2px',
+                  color: '#1d1d1f',
+                  margin: '0 auto 16px',
+                  lineHeight: 1.1,
+                  maxWidth: '900px'
+                }}
+              >
+                {t(HOME_HERO_BANNERS[currentSlide].titleKey)}
+              </Title>
+            </motion.div>
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, x: 50 },
+                visible: { opacity: 1, x: 0, transition: { duration: 1.2, ease: [0.16, 1, 0.3, 1] } }
+              }}
+            >
+              <Text style={{ fontSize: isMobile ? '16px' : '18px', color: '#86868b', maxWidth: '700px', display: 'block', margin: '0 auto 40px' }}>
+                {t(HOME_HERO_BANNERS[currentSlide].descKey)}
+              </Text>
+            </motion.div>
 
-            <div style={{ position: 'relative', marginTop: '20px' }}>
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 40, scale: 0.95 },
+                visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 1.5, ease: [0.16, 1, 0.3, 1] } }
+              }}
+              style={{ position: 'relative', marginTop: '20px' }}
+            >
               <img
                 src={HOME_HERO_BANNERS[currentSlide].image}
                 alt="Banner"
@@ -210,7 +237,7 @@ const HomePage = () => {
               >
                 <RightOutlined style={{ fontSize: isMobile ? '16px' : '20px', color: '#1d1d1f' }} />
               </div>
-            </div>
+            </motion.div>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '12px' }}>
               {HOME_HERO_BANNERS.map((banner, index) => (
                 <button
