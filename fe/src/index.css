@@ -1,37 +1,59 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-/* GLOBAL THEME - APPLE MINIMAL (BLACK/WHITE/NO COLOR) */
+/* GLOBAL THEME - APPLE MINIMAL */
 :root {
-  /* Apple System Font Stack for readability - ShopDunk Style */
+  /* Apple System Font Stack */
   --font-family-primary: 'Inter', -apple-system, BlinkMacSystemFont, "San Francisco", "Helvetica Neue", "Segoe UI", Roboto, sans-serif;
 
-  /* Color Palette - Monochromatic */
-  --color-bg: #f5f5f7;
+  /* Color Palette - Light Mode */
+  --color-bg: #f9f9fb;
   --color-surface: #ffffff;
+  --color-surface-secondary: #f5f5f7;
   --color-text: #1d1d1f;
-  /* True Apple black */
   --color-text-secondary: #86868b;
-  /* Apple gray */
   --color-text-muted: #d2d2d7;
-  --color-border: #e5e5ea;
-  --color-primary: #1677ff;
-  --color-primary-hover: #4096ff;
-  --color-accent: #1677ff;
-  --color-danger: #c0392b;
-  --color-success: #27ae60;
-  --color-warning: #f39c12;
-
+  --color-border: rgba(0,0,0,0.04);
+  --color-border-light: rgba(0,0,0,0.02);
+  --color-primary: #0071e3;
+  --color-primary-hover: #0077ED;
+  --color-danger: #ff4d4f;
+  --color-success: #34c759;
+  --color-warning: #faad14;
+  
   /* Sizing Constraints */
-  --sidebar-width: 240px;
-  --header-height: 80px;
-  /* Taller, more breathable header */
+  --sidebar-width: 260px;
+  --header-height: 64px;
   --radius-sm: 10px;
-  --radius-md: 10px;
-  --radius-lg: 10px;
+  --radius-md: 12px;
+  --radius-lg: 24px;
 
   /* Shadows - Minimal and soft */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.02);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+  /* Specifics */
+  --chart-grid-color: #f0f0f0;
+  --table-header-bg: #f5f5f7;
+  --table-hover-bg: rgba(0,0,0,0.02);
+  --scroll-thumb: #d2d2d7;
+}
+
+[data-theme='dark'] {
+  --color-bg: #1c1c1e;
+  --color-surface: #1d1d1f;
+  --color-surface-secondary: #2c2c2e;
+  --color-text: #ffffff;
+  --color-text-secondary: #86868b;
+  --color-text-muted: #424245;
+  --color-border: rgba(255,255,255,0.08);
+  --color-border-light: rgba(255,255,255,0.04);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+  
+  --chart-grid-color: rgba(255,255,255,0.05);
+  --table-header-bg: #1d1d1f;
+  --table-hover-bg: rgba(255,255,255,0.02);
+  --scroll-thumb: #424245;
 }
 
 * {
@@ -72,26 +94,33 @@ code {
   border-radius: var(--radius-md) !important;
   border: 1px solid var(--color-border) !important;
   box-shadow: var(--shadow-sm) !important;
+  background: var(--color-surface) !important;
+  color: var(--color-text) !important;
 }
 
 .ant-card-head {
   border-bottom: 1px solid var(--color-border) !important;
   padding: 0 20px !important;
   min-height: 48px !important;
+  background: transparent !important;
+  color: var(--color-text) !important;
 }
 
 .ant-card-head-title {
   font-weight: 600 !important;
   font-size: 14px !important;
+  color: var(--color-text) !important;
 }
 
 /* Tables */
 .ant-table {
   font-family: var(--font-family-primary);
+  background: var(--color-surface) !important;
+  color: var(--color-text) !important;
 }
 
 .ant-table-thead>tr>th {
-  background: #fafafa !important;
+  background: var(--table-header-bg) !important;
   font-weight: 600 !important;
   font-size: 13px !important;
   color: var(--color-text-secondary) !important;
@@ -105,11 +134,19 @@ code {
   padding: 12px 16px !important;
   border-bottom: 1px solid var(--color-border-light) !important;
   font-size: 13px !important;
+  color: var(--color-text) !important;
+  background: var(--color-surface) !important;
+  transition: background 0.3s;
 }
 
 .ant-table-tbody>tr:hover>td {
-  background: #fafbfc !important;
+  background: var(--table-hover-bg) !important;
 }
+
+.ant-table-empty .ant-table-placeholder {
+  background: var(--color-surface) !important;
+}
+
 
 /* Inputs */
 .ant-input,
@@ -117,6 +154,35 @@ code {
 .ant-select-selector {
   border-radius: var(--radius-sm) !important;
   font-family: 'Inter', sans-serif !important;
+  background: var(--color-surface-secondary) !important;
+  color: var(--color-text) !important;
+  border: 1px solid var(--color-border) !important;
+}
+
+.ant-input::placeholder, .ant-select-selection-placeholder {
+  color: var(--color-text-muted) !important;
+}
+
+.ant-select-arrow {
+  color: var(--color-text-secondary) !important;
+}
+
+.ant-select-dropdown {
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
+}
+
+.ant-select-item {
+  color: var(--color-text) !important;
+}
+
+.ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  background-color: var(--table-hover-bg) !important;
+}
+
+.ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  background-color: var(--color-primary-hover) !important;
+  color: #ffffff !important;
 }
 
 /* Tags */
@@ -129,10 +195,17 @@ code {
 /* Modal */
 .ant-modal-content {
   border-radius: var(--radius-lg) !important;
+  background: var(--color-surface) !important;
+  color: var(--color-text) !important;
 }
 
 .ant-modal-header {
   border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
+  background: var(--color-surface) !important;
+}
+
+.ant-modal-title {
+  color: var(--color-text) !important;
 }
 
 /* Statistic */
@@ -142,9 +215,16 @@ code {
   font-weight: 500 !important;
 }
 
-.ant-statistic-content {
+.ant-statistic-content, .ant-statistic-content-value {
   font-family: 'Inter', sans-serif !important;
+  color: var(--color-text) !important;
 }
+
+/* Typography */
+h1:not(.custom-color), h2:not(.custom-color), h3:not(.custom-color), h4:not(.custom-color), h5:not(.custom-color), h6:not(.custom-color), .ant-typography:not(.custom-color) {
+  color: var(--color-text) !important;
+}
+
 
 /* Pagination */
 .ant-pagination-item {
@@ -156,7 +236,6 @@ code {
   border-radius: var(--radius-md) !important;
 }
 
-/* ============ Custom Scrollbar ============ */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -167,12 +246,8 @@ code {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d1d5db;
+  background: var(--scroll-thumb);
   border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
 }
 
 /* ============ Utility ============ */
@@ -200,6 +275,54 @@ code {
 
 .stat-row {
   margin-bottom: 20px;
+}
+
+/* ============ Utility Classes for Performance ============ */
+.info-tag {
+  background: #f5f5f7;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #515154;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.action-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #f5f5f7;
+  color: #0071e3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.action-circle.small {
+  width: 32px;
+  height: 32px;
+}
+
+.overlay-tag {
+  position: absolute;
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  z-index: 10;
+}
+
+.apple-card {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.apple-card:hover {
+  transform: translateY(-6px);
 }
 
 /* ============ RESPONSIVE — TABLET (≤1024px) ============ */

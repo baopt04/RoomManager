@@ -6,6 +6,7 @@ import {
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useLanguage } from '../../../contexts/LanguageContext';
 const { Title, Text } = Typography;
 
 
@@ -62,7 +63,14 @@ const AREAS = [
 
 
 const LocationCard = ({ area, index, onClick }) => {
+  const { t, tName } = useLanguage();
   const [isHovered, setIsHovered] = useState(false);
+
+  const areaKey = area.name;
+  const rawDesc = t(`locationsPage.areas.${areaKey}.desc`);
+  const rawFeatures = t(`locationsPage.areas.${areaKey}.features`);
+  const desc = (typeof rawDesc === 'string' && rawDesc !== `locationsPage.areas.${areaKey}.desc`) ? rawDesc : area.description;
+  const features = Array.isArray(rawFeatures) ? rawFeatures : area.features;
 
   return (
     <motion.div
@@ -77,11 +85,11 @@ const LocationCard = ({ area, index, onClick }) => {
         onMouseLeave={() => setIsHovered(false)}
         onClick={onClick}
         style={{
-          borderRadius: '24px', overflow: 'hidden',
-          border: 'none', background: '#fff',
-          boxShadow: isHovered ? '0 24px 60px rgba(0,0,0,0.12)' : '0 4px 16px rgba(0,0,0,0.05)',
+          borderRadius: '28px', overflow: 'hidden',
+          border: '1px solid rgba(0,0,0,0.04)', background: '#fff',
+          boxShadow: isHovered ? '0 30px 60px rgba(0,0,0,0.12)' : '0 4px 12px rgba(0,0,0,0.02)',
           transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-          transform: isHovered ? 'translateY(-8px)' : 'none',
+          transform: isHovered ? 'translateY(-10px)' : 'none',
           cursor: 'pointer'
         }}
         bodyStyle={{ padding: 0 }}
@@ -103,12 +111,12 @@ const LocationCard = ({ area, index, onClick }) => {
             background: 'linear-gradient(0deg, rgba(0,0,0,0.5) 0%, transparent 60%)',
           }} />
           <div style={{
-            position: 'absolute', top: '16px', left: '16px',
-            width: '44px', height: '44px', borderRadius: '14px',
+            position: 'absolute', top: '20px', left: '20px',
+            width: '48px', height: '48px', borderRadius: '14px',
             background: area.color, display: 'flex',
             alignItems: 'center', justifyContent: 'center',
-            fontSize: '20px', color: '#fff',
-            boxShadow: `0 6px 16px ${area.color}44`
+            fontSize: '22px', color: '#fff',
+            boxShadow: `0 8px 24px ${area.color}33`
           }}>
             {area.icon}
           </div>
@@ -116,7 +124,7 @@ const LocationCard = ({ area, index, onClick }) => {
             <Text style={{
               color: '#fff', fontSize: '22px', fontWeight: 700, display: 'block', lineHeight: 1.2
             }}>
-              {area.name}
+              {tName(area.name)}
             </Text>
           </div>
         </div>
@@ -125,10 +133,10 @@ const LocationCard = ({ area, index, onClick }) => {
           <Text style={{
             color: '#515154', fontSize: '14px', lineHeight: 1.6, display: 'block'
           }}>
-            {area.description}
+            {desc}
           </Text>
           <div style={{ marginTop: '14px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            {area.features.map((f) => (
+            {features.map((f) => (
               <span key={f} style={{
                 background: '#f5f5f7', color: '#515154', padding: '4px 12px',
                 borderRadius: '8px', fontSize: '12px', fontWeight: 500
@@ -142,7 +150,7 @@ const LocationCard = ({ area, index, onClick }) => {
             <Text style={{
               color: '#0071e3', fontSize: '14px', fontWeight: 600, cursor: 'pointer'
             }}>
-              Xem phòng <RightOutlined style={{ fontSize: '12px' }} />
+              {t('locationsPage.card.viewRooms')} <RightOutlined style={{ fontSize: '12px' }} />
             </Text>
           </div>
         </div>
@@ -153,6 +161,7 @@ const LocationCard = ({ area, index, onClick }) => {
 
 
 const LocationsPage = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [viewportWidth, setViewportWidth] = useState(window.innerWidth);
   const isMobile = viewportWidth <= 768;
@@ -173,23 +182,19 @@ const LocationsPage = () => {
 
       {/* ── HERO BANNER ── */}
       <div style={{
-        position: 'relative', height: isMobile ? '260px' : isTablet ? '300px' : '340px', overflow: 'hidden',
-        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+        position: 'relative', minHeight: isMobile ? '260px' : isTablet ? '300px' : '340px', overflow: 'hidden',
+        background: 'radial-gradient(circle, rgba(30, 40, 70, 0.6) 0%, rgba(15, 20, 40, 0.9) 100%)',
+        padding: isMobile ? '40px 0' : '60px 0'
       }}>
         <div style={{
-          position: 'absolute', top: '-100px', right: '-60px',
-          width: '350px', height: '350px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(0,113,227,0.2) 0%, transparent 70%)'
+          position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+          backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.2) 2px, transparent 2px)',
+          backgroundSize: '40px 40px',
+          opacity: 0.5
         }} />
-        <div style={{
-          position: 'absolute', bottom: '-80px', left: '15%',
-          width: '280px', height: '280px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(52,199,89,0.12) 0%, transparent 70%)'
-        }} />
-
         <div style={{
           maxWidth: '1200px', margin: '0 auto', height: '100%',
-          display: 'flex', flexDirection: 'column', justifyContent: 'center',
+          display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center',
           padding: isMobile ? '0 16px' : '0 24px', position: 'relative', zIndex: 1
         }}>
           <motion.div
@@ -197,23 +202,23 @@ const LocationsPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
           >
-            <Text style={{
-              color: '#34c759', fontSize: '13px', fontWeight: 600,
+            <Text className="custom-color" style={{
+              color: '#ffffff', fontSize: '13px', fontWeight: 600,
               letterSpacing: '3px', textTransform: 'uppercase', display: 'block', marginBottom: '12px'
             }}>
-              <EnvironmentOutlined /> KHU VỰC CHO THUÊ
+              <EnvironmentOutlined /> {t('locationsPage.hero.subtitle')}
             </Text>
-            <Title level={1} style={{
-              color: '#ffffff', fontSize: isMobile ? '28px' : isTablet ? '36px' : '44px', fontWeight: 700,
-              margin: 0, lineHeight: 1.15, letterSpacing: '-1px'
+            <Title level={1} className="custom-color" style={{
+              color: '#ffffff', fontSize: isMobile ? '32px' : isTablet ? '40px' : '48px', fontWeight: 800,
+              margin: 0, lineHeight: 1.15, letterSpacing: '-1px', textShadow: '0 4px 12px rgba(0,0,0,0.1)'
             }}>
-              Khám phá <span style={{ color: '#34c759' }}>khu vực</span> xung quanh.
+              {t('locationsPage.hero.title1')} <span style={{ color: '#cce5ff' }}>{t('locationsPage.hero.title2')}</span> {t('locationsPage.hero.title3')}
             </Title>
-            <Text style={{
-              color: 'rgba(255,255,255,0.5)', fontSize: isMobile ? '14px' : '16px',
-              display: 'block', marginTop: '16px', maxWidth: '500px', lineHeight: 1.6
+            <Text className="custom-color" style={{
+              color: 'rgba(255,255,255,0.9)', fontSize: isMobile ? '15px' : '17px',
+              display: 'block', maxWidth: '500px', lineHeight: 1.6, margin: '16px auto 0'
             }}>
-              Chúng tôi cho thuê phòng trọ tại nhiều khu vực trung tâm và ngoại thành Hà Nội. Lựa chọn khu vực phù hợp với bạn.
+              {t('locationsPage.hero.desc')}
             </Text>
           </motion.div>
         </div>
@@ -228,10 +233,10 @@ const LocationsPage = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', marginBottom: '28px' }}>
             <div>
               <Title level={3} style={{ margin: 0, fontSize: '22px', fontWeight: 600, color: '#1d1d1f' }}>
-                Các khu vực cho thuê
+                {t('locationsPage.results.title')}
               </Title>
               <Text style={{ color: '#86868b', fontSize: '14px' }}>
-                {AREAS.length} khu vực đang hoạt động
+                {AREAS.length} {t('locationsPage.results.activeAreas')}
               </Text>
             </div>
           </div>

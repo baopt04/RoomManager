@@ -118,20 +118,22 @@ const SidebarMenu = ({ onClose }) => {
     <div style={{
       width: '100%',
       height: '100vh',
-      background: '#ffffff',
-      borderRight: '1px solid #e5e7eb',
+      background: 'var(--color-surface)',
+      borderRight: '1px solid var(--color-border)',
       display: 'flex',
       flexDirection: 'column',
       overflow: 'hidden',
+      transition: 'background 0.3s, border-color 0.3s'
     }}>
       {/* Logo */}
       <div style={{
         padding: '16px 20px',
-        borderBottom: '1px solid #e5e7eb',
+        borderBottom: '1px solid var(--color-border)',
         flexShrink: 0,
         display: 'flex',
         alignItems: 'center',
         gap: '10px',
+        transition: 'border-color 0.3s'
       }}>
         <img
           src={logo}
@@ -145,8 +147,9 @@ const SidebarMenu = ({ onClose }) => {
         <span style={{
           fontSize: '15px',
           fontWeight: '600',
-          color: '#1a1a2e',
+          color: 'var(--color-text)',
           fontFamily: "'Inter', sans-serif",
+          transition: 'color 0.3s'
         }}>
           Quản lý phòng trọ
         </span>
@@ -174,9 +177,10 @@ const SidebarMenu = ({ onClose }) => {
               <span style={{
                 fontSize: '11px',
                 fontWeight: '600',
-                color: '#9ca3af',
+                color: 'var(--color-text-secondary)',
                 letterSpacing: '0.5px',
                 padding: '0 12px',
+                transition: 'color 0.3s'
               }}>
                 {group.label}
               </span>
@@ -201,23 +205,24 @@ const SidebarMenu = ({ onClose }) => {
           border-radius: 10px !important;
           font-size: 13px !important;
           font-weight: 400 !important;
-          color: #4b5563 !important;
+          color: var(--color-text-secondary) !important;
           width: calc(100% - 16px) !important;
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
         }
 
         .ant-menu-inline .ant-menu-item:hover {
-          background: #f3f4f6 !important;
-          color: #1a1a2e !important;
+          background: var(--table-hover-bg) !important;
+          color: var(--color-text) !important;
         }
 
         .ant-menu-inline .ant-menu-item-selected {
-          background: #e6f4ff !important;
-          color: #1677ff !important;
+          background: var(--color-primary) !important;
+          color: #ffffff !important;
           font-weight: 500 !important;
         }
 
         .ant-menu-inline .ant-menu-item-selected .anticon {
-          color: #1677ff !important;
+          color: #ffffff !important;
         }
 
         .ant-menu-item-group-title {
@@ -228,6 +233,7 @@ const SidebarMenu = ({ onClose }) => {
         /* Remove extra borders & backgrounds */
         .ant-menu-light {
           border-inline-end: none !important;
+          background: transparent !important;
         }
 
         .ant-menu-inline .ant-menu-item::after {
@@ -241,7 +247,7 @@ const SidebarMenu = ({ onClose }) => {
         }
 
         div[style*="overflow"] ::-webkit-scrollbar-thumb {
-          background: #e5e7eb;
+          background: var(--scroll-thumb);
           border-radius: 2px;
         }
 

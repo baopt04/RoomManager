@@ -18,7 +18,7 @@ const processQueue = (error, token = null) => {
         }
     });
 
-    failedQueue = []; // clean queue
+    failedQueue = [];
 };
 
 // Request interceptor

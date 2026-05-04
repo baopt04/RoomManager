@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Menu, Button, Typography, Space, Row, Col, Divider, Drawer } from 'antd';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { 
-  PhoneOutlined, 
-  MenuOutlined, 
-  FacebookFilled, 
-  MessageFilled 
+import { useLanguage } from '../../contexts/LanguageContext';
+import {
+  PhoneOutlined,
+  MenuOutlined,
+  FacebookFilled,
+  MessageFilled
 } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 import logo from './media/tien_duc_land_logo_2.png';
@@ -32,11 +33,13 @@ const ClientLayout = ({ children }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const { language, toggleLanguage, t } = useLanguage();
+
   const navItems = [
-    { key: '/', label: 'Tổng quan', path: '/' },
-    { key: '/rooms', label: 'Phòng trọ', path: '/rooms' },
-    { key: '/locations', label: 'Khu vực', path: '/locations' },
-    { key: '/support', label: 'Khám phá', path: '/support' },
+    { key: '/', label: t('header.home') || 'Tổng quan', path: '/' },
+    { key: '/rooms', label: t('header.rooms') || 'Phòng trọ', path: '/rooms' },
+    { key: '/locations', label: t('header.about') || 'Khu vực', path: '/locations' },
+    { key: '/support', label: t('header.contact') || 'Khám phá', path: '/support' },
   ];
 
   const handleMobileNavClick = (path) => {
@@ -115,6 +118,17 @@ const ClientLayout = ({ children }) => {
                 </Text>
               </div>
               <Button
+                type="text"
+                onClick={toggleLanguage}
+                style={{ fontWeight: 600, padding: '0 8px', fontSize: '14px', background: 'transparent', display: 'flex', alignItems: 'center' }}
+              >
+                {language === 'vi' ? (
+                  <><img src="https://flagcdn.com/w20/vn.png" width="20" alt="VN" style={{ marginRight: 6 }} /> VN</>
+                ) : (
+                  <><img src="https://flagcdn.com/w20/gb.png" width="20" alt="EN" style={{ marginRight: 6 }} /> EN</>
+                )}
+              </Button>
+              <Button
                 type="primary"
                 onClick={() => navigate('/login')}
                 style={{
@@ -127,7 +141,7 @@ const ClientLayout = ({ children }) => {
                   fontSize: '13px'
                 }}
               >
-                Đăng tin
+                {t('header.login') || 'Đăng tin'}
               </Button>
             </Space>
           )}
@@ -176,6 +190,22 @@ const ClientLayout = ({ children }) => {
               {item.label}
             </div>
           ))}
+          <div style={{
+            padding: '12px 16px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: '8px'
+          }}>
+            <Text style={{ fontWeight: 500, fontSize: '15px' }}>{t('header.language')}</Text>
+            <Button onClick={toggleLanguage} size="small" style={{ borderRadius: '12px', fontWeight: 600, display: 'flex', alignItems: 'center' }}>
+              {language === 'vi' ? (
+                <><img src="https://flagcdn.com/w20/vn.png" width="20" alt="VN" style={{ marginRight: 6 }} /> Tiếng Việt</>
+              ) : (
+                <><img src="https://flagcdn.com/w20/gb.png" width="20" alt="EN" style={{ marginRight: 6 }} /> English</>
+              )}
+            </Button>
+          </div>
         </div>
 
         <Divider />
@@ -223,34 +253,34 @@ const ClientLayout = ({ children }) => {
             <Col xs={24} md={8}>
               <Title level={5} style={{ fontSize: '14px', fontWeight: 600, color: '#1d1d1f', marginBottom: '16px' }}>Tiến Đức Land</Title>
               <Text style={{ color: '#515154', fontSize: '12px', lineHeight: '1.6', display: 'block' }}>
-                Nền tảng công nghệ bất động sản cung cấp giải pháp cho thuê nhanh chóng, trải nghiệm trực quan và minh bạch 100%. Phục vụ hàng triệu khách hàng toàn quốc.
+                {t('footer.desc')}
               </Text>
             </Col>
 
             <Col xs={12} md={5}>
-              <Title level={5} style={{ fontSize: '12px', fontWeight: 600, color: '#1d1d1f', marginBottom: '16px' }}>TÀI KHOẢN</Title>
+              <Title level={5} style={{ fontSize: '12px', fontWeight: 600, color: '#1d1d1f', marginBottom: '16px' }}>{t('footer.account')}</Title>
               <Space direction="vertical" size="small">
-                <Link to="#" style={{ color: '#515154', fontSize: '12px' }}>Quản lý phòng</Link>
-                <Link to="#" style={{ color: '#515154', fontSize: '12px' }}>Quản lý hợp đồng</Link>
-                <Link to="#" style={{ color: '#515154', fontSize: '12px' }}>Lịch sử thanh toán</Link>
+                <Link to="#" style={{ color: '#515154', fontSize: '12px' }}>{t('footer.manageRooms')}</Link>
+                <Link to="#" style={{ color: '#515154', fontSize: '12px' }}>{t('footer.manageContracts')}</Link>
+                <Link to="#" style={{ color: '#515154', fontSize: '12px' }}>{t('footer.paymentHistory')}</Link>
               </Space>
             </Col>
 
             <Col xs={12} md={5}>
-              <Title level={5} style={{ fontSize: '12px', fontWeight: 600, color: '#1d1d1f', marginBottom: '16px' }}>KHÁM PHÁ</Title>
+              <Title level={5} style={{ fontSize: '12px', fontWeight: 600, color: '#1d1d1f', marginBottom: '16px' }}>{t('footer.explore')}</Title>
               <Space direction="vertical" size="small">
-                <Link to="#" style={{ color: '#515154', fontSize: '12px' }}>Phòng trọ sinh viên</Link>
-                <Link to="#" style={{ color: '#515154', fontSize: '12px' }}>Căn hộ dịch vụ</Link>
-                <Link to="#" style={{ color: '#515154', fontSize: '12px' }}>Ký túc xá cao cấp</Link>
+                <Link to="#" style={{ color: '#515154', fontSize: '12px' }}>{t('footer.studentRooms')}</Link>
+                <Link to="#" style={{ color: '#515154', fontSize: '12px' }}>{t('footer.servicedApts')}</Link>
+                <Link to="#" style={{ color: '#515154', fontSize: '12px' }}>{t('footer.premiumDorms')}</Link>
               </Space>
             </Col>
 
             <Col xs={24} md={6}>
-              <Title level={5} style={{ fontSize: '12px', fontWeight: 600, color: '#1d1d1f', marginBottom: '16px' }}>LIÊN HỆ</Title>
+              <Title level={5} style={{ fontSize: '12px', fontWeight: 600, color: '#1d1d1f', marginBottom: '16px' }}>{t('footer.contact')}</Title>
               <Space direction="vertical" size="small" style={{ color: '#515154', fontSize: '12px' }}>
                 <Text style={{ color: '#515154', fontSize: '12px' }}>Hotline: 0364.862.148</Text>
                 <Text style={{ color: '#515154', fontSize: '12px' }}>Email: tienducland@gmail.com</Text>
-                <Text style={{ color: '#515154', fontSize: '12px' }}>Địa chỉ: Thành phố Hà Nội</Text>
+                <Text style={{ color: '#515154', fontSize: '12px' }}>{t('footer.address')}</Text>
               </Space>
             </Col>
           </Row>
@@ -259,29 +289,27 @@ const ClientLayout = ({ children }) => {
 
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
             <Text style={{ color: '#86868b', fontSize: '12px' }}>
-              Bản quyền © {new Date().getFullYear()} Rentals Inc. Bảo lưu mọi quyền.
+              {t('footer.copyright')?.replace('{year}', new Date().getFullYear())}
             </Text>
             <Space size="middle" wrap>
-              <Link to="#" style={{ color: '#515154', fontSize: '12px' }}>Chính sách bảo mật</Link>
-              <Link to="#" style={{ color: '#515154', fontSize: '12px' }}>Điều khoản sử dụng</Link>
-              <Link to="#" style={{ color: '#515154', fontSize: '12px' }}>Pháp lý</Link>
+              <Link to="#" style={{ color: '#515154', fontSize: '12px' }}>{t('footer.privacy')}</Link>
+              <Link to="#" style={{ color: '#515154', fontSize: '12px' }}>{t('footer.terms')}</Link>
+              <Link to="#" style={{ color: '#515154', fontSize: '12px' }}>{t('footer.legal')}</Link>
             </Space>
           </div>
 
         </div>
       </Footer>
-      {/* Global Floating Contact Buttons (Pill Style) */}
-      <div style={{ 
-        position: 'fixed', 
-        bottom: '24px', 
-        right: '24px', 
-        zIndex: 2000, 
-        display: 'flex', 
-        flexDirection: 'column', 
+      <div style={{
+        position: 'fixed',
+        bottom: '24px',
+        right: '24px',
+        zIndex: 2000,
+        display: 'flex',
+        flexDirection: 'column',
         gap: '12px',
         alignItems: 'flex-end'
       }}>
-        {/* Chat Facebook Button */}
         <motion.a
           href="https://m.me/yourpage"
           target="_blank"
@@ -292,7 +320,7 @@ const ClientLayout = ({ children }) => {
             background: '#0084ff', color: '#fff',
             width: isMobile ? '44px' : 'auto',
             height: isMobile ? '44px' : 'auto',
-            padding: isMobile ? '0' : '8px 20px', 
+            padding: isMobile ? '0' : '8px 20px',
             borderRadius: '100px',
             fontSize: '13px', fontWeight: 700,
             boxShadow: '0 4px 15px rgba(0,132,255,0.3)',
@@ -303,7 +331,6 @@ const ClientLayout = ({ children }) => {
           {!isMobile && <span style={{ marginLeft: '10px' }}>CHAT FACEBOOK</span>}
         </motion.a>
 
-        {/* Chat Zalo Button */}
         <motion.a
           href="https://zalo.me/0364862148"
           target="_blank"
@@ -314,25 +341,24 @@ const ClientLayout = ({ children }) => {
             background: '#0068ff', color: '#fff',
             width: isMobile ? '44px' : 'auto',
             height: isMobile ? '44px' : 'auto',
-            padding: isMobile ? '0' : '8px 20px', 
+            padding: isMobile ? '0' : '8px 20px',
             borderRadius: '100px',
             fontSize: '13px', fontWeight: 700,
             boxShadow: '0 4px 15px rgba(0,104,255,0.3)',
             textDecoration: 'none'
           }}
         >
-          <div style={{ 
-            width: isMobile ? '30px' : '24px', 
-            height: isMobile ? '30px' : '24px', 
-            background: '#fff', borderRadius: '50%', 
-            display: 'flex', alignItems: 'center', justifyContent: 'center' 
+          <div style={{
+            width: isMobile ? '30px' : '24px',
+            height: isMobile ? '30px' : '24px',
+            background: '#fff', borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
           }}>
             <img src={logoZalo} alt="Zalo" style={{ width: isMobile ? '18px' : '16px' }} />
           </div>
           {!isMobile && <span style={{ marginLeft: '10px' }}>CHAT ZALO</span>}
         </motion.a>
 
-        {/* Hotline Button */}
         <motion.a
           href="tel:0364862148"
           whileHover={{ scale: 1.05 }}
@@ -341,7 +367,7 @@ const ClientLayout = ({ children }) => {
             background: '#00992d', color: '#fff',
             width: isMobile ? '50px' : 'auto',
             height: isMobile ? '50px' : '52px',
-            padding: isMobile ? '0' : '4px 24px 4px 4px', 
+            padding: isMobile ? '0' : '4px 24px 4px 4px',
             borderRadius: '100px',
             fontSize: '18px', fontWeight: 800,
             boxShadow: '0 8px 20px rgba(0,153,45,0.3)',
@@ -349,11 +375,11 @@ const ClientLayout = ({ children }) => {
             position: 'relative'
           }}
         >
-          <div style={{ 
-            width: isMobile ? '42px' : '44px', 
-            height: isMobile ? '42px' : '44px', 
-            background: isMobile ? 'transparent' : '#fff', 
-            borderRadius: '50%', 
+          <div style={{
+            width: isMobile ? '42px' : '44px',
+            height: isMobile ? '42px' : '44px',
+            background: isMobile ? 'transparent' : '#fff',
+            borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             marginRight: isMobile ? '0' : '12px',
             boxShadow: isMobile ? 'none' : '0 0 0 4px rgba(255,255,255,0.2)'
@@ -361,9 +387,9 @@ const ClientLayout = ({ children }) => {
             <MessageFilled style={{ color: isMobile ? '#fff' : '#00992d', fontSize: isMobile ? '28px' : '22px' }} />
           </div>
           {!isMobile && "0364.862.148"}
-          <div style={{ 
-            position: 'absolute', left: '-8px', top: '-8px', 
-            right: '-8px', bottom: '-8px', 
+          <div style={{
+            position: 'absolute', left: '-8px', top: '-8px',
+            right: '-8px', bottom: '-8px',
             borderRadius: '100px', border: '2px solid #00992d',
             animation: 'pulse-green-global 2s infinite',
             opacity: 0.5,

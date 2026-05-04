@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { LanguageProvider } from './contexts/LanguageContext';
 
 const SidebarMenu = lazy(() => import('./components/Menu/SideBarMenu'));
 const DashboardLayout = lazy(() => import('./layouts/Dashboard/DashBoardLayout'));
@@ -43,85 +44,87 @@ const AdminLogin = lazy(() => import('./components/Admin/Login/AdminLogin'));
 
 function App() {
   return (
-    <Router>
-      <Suspense fallback={<div style={{ padding: 16 }}>Loading...</div>}>
-        <Routes>
-          {/* Client Routes */}
-          <Route path="/" element={<ClientLayout><HomePage /></ClientLayout>} />
-          <Route path="/rooms" element={<ClientLayout><RoomsPage /></ClientLayout>} />
-          <Route path="/room/:slugAndId" element={<ClientLayout><RoomDetailClient /></ClientLayout>} />
-          <Route path="/locations" element={<ClientLayout><LocationsPage /></ClientLayout>} />
-          <Route path="/support" element={<ClientLayout><ExplorePage /></ClientLayout>} />
+    <LanguageProvider>
+      <Router>
+        <Suspense fallback={<div style={{ padding: 16 }}>Loading...</div>}>
+          <Routes>
+            {/* Client Routes */}
+            <Route path="/" element={<ClientLayout><HomePage /></ClientLayout>} />
+            <Route path="/rooms" element={<ClientLayout><RoomsPage /></ClientLayout>} />
+            <Route path="/room/:slugAndId" element={<ClientLayout><RoomDetailClient /></ClientLayout>} />
+            <Route path="/locations" element={<ClientLayout><LocationsPage /></ClientLayout>} />
+            <Route path="/support" element={<ClientLayout><ExplorePage /></ClientLayout>} />
 
-          {/* Auth Routes */}
-          <Route path='/login' element={<LoginRoom />}></Route>
-          <Route path='/admin/login' element={<AdminLogin />}></Route>
-          <Route path='/register' element={<Register />}></Route>
+            {/* Auth Routes */}
+            <Route path='/login' element={<LoginRoom />}></Route>
+            <Route path='/admin/login' element={<AdminLogin />}></Route>
+            <Route path='/register' element={<Register />}></Route>
 
-          {/* Admin Routes */}
-          <Route
-            path="/*"
-            element={
-              <PrivateRoute>
-                <DashboardLayout>
-                  <Routes>
-                    <Route path="/admin/sidebar" element={<SidebarMenu />} />
-                    <Route path="/admin/dashboard" element={<DashboardLayout />} />
+            {/* Admin Routes */}
+            <Route
+              path="/*"
+              element={
+                <PrivateRoute>
+                  <DashboardLayout>
+                    <Routes>
+                      <Route path="/admin/sidebar" element={<SidebarMenu />} />
+                      <Route path="/admin/dashboard" element={<DashboardLayout />} />
 
-                    {/* Hosts */}
-                    <Route path="/admin/hosts" element={<GetAllHost />} />
-                    <Route path="/admin/hosts/create" element={<CreateHost />} />
+                      {/* Hosts */}
+                      <Route path="/admin/hosts" element={<GetAllHost />} />
+                      <Route path="/admin/hosts/create" element={<CreateHost />} />
 
-                    {/* Houses for rent */}
-                    <Route path="/admin/houses-for-rent" element={<GetAllHouseForRent />} />
+                      {/* Houses for rent */}
+                      <Route path="/admin/houses-for-rent" element={<GetAllHouseForRent />} />
 
-                    {/* Rooms */}
-                    <Route path="/admin/rooms" element={<GetAllRoom />} />
-                    <Route path="/admin/rooms/create" element={<CreateRoom />} />
-                    <Route path="/admin/rooms/:roomId" element={<DetailRoom />} />
-                    <Route path="/admin/rooms/:roomId/edit" element={<UpdateRoom />} />
+                      {/* Rooms */}
+                      <Route path="/admin/rooms" element={<GetAllRoom />} />
+                      <Route path="/admin/rooms/create" element={<CreateRoom />} />
+                      <Route path="/admin/rooms/:roomId" element={<DetailRoom />} />
+                      <Route path="/admin/rooms/:roomId/edit" element={<UpdateRoom />} />
 
-                    {/* Utilities & services */}
-                    <Route path="/admin/waters" element={<GetAllWater />} />
-                    <Route path="/admin/electricities" element={<GetAllElectricity />} />
-                    <Route path="/admin/services" element={<GetAllService />} />
-                    <Route path="/admin/room-services" element={<GetAllRoomServiceDetail />} />
-                    <Route path="/admin/maintenances" element={<GetAllMain />} />
+                      {/* Utilities & services */}
+                      <Route path="/admin/waters" element={<GetAllWater />} />
+                      <Route path="/admin/electricities" element={<GetAllElectricity />} />
+                      <Route path="/admin/services" element={<GetAllService />} />
+                      <Route path="/admin/room-services" element={<GetAllRoomServiceDetail />} />
+                      <Route path="/admin/maintenances" element={<GetAllMain />} />
 
-                    {/* Customers */}
-                    <Route path="/admin/customers" element={<GetAllCustomer />} />
+                      {/* Customers */}
+                      <Route path="/admin/customers" element={<GetAllCustomer />} />
 
-                    {/* Contracts */}
-                    <Route path="/admin/contracts" element={<GetAllContract />} />
-                    <Route path="/admin/contracts/create" element={<CreateContract />} />
-                    <Route path="/admin/contracts/:contractId" element={<DetailContract />} />
-                    <Route path="/admin/contracts/:contractId/edit" element={<UpdateContract />} />
+                      {/* Contracts */}
+                      <Route path="/admin/contracts" element={<GetAllContract />} />
+                      <Route path="/admin/contracts/create" element={<CreateContract />} />
+                      <Route path="/admin/contracts/:contractId" element={<DetailContract />} />
+                      <Route path="/admin/contracts/:contractId/edit" element={<UpdateContract />} />
 
-                    {/* Cars */}
-                    <Route path="/admin/cars" element={<GetAllCar />} />
-                    <Route path="/admin/cars/create" element={<CreateCar />} />
-                    <Route path="/admin/cars/:carId/edit" element={<UpdateCar />} />
+                      {/* Cars */}
+                      <Route path="/admin/cars" element={<GetAllCar />} />
+                      <Route path="/admin/cars/create" element={<CreateCar />} />
+                      <Route path="/admin/cars/:carId/edit" element={<UpdateCar />} />
 
-                    {/* Bills */}
-                    <Route path="/admin/bills" element={<GetAllBill />} />
-                    <Route path="/admin/bills/create" element={<SaleBill />} />
-                    <Route path="/admin/bills/:billId" element={<DetailBill />} />
-                    <Route path="/admin/bills/:billId/edit" element={<UpdateBill />} />
+                      {/* Bills */}
+                      <Route path="/admin/bills" element={<GetAllBill />} />
+                      <Route path="/admin/bills/create" element={<SaleBill />} />
+                      <Route path="/admin/bills/:billId" element={<DetailBill />} />
+                      <Route path="/admin/bills/:billId/edit" element={<UpdateBill />} />
 
-                    {/* Statistics */}
-                    <Route path="/admin/statistics" element={<Statistical />} />
+                      {/* Statistics */}
+                      <Route path="/admin/statistics" element={<Statistical />} />
 
-                    {/* System */}
-                    <Route path="/admin/admins" element={<GetAllAdmin />} />
-                    <Route path="/admin/room-viewings" element={<GetAllRoomViewing />} />
-                  </Routes>
-                </DashboardLayout>
-              </PrivateRoute>
-            }
-          />
-        </Routes>
-      </Suspense>
-    </Router>
+                      {/* System */}
+                      <Route path="/admin/admins" element={<GetAllAdmin />} />
+                      <Route path="/admin/room-viewings" element={<GetAllRoomViewing />} />
+                    </Routes>
+                  </DashboardLayout>
+                </PrivateRoute>
+              }
+            />
+          </Routes>
+        </Suspense>
+      </Router>
+    </LanguageProvider>
   );
 }
 

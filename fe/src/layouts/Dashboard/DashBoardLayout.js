@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Layout, Dropdown, Menu, message, Modal, Avatar, Button, Drawer } from "antd";
-import { UserOutlined, LockOutlined, LogoutOutlined, MenuOutlined } from "@ant-design/icons";
+import { UserOutlined, LockOutlined, LogoutOutlined, MenuOutlined, BulbOutlined, BulbFilled } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import SidebarMenu from "../../components/Menu/SideBarMenu";
 import ModalChangePassword from "../../components/Login/ModalChangePassword";
@@ -14,6 +14,17 @@ const DashboardLayout = ({ children }) => {
   const [modalChangePassword, setModalChangePassword] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [drawerVisible, setDrawerVisible] = useState(false);
+
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+
+  useEffect(() => {
+    document.body.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(theme === 'light' ? 'dark' : 'light');
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -77,22 +88,23 @@ const DashboardLayout = ({ children }) => {
       onClick={handleMenuClick}
       style={{
         borderRadius: '8px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-        border: '1px solid #e5e7eb',
+        boxShadow: 'var(--shadow-md)',
+        border: '1px solid var(--color-border)',
         padding: '4px',
+        background: 'var(--color-surface)'
       }}
     >
       <Menu.Item
         key="changePassword"
         icon={<LockOutlined />}
-        style={{ fontSize: '13px', borderRadius: '6px' }}
+        style={{ fontSize: '13px', borderRadius: '6px', color: 'var(--color-text)' }}
       >
         Đổi mật khẩu
       </Menu.Item>
       <Menu.Item
         key="logout"
         icon={<LogoutOutlined />}
-        style={{ fontSize: '13px', borderRadius: '6px', color: '#ef4444' }}
+        style={{ fontSize: '13px', borderRadius: '6px', color: 'var(--color-danger)' }}
       >
         Đăng xuất
       </Menu.Item>
@@ -100,7 +112,7 @@ const DashboardLayout = ({ children }) => {
   );
 
   return (
-    <Layout style={{ minHeight: "100vh", background: '#f5f5f5' }}>
+    <Layout style={{ minHeight: "100vh", background: 'var(--color-bg)' }}>
       {/* Desktop: Fixed Sidebar */}
       {!isMobile && (
         <div style={{
@@ -109,7 +121,7 @@ const DashboardLayout = ({ children }) => {
           left: 0,
           zIndex: 1000,
           height: '100vh',
-          width: '240px',
+          width: 'var(--sidebar-width)',
         }}>
           <SidebarMenu />
         </div>
@@ -121,8 +133,8 @@ const DashboardLayout = ({ children }) => {
           placement="left"
           onClose={() => setDrawerVisible(false)}
           open={drawerVisible}
-          width={260}
-          bodyStyle={{ padding: 0 }}
+          width={280}
+          styles={{ body: { padding: 0 } }}
           headerStyle={{ display: 'none' }}
         >
           <SidebarMenu onClose={() => setDrawerVisible(false)} />
@@ -131,9 +143,10 @@ const DashboardLayout = ({ children }) => {
 
       {/* Main Area */}
       <Layout style={{
-        background: '#f5f5f5',
-        marginLeft: isMobile ? 0 : '240px',
+        background: 'var(--color-bg)',
+        marginLeft: isMobile ? 0 : 'var(--sidebar-width)',
         minHeight: '100vh',
+        transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
       }}>
         {/* Header */}
         <div
@@ -144,25 +157,32 @@ const DashboardLayout = ({ children }) => {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            background: "#ffffff",
-            padding: isMobile ? "0 12px" : "0 24px",
-            height: '56px',
-            borderBottom: '1px solid #e5e7eb',
+            background: "var(--color-surface)",
+            padding: isMobile ? "0 16px" : "0 32px",
+            height: 'var(--header-height)',
+            borderBottom: '1px solid var(--color-border)',
+            boxShadow: 'var(--shadow-sm)',
+            transition: 'background 0.3s'
           }}
         >
           {/* Left Side */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '12px',
+            gap: '16px',
           }}>
             {/* Mobile hamburger */}
             {isMobile && (
               <Button
                 type="text"
-                icon={<MenuOutlined style={{ fontSize: '18px' }} />}
+                icon={<MenuOutlined style={{ fontSize: '20px', color: 'var(--color-text)' }} />}
                 onClick={() => setDrawerVisible(true)}
-                style={{ padding: '4px 8px' }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '10px'
+                }}
               />
             )}
 
@@ -170,66 +190,87 @@ const DashboardLayout = ({ children }) => {
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '16px',
-              color: '#6b7280',
-              fontSize: '13px',
+              gap: '20px',
+              color: 'var(--color-text-secondary)',
+              fontSize: '14px',
             }}>
               {!isMobile && (
-                <span style={{ fontWeight: '500' }}>{formatDate(time)}</span>
+                <span style={{ fontWeight: '500', color: 'var(--color-text)' }}>{formatDate(time)}</span>
               )}
               <span style={{
-                color: '#1677ff',
-                fontWeight: '600',
-                fontFamily: "'Inter', monospace",
+                color: 'var(--color-primary)',
+                fontWeight: '700',
+                letterSpacing: '-0.5px'
               }}>
                 {formatTime(time)}
               </span>
             </div>
           </div>
 
-          {/* Right: User */}
-          <Dropdown
-            overlay={userMenu}
-            placement="bottomRight"
-            trigger={["hover"]}
-          >
-            <div
+          {/* Right: User & Theme Toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            {/* Theme Toggle */}
+            <Button
+              type="text"
+              onClick={toggleTheme}
+              icon={theme === 'dark' ? <BulbFilled style={{ color: '#faad14', fontSize: '18px' }} /> : <BulbOutlined style={{ color: 'var(--color-text)', fontSize: '18px' }} />}
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                cursor: 'pointer',
-                padding: '6px 12px',
-                borderRadius: '6px',
-                transition: 'background 0.2s',
+                justifyContent: 'center',
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                background: 'var(--color-surface-secondary)'
               }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#f3f4f6';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent';
-              }}
+            />
+
+            <Dropdown
+              overlay={userMenu}
+              placement="bottomRight"
+              trigger={["click"]}
             >
-              <Avatar
-                size={28}
-                icon={<UserOutlined />}
-                style={{ background: '#1677ff' }}
-              />
-              {!isMobile && (
-                <span style={{
-                  fontWeight: '500',
-                  color: '#374151',
-                  fontSize: '13px',
-                }}>
-                  {userName}
-                </span>
-              )}
-            </div>
-          </Dropdown>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  cursor: 'pointer',
+                  padding: '6px 12px',
+                  borderRadius: '12px',
+                  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'var(--color-surface-secondary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                }}
+              >
+                <Avatar
+                  size={32}
+                  icon={<UserOutlined />}
+                  style={{ background: 'var(--color-text-secondary)' }}
+                />
+                {!isMobile && (
+                  <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
+                    <span style={{
+                      fontWeight: '600',
+                      color: 'var(--color-text)',
+                      fontSize: '14px',
+                    }}>
+                      {userName}
+                    </span>
+                    <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', fontWeight: 500 }}>Quản trị viên</span>
+                  </div>
+                )}
+              </div>
+            </Dropdown>
+          </div>
         </div>
 
         {/* Content */}
-        <Content style={{ padding: isMobile ? '12px' : '24px' }}>
+        <Content style={{ padding: isMobile ? '16px' : '32px' }}>
           {children}
         </Content>
       </Layout>

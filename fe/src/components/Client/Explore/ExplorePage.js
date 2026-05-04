@@ -7,13 +7,14 @@ import {
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useLanguage } from '../../../contexts/LanguageContext';
 const { Title, Text, Paragraph } = Typography;
 
 const fadeUp = (delay = 0) => ({
-  initial: { opacity: 0, y: 40 },
+  initial: { opacity: 0, y: 30 },
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true },
-  transition: { duration: 0.7, delay }
+  transition: { duration: 0.4, delay }
 });
 
 const STATS = [
@@ -39,6 +40,7 @@ const TIMELINE_DATA = [
   { year: '2024', title: 'Hiện tại', desc: 'Hơn 200 phòng cho thuê, 1,500+ khách hàng. Tiếp tục đầu tư và nâng cấp chất lượng.' },
 ];
 const ExplorePage = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [viewportWidth, setViewportWidth] = useState(window.innerWidth);
   const isMobile = viewportWidth <= 768;
@@ -50,23 +52,50 @@ const ExplorePage = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const STATS_T = [
+    { icon: <HomeOutlined />, value: '200+', label: t('explorePage.stats.rooms'), color: '#0071e3' },
+    { icon: <TeamOutlined />, value: '1,500+', label: t('explorePage.stats.customers'), color: '#34c759' },
+    { icon: <EnvironmentOutlined />, value: '7', label: t('explorePage.stats.areas'), color: '#ff9500' },
+    { icon: <StarOutlined />, value: '10+', label: t('explorePage.stats.exp'), color: '#af52de' },
+  ];
+
+  const VALUES_T = [
+    { icon: <SafetyOutlined />, title: t('explorePage.values.v1.title'), desc: t('explorePage.values.v1.desc') },
+    { icon: <HeartOutlined />, title: t('explorePage.values.v2.title'), desc: t('explorePage.values.v2.desc') },
+    { icon: <TrophyOutlined />, title: t('explorePage.values.v3.title'), desc: t('explorePage.values.v3.desc') },
+    { icon: <RocketOutlined />, title: t('explorePage.values.v4.title'), desc: t('explorePage.values.v4.desc') },
+  ];
+
+  const TIMELINE_DATA_T = [
+    { year: t('explorePage.timeline.t1.year'), title: t('explorePage.timeline.t1.title'), desc: t('explorePage.timeline.t1.desc') },
+    { year: t('explorePage.timeline.t2.year'), title: t('explorePage.timeline.t2.title'), desc: t('explorePage.timeline.t2.desc') },
+    { year: t('explorePage.timeline.t3.year'), title: t('explorePage.timeline.t3.title'), desc: t('explorePage.timeline.t3.desc') },
+    { year: t('explorePage.timeline.t4.year'), title: t('explorePage.timeline.t4.title'), desc: t('explorePage.timeline.t4.desc') },
+    { year: t('explorePage.timeline.t5.year'), title: t('explorePage.timeline.t5.title'), desc: t('explorePage.timeline.t5.desc') },
+    { year: t('explorePage.timeline.t6.year'), title: t('explorePage.timeline.t6.title'), desc: t('explorePage.timeline.t6.desc') },
+  ];
+
   return (
     <div style={{ background: '#f5f5f7', minHeight: '100vh', paddingBottom: '100px' }}>
 
 
       <div style={{
-        position: 'relative', height: isMobile ? '300px' : isTablet ? '340px' : '400px', overflow: 'hidden',
-        background: 'linear-gradient(135deg, #1a1a2e 0%, #0f3460 50%, #16213e 100%)',
+        position: 'relative', minHeight: isMobile ? '300px' : isTablet ? '340px' : '400px', overflow: 'hidden',
+        background: '#000000',
+        padding: isMobile ? '60px 0' : '80px 0'
       }}>
+        {/* Soft, premium blurred mesh glows */}
         <div style={{
-          position: 'absolute', top: '-100px', right: '-60px',
-          width: '400px', height: '400px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(175,82,222,0.15) 0%, transparent 70%)'
+          position: 'absolute', top: '-150px', left: '-10%',
+          width: '500px', height: '500px', borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(94,92,230,0.15) 0%, transparent 70%)',
+          filter: 'blur(50px)'
         }} />
         <div style={{
-          position: 'absolute', bottom: '-80px', left: '5%',
-          width: '300px', height: '300px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(0,113,227,0.12) 0%, transparent 70%)'
+          position: 'absolute', bottom: '-200px', right: '-5%',
+          width: '600px', height: '600px', borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(10,132,255,0.12) 0%, transparent 70%)',
+          filter: 'blur(60px)'
         }} />
 
         <div style={{
@@ -75,24 +104,32 @@ const ExplorePage = () => {
           padding: isMobile ? '0 16px' : '0 24px', position: 'relative', zIndex: 1
         }}>
           <motion.div {...fadeUp()}>
-            <Text style={{
-              color: '#af52de', fontSize: '13px', fontWeight: 600,
-              letterSpacing: '3px', textTransform: 'uppercase', display: 'block', marginBottom: '12px'
+            <Text className="custom-color" style={{
+              color: '#86868b', fontSize: '13px', fontWeight: 600,
+              letterSpacing: '3px', textTransform: 'uppercase', display: 'block', marginBottom: '16px'
             }}>
-              VỀ CHÚNG TÔI
+              {t('explorePage.hero.subtitle')}
             </Text>
-            <Title level={1} style={{
-              color: '#fff', fontSize: isMobile ? '30px' : isTablet ? '38px' : '48px', fontWeight: 700,
-              margin: 0, lineHeight: 1.15, letterSpacing: '-1px', maxWidth: '650px'
+            <Title level={1} className="custom-color" style={{
+              color: '#ffffff', fontSize: isMobile ? '36px' : isTablet ? '44px' : '56px', fontWeight: 700,
+              margin: 0, lineHeight: 1.15, letterSpacing: '-1.5px', maxWidth: '750px'
             }}>
-              Hành trình <span style={{ color: '#af52de' }}>5 năm</span> <br />
-              kiến tạo không gian sống.
+              {t('explorePage.hero.title1')}{' '}
+              <span style={{ 
+                background: 'linear-gradient(90deg, #5e5ce6 0%, #0a84ff 100%)', 
+                WebkitBackgroundClip: 'text', 
+                WebkitTextFillColor: 'transparent',
+                display: 'inline-block'
+              }}>
+                {t('explorePage.hero.title2')}
+              </span> <br />
+              {t('explorePage.hero.title3')}
             </Title>
-            <Text style={{
-              color: 'rgba(255,255,255,0.5)', fontSize: isMobile ? '14px' : '17px',
-              display: 'block', marginTop: '20px', maxWidth: '520px', lineHeight: 1.7
+            <Text className="custom-color" style={{
+              color: '#a1a1a6', fontSize: isMobile ? '16px' : '19px',
+              display: 'block', marginTop: '24px', maxWidth: '580px', lineHeight: 1.6, fontWeight: 400
             }}>
-              Từ một căn nhà nhỏ ở Trích Sài đến hệ thống hơn 200 phòng cho thuê trải dài khắp Hà Nội — chúng tôi luôn đặt sự hài lòng của khách hàng lên hàng đầu.
+              {t('explorePage.hero.desc')}
             </Text>
           </motion.div>
         </div>
@@ -101,12 +138,12 @@ const ExplorePage = () => {
       <div style={{ maxWidth: '1200px', margin: isMobile ? '-24px auto 0' : '-50px auto 0', padding: isMobile ? '0 12px' : '0 24px', position: 'relative', zIndex: 10 }}>
         <motion.div {...fadeUp(0.2)}>
           <Row gutter={[16, 16]}>
-            {STATS.map((s, i) => (
+            {STATS_T.map((s, i) => (
               <Col xs={12} md={6} key={i}>
                 <Card style={{
-                  borderRadius: '16px', border: 'none', textAlign: 'center',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.06)', height: '100%'
-                }} bodyStyle={{ padding: '24px 16px' }}>
+                  borderRadius: '24px', border: '1px solid rgba(0,0,0,0.04)', textAlign: 'center',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.02)', height: '100%'
+                }} bodyStyle={{ padding: '32px 20px' }}>
                   <div style={{
                     width: '48px', height: '48px', borderRadius: '14px',
                     background: `${s.color}14`, color: s.color,
@@ -130,22 +167,22 @@ const ExplorePage = () => {
         <motion.div {...fadeUp()}>
           <div style={{ textAlign: 'center', marginBottom: '40px' }}>
             <Title level={2} style={{ fontSize: '32px', fontWeight: 700, color: '#1d1d1f', margin: 0 }}>
-              Câu chuyện của chúng tôi
+              {t('explorePage.story.title')}
             </Title>
             <div style={{ width: '50px', height: '4px', background: '#af52de', margin: '16px auto 0', borderRadius: '2px' }} />
           </div>
           <Card style={{
-            borderRadius: '20px', border: 'none',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
-          }} bodyStyle={{ padding: '32px' }}>
+            borderRadius: '28px', border: '1px solid rgba(0,0,0,0.04)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+          }} bodyStyle={{ padding: isMobile ? '24px' : '48px' }}>
             <Paragraph style={{ fontSize: '16px', lineHeight: 2, color: '#515154' }}>
-              Năm 2014, chúng tôi bắt đầu hành trình kinh doanh nhà trọ với chỉ <strong>5 phòng nhỏ</strong> tại khu vực Trích Sài, quận Tây Hồ, Hà Nội. Xuất phát từ mong muốn tạo ra một không gian sống sạch sẽ, an toàn và giá cả hợp lý cho sinh viên và người lao động trẻ.
+              {t('explorePage.story.p1')}
             </Paragraph>
             <Paragraph style={{ fontSize: '16px', lineHeight: 2, color: '#515154' }}>
-              Qua từng năm, bằng sự tận tâm và lắng nghe, chúng tôi đã từng bước mở rộng quy mô — từ Trích Sài sang <strong>Tứ Liên, Âu Cơ, An Dương Vương</strong>, rồi vươn xa tới <strong>Long Biên</strong> và <strong>Hà Đông</strong>. Mỗi khu vực mới là một cột mốc, một bài học và một cơ hội để hoàn thiện dịch vụ.
+              {t('explorePage.story.p2')}
             </Paragraph>
             <Paragraph style={{ fontSize: '16px', lineHeight: 2, color: '#515154', marginBottom: 0 }}>
-              Năm 2020, chúng tôi chuyển đổi số — áp dụng <strong>hệ thống quản lý phòng trọ trực tuyến</strong>, hợp đồng điện tử, và thanh toán online. Ngày hôm nay, với hơn <strong>200 phòng cho thuê</strong> và <strong>1,500+ khách hàng</strong> tin tưởng, chúng tôi tự hào là một trong những đơn vị cho thuê phòng trọ uy tín nhất khu vực Hà Nội.
+              {t('explorePage.story.p3')}
             </Paragraph>
           </Card>
         </motion.div>
@@ -155,19 +192,19 @@ const ExplorePage = () => {
         <motion.div {...fadeUp()}>
           <div style={{ textAlign: 'center', marginBottom: '40px' }}>
             <Title level={2} style={{ fontSize: '28px', fontWeight: 700, color: '#1d1d1f', margin: 0 }}>
-              Lịch sử phát triển
+              {t('explorePage.timeline.title')}
             </Title>
             <div style={{ width: '50px', height: '4px', background: '#0071e3', margin: '16px auto 0', borderRadius: '2px' }} />
           </div>
-          <Timeline mode={isMobile ? 'left' : 'alternate'} items={TIMELINE_DATA.map((item, idx) => ({
-            color: idx === TIMELINE_DATA.length - 1 ? '#af52de' : '#0071e3',
-            dot: idx === TIMELINE_DATA.length - 1 ? <CheckCircleOutlined style={{ fontSize: '18px', color: '#af52de' }} /> : undefined,
+          <Timeline mode={isMobile ? 'left' : 'alternate'} items={TIMELINE_DATA_T.map((item, idx) => ({
+            color: idx === TIMELINE_DATA_T.length - 1 ? '#af52de' : '#0071e3',
+            dot: idx === TIMELINE_DATA_T.length - 1 ? <CheckCircleOutlined style={{ fontSize: '18px', color: '#af52de' }} /> : undefined,
             children: (
               <motion.div {...fadeUp(idx * 0.1)}>
                 <Card style={{
-                  borderRadius: '14px', border: 'none',
-                  boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
-                }} bodyStyle={{ padding: '16px 20px' }}>
+                  borderRadius: '20px', border: '1px solid rgba(0,0,0,0.03)',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+                }} bodyStyle={{ padding: '20px 24px' }}>
                   <Text style={{ color: '#0071e3', fontSize: '13px', fontWeight: 700 }}>{item.year}</Text>
                   <Title level={5} style={{ margin: '4px 0 6px', fontSize: '16px', fontWeight: 600 }}>{item.title}</Title>
                   <Text style={{ color: '#86868b', fontSize: '13px', lineHeight: 1.6 }}>{item.desc}</Text>
@@ -182,19 +219,19 @@ const ExplorePage = () => {
         <motion.div {...fadeUp()}>
           <div style={{ textAlign: 'center', marginBottom: '36px' }}>
             <Title level={2} style={{ fontSize: '28px', fontWeight: 700, color: '#1d1d1f', margin: 0 }}>
-              Giá trị cốt lõi
+              {t('explorePage.values.title')}
             </Title>
             <div style={{ width: '50px', height: '4px', background: '#34c759', margin: '16px auto 0', borderRadius: '2px' }} />
           </div>
           <Row gutter={[20, 20]}>
-            {VALUES.map((v, i) => (
+            {VALUES_T.map((v, i) => (
               <Col xs={24} sm={12} md={6} key={i}>
                 <motion.div {...fadeUp(i * 0.1)}>
                   <Card style={{
-                    borderRadius: '20px', border: 'none', height: '100%',
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
+                    borderRadius: '28px', border: '1px solid rgba(0,0,0,0.04)', height: '100%',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
                     transition: 'all 0.3s ease',
-                  }} bodyStyle={{ padding: '28px 20px', textAlign: 'center' }}
+                  }} bodyStyle={{ padding: '32px 24px', textAlign: 'center' }}
                     hoverable
                   >
                     <div style={{
@@ -223,10 +260,10 @@ const ExplorePage = () => {
             boxShadow: '0 12px 40px rgba(0,0,0,0.15)'
           }} bodyStyle={{ padding: '48px 32px' }}>
             <Title level={3} style={{ color: '#fff', fontSize: '26px', fontWeight: 700, margin: 0 }}>
-              Sẵn sàng tìm phòng?
+              {t('explorePage.cta.title')}
             </Title>
             <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: '15px', display: 'block', margin: '12px 0 28px' }}>
-              Khám phá hàng trăm phòng trọ chất lượng ngay hôm nay
+              {t('explorePage.cta.desc')}
             </Text>
             <Button
               type="primary" size="large"
@@ -237,7 +274,7 @@ const ExplorePage = () => {
                 boxShadow: '0 8px 20px rgba(0,113,227,0.3)'
               }}
             >
-              Xem phòng ngay
+              {t('explorePage.cta.btn')}
             </Button>
           </Card>
         </motion.div>

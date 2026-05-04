@@ -478,12 +478,13 @@ const Statistical = () => {
           <Card size="small" title={<Text style={{ fontWeight: 500 }}>Doanh thu theo tháng - {currentYear}</Text>}>
             <ResponsiveContainer width="100%" height={360}>
               <BarChart data={listTotalPriceForMonth} margin={{ top: 10, right: 20, left: 10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `${(v / 1000000).toFixed(1)}M`} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid-color)" />
+                <XAxis dataKey="month" tick={{ fill: 'var(--color-text-secondary)', fontSize: 12 }} />
+                <YAxis tick={{ fill: 'var(--color-text-secondary)', fontSize: 12 }} tickFormatter={(v) => `${(v / 1000000).toFixed(1)}M`} />
                 <Tooltip
                   formatter={(value, name) => [formatValue(value), name]}
-                  contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: '13px' }}
+                  contentStyle={{ borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)', fontSize: '13px' }}
+                  itemStyle={{ color: 'var(--color-text)' }}
                 />
                 <Legend wrapperStyle={{ paddingTop: '16px', fontSize: '12px' }} />
                 <Bar dataKey="totalMonth" name="Tổng" fill="#52c41a" radius={[3, 3, 0, 0]} />
@@ -508,7 +509,7 @@ const Statistical = () => {
                   paddingAngle={3}
                   dataKey="value"
                   label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  labelLine={{ stroke: '#d1d5db' }}
+                  labelLine={{ stroke: 'var(--color-text-muted)' }}
                   style={{ fontSize: '12px' }}
                 >
                   {pieData.map((entry, index) => (
@@ -517,7 +518,8 @@ const Statistical = () => {
                 </Pie>
                 <Tooltip
                   formatter={(value) => formatValue(value)}
-                  contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: '13px' }}
+                  contentStyle={{ borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)', fontSize: '13px' }}
+                  itemStyle={{ color: 'var(--color-text)' }}
                 />
               </PieChart>
             </ResponsiveContainer>
