@@ -1,12 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Row, Col, Card, Spin, Button, Space, Divider, message, Breadcrumb, Modal, Form, Input, DatePicker, Image } from 'antd';
-import { EnvironmentOutlined, DollarOutlined, ColumnWidthOutlined, TeamOutlined, PhoneOutlined, ArrowLeftOutlined, CheckCircleFilled, HomeOutlined } from '@ant-design/icons';
+import { Typography, Row, Col, Card, Spin, Button, Divider, message, Breadcrumb, Modal, Form, Input, DatePicker, Image, Tag } from 'antd';
+import { 
+  EnvironmentOutlined, 
+  TeamOutlined, 
+  PhoneOutlined, 
+  CheckCircleFilled, 
+  HomeOutlined,
+  StarFilled,
+  WifiOutlined,
+  CoffeeOutlined,
+  SafetyOutlined,
+  ThunderboltOutlined,
+  ExpandOutlined,
+  AppstoreOutlined
+} from '@ant-design/icons';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { getRoomDetail } from '../../../services/customer/HomeService';
 import { createRoomViewing } from '../../../services/customer/RoomViewing';
 import dayjs from 'dayjs';
 
 const { Title, Text, Paragraph } = Typography;
+const DEFAULT_IMAGES = [
+  "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=1200",
+  "https://images.unsplash.com/photo-1499955085172-a104c9463ece?auto=format&fit=crop&q=80&w=1200",
+  "https://images.unsplash.com/photo-1502672260266-1c1de2d9d000?auto=format&fit=crop&q=80&w=1200",
+  "https://images.unsplash.com/photo-1536376072261-38c75010e6c9?auto=format&fit=crop&q=80&w=1200",
+  "https://images.unsplash.com/photo-1449844908441-8829872d2607?auto=format&fit=crop&q=80&w=1200"
+];
 
 const RoomDetailClient = () => {
   const { slugAndId } = useParams();
@@ -18,6 +39,13 @@ const RoomDetailClient = () => {
   const [loading, setLoading] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleContactSubmit = async (values) => {
     Modal.confirm({
@@ -59,15 +87,6 @@ const RoomDetailClient = () => {
       }
     });
   };
-
-  // Helper images in case there are none or not enough from API
-  const DEFAULT_IMAGES = [
-    "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=1200",
-    "https://images.unsplash.com/photo-1499955085172-a104c9463ece?auto=format&fit=crop&q=80&w=1200",
-    "https://images.unsplash.com/photo-1502672260266-1c1de2d9d000?auto=format&fit=crop&q=80&w=1200",
-    "https://images.unsplash.com/photo-1536376072261-38c75010e6c9?auto=format&fit=crop&q=80&w=1200",
-    "https://images.unsplash.com/photo-1449844908441-8829872d2607?auto=format&fit=crop&q=80&w=1200"
-  ];
 
   const formatCurrency = (amount) => {
     if (!amount) return "Liên hệ";
@@ -130,15 +149,15 @@ const RoomDetailClient = () => {
   return (
     <div style={{ background: '#f5f5f7', paddingBottom: '80px', minHeight: '100vh' }}>
 
-      <div style={{ background: '#fff', borderBottom: '1px solid rgba(0,0,0,0.05)', padding: '16px 0', position: 'sticky', top: 60, zIndex: 90 }}>
+      <div style={{ background: '#fff', borderBottom: '1px solid rgba(0,0,0,0.05)', padding: '12px 0' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px', display: 'flex', alignItems: 'center' }}>
           <Breadcrumb
-            separator=">"
-            style={{ fontSize: '15px', fontWeight: 500 }}
+            separator={<span style={{ color: '#d2d2d7' }}>/</span>}
+            style={{ fontSize: '14px', fontWeight: 500 }}
             items={[
-              { title: <Link to="/" style={{ color: '#86868b' }}>Trang chủ</Link> },
-              { title: <span style={{ color: '#86868b' }}>{room.houseForRent?.nameHouse || room.houseForRent?.name || "Khu vực"}</span> },
-              { title: <span style={{ color: '#1d1d1f' }}>Chi tiết {room.name || `Phòng ${room.code || slugAndId}`}</span> }
+              { title: <Link to="/" style={{ color: '#86868b', transition: 'color 0.3s' }}>Trang chủ</Link> },
+              { title: <Link to="/rooms" style={{ color: '#86868b' }}>Phòng trọ</Link> },
+              { title: <span style={{ color: '#1d1d1f' }}>{room.name || `Phòng ${room.code || slugAndId}`}</span> }
             ]}
           />
         </div>
@@ -146,66 +165,63 @@ const RoomDetailClient = () => {
 
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 20px' }}>
 
-        <div style={{ position: 'relative', marginBottom: '40px' }}>
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.98 }} 
+          animate={{ opacity: 1, scale: 1 }} 
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          style={{ position: 'relative', marginBottom: '40px' }}
+        >
           <Image.PreviewGroup>
             <Row gutter={[12, 12]} style={{
-              height: window.innerWidth > 768 ? '500px' : '300px',
-              borderRadius: '24px',
+              height: isMobile ? '300px' : '520px',
+              borderRadius: '28px',
               overflow: 'hidden'
             }}>
-              <Col xs={24} md={12} style={{ height: '100%' }}>
-                <div style={{ height: '100%', overflow: 'hidden', borderRadius: '12px' }}>
+              <Col xs={24} md={14} style={{ height: '100%' }}>
+                <div style={{ height: '100%', overflow: 'hidden', borderRadius: '16px' }}>
                   <Image
                     src={displayImages[0]}
                     alt="Main"
                     wrapperStyle={{ width: '100%', height: '100%' }}
                     style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      cursor: 'pointer',
-                      transition: 'transform 0.5s ease'
+                      width: '100%', height: '100%',
+                      objectFit: 'cover', cursor: 'pointer',
+                      transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.03)'}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.04)'}
                     onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                   />
                 </div>
               </Col>
 
-              <Col xs={0} md={12} style={{ height: '100%' }}>
+              <Col xs={0} md={10} style={{ height: '100%' }}>
                 <Row gutter={[12, 12]} style={{ height: '100%' }}>
                   {displayImages.slice(1, 5).map((img, idx) => (
                     <Col span={12} key={idx} style={{ height: 'calc(50% - 6px)' }}>
-                      <div style={{
-                        height: '100%',
-                        overflow: 'hidden',
-                        borderRadius: '12px',
-                        position: 'relative'
-                      }}>
+                      <div style={{ height: '100%', overflow: 'hidden', borderRadius: '16px', position: 'relative' }}>
                         <Image
                           src={img}
                           alt={`Room ${idx + 2}`}
                           wrapperStyle={{ width: '100%', height: '100%' }}
                           style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            cursor: 'pointer',
-                            transition: 'transform 0.5s ease'
+                            width: '100%', height: '100%',
+                            objectFit: 'cover', cursor: 'pointer',
+                            transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)'
                           }}
-                          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.08)'}
                           onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                         />
-                        {idx === 3 && displayImages.length > 5 && (
+                        {idx === 3 && images.length > 5 && (
                           <div
                             style={{
-                              position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-                              background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center',
-                              justifyContent: 'center', color: '#fff', fontSize: '18px', fontWeight: 600,
-                              pointerEvents: 'none', borderRadius: '12px'
+                              position: 'absolute', inset: 0,
+                              background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              color: '#fff', fontSize: '18px', fontWeight: 600,
+                              pointerEvents: 'none', borderRadius: '16px'
                             }}
                           >
-                            +{displayImages.length - 4} ảnh
+                            +{images.length - 4} ảnh
                           </div>
                         )}
                       </div>
@@ -214,7 +230,6 @@ const RoomDetailClient = () => {
                 </Row>
               </Col>
 
-              {/* Hidden Images for PreviewGroup (to enable scrolling through all) */}
               <div style={{ display: 'none' }}>
                 {displayImages.slice(5).map((img, idx) => (
                   <Image key={idx + 5} src={img} />
@@ -225,126 +240,225 @@ const RoomDetailClient = () => {
 
           <Button
             style={{
-              position: 'absolute',
-              bottom: '24px',
-              right: '24px',
-              borderRadius: '12px',
-              fontWeight: 600,
-              padding: '10px 20px',
-              height: 'auto',
-              background: '#ffffff',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-              border: '1px solid #1d1d1f',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
+              position: 'absolute', bottom: '24px', right: '24px',
+              borderRadius: '14px', fontWeight: 600, padding: '12px 24px',
+              height: 'auto', background: '#ffffff',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+              border: 'none', display: 'flex', alignItems: 'center', gap: '10px',
+              zIndex: 10
             }}
             onClick={() => {
               const firstImage = document.querySelector('.ant-image-img');
               if (firstImage) firstImage.click();
             }}
           >
-            <CheckCircleFilled style={{ fontSize: '16px' }} />
-            Xem tất cả {images.length || 5} ảnh
+            <AppstoreOutlined style={{ fontSize: '18px' }} />
+            Tất cả ảnh
           </Button>
-        </div>
+        </motion.div>
 
         <Row gutter={[40, 40]}>
-
           <Col xs={24} lg={16}>
-            <div style={{ background: '#fff', borderRadius: '24px', padding: '32px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.04)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                <Title level={2} style={{ margin: 0, fontWeight: 700, fontSize: '32px', letterSpacing: '-0.5px' }}>
+            <motion.div 
+              initial={{ opacity: 0, x: -30 }} 
+              animate={{ opacity: 1, x: 0 }} 
+              transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <div style={{ marginBottom: '32px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                  <Tag color="blue" style={{ borderRadius: '6px', fontWeight: 600, margin: 0, padding: '2px 10px' }}>PHÒNG TRỐNG</Tag>
+                  <Tag color="green" style={{ borderRadius: '6px', fontWeight: 600, margin: 0, padding: '2px 10px' }}>ƯU ĐÃI THÁNG {dayjs().format('MM')}</Tag>
+                </div>
+                <Title level={1} style={{ margin: '0 0 12px', fontWeight: 800, fontSize: isMobile ? '32px' : '44px', letterSpacing: '-2px', color: '#1d1d1f' }}>
                   {room.name || `Phòng ${room.code || slugAndId}`}
                 </Title>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#86868b', fontSize: '16px' }}>
+                  <EnvironmentOutlined style={{ color: '#0071e3' }} />
+                  <Text style={{ color: '#86868b' }}>{room.houseForRent?.address || "Hà Nội"}</Text>
+                  <Divider type="vertical" />
+                  <Text style={{ color: '#86868b' }}>Tầng {room.floor || "0"}</Text>
+                </div>
               </div>
 
-              <Text style={{ fontSize: '16px', color: '#515154', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '24px' }}>
-                <EnvironmentOutlined /> Tầng {room.floor || "Không xác định"} · Gần cửa sổ thoáng mát
-              </Text>
+              {/* Bento Grid Info Cards */}
+              <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={{
+                  hidden: { opacity: 0 },
+                  visible: {
+                    opacity: 1,
+                    transition: { staggerChildren: 0.1, delayChildren: 0.4 }
+                  }
+                }}
+              >
+                <Row gutter={[16, 16]} style={{ marginBottom: '40px' }}>
+                  {[
+                    { icon: <ExpandOutlined />, label: 'Diện tích', value: `${room.acreage} m²`, color: '#eef4ff', iconColor: '#0071e3' },
+                    { icon: <TeamOutlined />, label: 'Sức chứa', value: `Tối đa ${room.peopleMax} người`, color: '#f0fcf4', iconColor: '#34c759' },
+                    { icon: <HomeOutlined />, label: 'Loại phòng', value: 'Cao cấp', color: '#fff9f0', iconColor: '#ff9500' },
+                    { icon: <SafetyOutlined />, label: 'An ninh', value: '24/7', color: '#fdf2f8', iconColor: '#af52de' }
+                  ].map((item, idx) => (
+                    <Col xs={12} sm={6} key={idx}>
+                      <motion.div 
+                        variants={{
+                          hidden: { opacity: 0, y: 20 },
+                          visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+                        }}
+                        style={{
+                          background: item.color, borderRadius: '20px', padding: '20px',
+                          height: '100%', border: '1px solid rgba(0,0,0,0.02)',
+                          display: 'flex', flexDirection: 'column', gap: '12px'
+                        }}
+                      >
+                        <div style={{ 
+                          width: '36px', height: '36px', borderRadius: '10px', 
+                          background: '#fff', display: 'flex', alignItems: 'center', 
+                          justifyContent: 'center', color: item.iconColor, fontSize: '18px',
+                          boxShadow: '0 4px 10px rgba(0,0,0,0.05)'
+                        }}>
+                          {item.icon}
+                        </div>
+                        <div>
+                          <Text style={{ display: 'block', fontSize: '13px', color: '#86868b', marginBottom: '2px' }}>{item.label}</Text>
+                          <Text strong style={{ fontSize: '15px', color: '#1d1d1f' }}>{item.value}</Text>
+                        </div>
+                      </motion.div>
+                    </Col>
+                  ))}
+                </Row>
+              </motion.div>
 
-              <Divider style={{ margin: '16px 0' }} />
+              <Divider style={{ margin: '40px 0' }} />
 
-              <Row gutter={[16, 16]} style={{ margin: '24px 0' }}>
-                <Col span={8}>
-                  <Space direction="vertical" size={2}>
-                    <Text type="secondary" style={{ fontSize: '13px' }}><ColumnWidthOutlined /> Diện tích</Text>
-                    <Text strong style={{ fontSize: '16px' }}>{room.acreage} m²</Text>
-                  </Space>
-                </Col>
-                <Col span={8}>
-                  <Space direction="vertical" size={2}>
-                    <Text type="secondary" style={{ fontSize: '13px' }}><TeamOutlined /> Sức chứa</Text>
-                    <Text strong style={{ fontSize: '16px' }}>Tối đa {room.peopleMax} người</Text>
-                  </Space>
-                </Col>
-                <Col span={8}>
-                  <Space direction="vertical" size={2}>
-                    <Text type="secondary" style={{ fontSize: '13px' }}><HomeOutlined /> Trạng thái</Text>
-                    <Text strong style={{ fontSize: '16px', color: '#0071e3' }}>Có phòng trống</Text>
-                  </Space>
-                </Col>
-              </Row>
+              <motion.div 
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8 }}
+                style={{ marginBottom: '48px' }}
+              >
+                <Title level={3} style={{ fontWeight: 700, fontSize: '24px', marginBottom: '20px', letterSpacing: '-0.5px' }}>
+                  Về không gian này
+                </Title>
+                <Paragraph style={{ fontSize: '17px', lineHeight: '1.8', color: '#424245', marginBottom: '24px' }}>
+                  Tọa lạc tại khu vực {room.houseForRent?.nameHouse || 'trung tâm'}, căn phòng mang phong cách thiết kế tối giản, 
+                  tối ưu hóa ánh sáng tự nhiên với cửa sổ rộng. Đây là lựa chọn hoàn hảo cho những ai tìm kiếm 
+                  một không gian sống yên tĩnh, an toàn nhưng vẫn thuận tiện kết nối.
+                </Paragraph>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
+                  {[
+                    'Giờ giấc tự do, không chung chủ',
+                    'Vệ sinh khép kín, thiết bị hiện đại',
+                    'Hệ thống camera an ninh 24/24',
+                    'Bãi đỗ xe rộng rãi tại tầng 1',
+                    'Dịch vụ dọn vệ sinh định kỳ',
+                    'Khu dân cư văn minh, yên tĩnh'
+                  ].map((text, i) => (
+                    <motion.div 
+                      key={i} 
+                      initial={{ opacity: 0, x: -10 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.1 }}
+                      style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
+                    >
+                      <CheckCircleFilled style={{ color: '#34c759', fontSize: '18px' }} />
+                      <Text style={{ fontSize: '16px', color: '#1d1d1f' }}>{text}</Text>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
 
-              <Divider style={{ margin: '16px 0' }} />
-
-              <Title level={4} style={{ marginTop: '24px', marginBottom: '16px', fontWeight: 600 }}>Thông tin chi tiết</Title>
-              <Paragraph style={{ fontSize: '16px', lineHeight: '1.7', color: '#1d1d1f' }}>
-                Phòng trọ cao cấp, thiết kế hiện đại, đầy đủ tiện ích phù hợp cho sinh viên và người đi làm.
-                Không gian sinh hoạt rộng rãi {room.acreage} m², có cửa sổ đón nắng và gió tự nhiên, giúp phòng luôn thông thoáng.
-              </Paragraph>
-              <Paragraph style={{ fontSize: '16px', lineHeight: '1.7', color: '#1d1d1f' }}>
-                • Giờ giấc tự do, không chung chủ<br />
-                • Vệ sinh khép kín sạch sẽ<br />
-                • Hệ thống an ninh camera 24/24<br />
-                • Xe để ở tầng trệt rộng rãi an toàn
-              </Paragraph>
-
-              <Title level={4} style={{ marginTop: '40px', marginBottom: '16px', fontWeight: 600 }}>Nội thất bao gồm</Title>
-              <Row gutter={[16, 16]}>
-                {['Máy lạnh Inverter', 'Giường & Nệm', 'Tủ quần áo', 'Tủ lạnh', 'Kệ bếp', 'Nước nóng lạnh'].map((item, idx) => (
-                  <Col span={12} key={idx}>
-                    <Text style={{ fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <CheckCircleFilled style={{ color: '#000' }} /> {item}
-                    </Text>
-                  </Col>
-                ))}
-              </Row>
-            </div>
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+                style={{ marginBottom: '20px' }}
+              >
+                <Title level={3} style={{ fontWeight: 700, fontSize: '24px', marginBottom: '24px', letterSpacing: '-0.5px' }}>
+                  Tiện ích & Nội thất
+                </Title>
+                <Row gutter={[20, 20]}>
+                  {[
+                    { icon: <ThunderboltOutlined />, name: 'Máy lạnh Inverter' },
+                    { icon: <HomeOutlined />, name: 'Giường & Nệm' },
+                    { icon: <CoffeeOutlined />, name: 'Tủ quần áo' },
+                    { icon: <WifiOutlined />, name: 'Wifi tốc độ cao' },
+                    { icon: <SafetyOutlined />, name: 'Kệ bếp cao cấp' },
+                    { icon: <StarFilled />, name: 'Nóng lạnh' }
+                  ].map((item, idx) => (
+                    <Col xs={12} sm={8} key={idx}>
+                      <motion.div 
+                        whileHover={{ scale: 1.05 }}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '12px',
+                          padding: '16px', borderRadius: '16px', border: '1px solid #f2f2f7',
+                          background: '#fafafa', transition: 'all 0.3s'
+                        }}
+                      >
+                        <span style={{ fontSize: '20px', color: '#1d1d1f' }}>{item.icon}</span>
+                        <Text strong style={{ fontSize: '14px', color: '#1d1d1f' }}>{item.name}</Text>
+                      </motion.div>
+                    </Col>
+                  ))}
+                </Row>
+              </motion.div>
+            </motion.div>
           </Col>
 
           <Col xs={24} lg={8}>
             <div style={{ position: 'sticky', top: '150px' }}>
-              <Card
-                style={{
-                  borderRadius: '24px',
-                  border: '1px solid rgba(0,0,0,0.08)',
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.06)',
-                  overflow: 'hidden'
-                }}
-                bodyStyle={{ padding: '32px' }}
+              <motion.div
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
               >
-                <Text style={{ fontSize: '24px', fontWeight: 700, color: '#1d1d1f', display: 'block', marginBottom: '8px' }}>
-                  {formatCurrency(room.price)}
-                  <span style={{ fontSize: '16px', fontWeight: 400, color: '#86868b' }}> / tháng</span>
-                </Text>
-
-                <Divider style={{ margin: '24px 0' }} />
-
-                <Space direction="vertical" style={{ width: '100%' }} size="large">
-                  <div>
-                    <Text type="secondary" style={{ display: 'block', marginBottom: '4px', fontSize: '14px' }}>Chi phí phụ khác</Text>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <Text style={{ color: '#1d1d1f' }}>Điện</Text>
-                      <Text strong>{formatCurrency(room.electricUnitPrice)}</Text>
+                <Card
+                  style={{
+                    borderRadius: '28px',
+                    border: '1px solid rgba(0,0,0,0.06)',
+                    boxShadow: '0 24px 80px rgba(0,0,0,0.1)',
+                    overflow: 'hidden',
+                    background: 'rgba(255,255,255,0.9)',
+                    backdropFilter: 'blur(20px)'
+                  }}
+                  bodyStyle={{ padding: '32px' }}
+                >
+                  <div style={{ marginBottom: '24px' }}>
+                    <Text style={{ fontSize: '14px', color: '#86868b', fontWeight: 500 }}>Giá thuê trọn gói</Text>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginTop: '4px' }}>
+                      <Text style={{ fontSize: '32px', fontWeight: 800, color: '#1d1d1f', letterSpacing: '-1px' }}>
+                        {formatCurrency(room.price)}
+                      </Text>
+                      <Text style={{ fontSize: '16px', color: '#86868b' }}>/ tháng</Text>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <Text style={{ color: '#1d1d1f' }}>Nước</Text>
-                      <Text strong>100.000 VNĐ/Phòng</Text>
+                  </div>
+
+                  <Divider style={{ margin: '24px 0', opacity: 0.6 }} />
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <ThunderboltOutlined style={{ color: '#ff9500' }} />
+                        <Text style={{ color: '#515154' }}>Tiền điện</Text>
+                      </div>
+                      <Text strong>{formatCurrency(room.electricUnitPrice)}/kWh</Text>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <Text style={{ color: '#1d1d1f' }}>Dịch vụ chung</Text>
-                      <Text strong>200.000 VNĐ/Phòng</Text>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <EnvironmentOutlined style={{ color: '#0071e3' }} />
+                        <Text style={{ color: '#515154' }}>Tiền nước</Text>
+                      </div>
+                      <Text strong>100k/người</Text>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <SafetyOutlined style={{ color: '#af52de' }} />
+                        <Text style={{ color: '#515154' }}>Dịch vụ khác</Text>
+                      </div>
+                      <Text strong>Miễn phí</Text>
                     </div>
                   </div>
 
@@ -353,24 +467,30 @@ const RoomDetailClient = () => {
                     size="large"
                     block
                     style={{
-                      height: '52px',
-                      borderRadius: '12px',
-                      fontSize: '16px',
-                      fontWeight: 600,
+                      height: '56px',
+                      borderRadius: '16px',
+                      fontSize: '17px',
+                      fontWeight: 700,
                       background: '#1d1d1f',
-                      borderColor: '#1d1d1f'
+                      borderColor: '#1d1d1f',
+                      boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '10px'
                     }}
-                    icon={<PhoneOutlined />}
                     onClick={() => setIsModalVisible(true)}
                   >
-                    Liên hệ ngay để xem phòng
+                    <PhoneOutlined /> Đặt lịch xem phòng
                   </Button>
 
-                  <div style={{ textAlign: 'center' }}>
-                    <Text style={{ fontSize: '13px', color: '#86868b' }}>Bạn sẽ không bị tính phí khi ấn nút liên hệ. Bộ phận hỗ trợ sẽ tư vấn chi tiết cho bạn.</Text>
+                  <div style={{ marginTop: '20px', textAlign: 'center', padding: '0 10px' }}>
+                    <Text style={{ fontSize: '12px', color: '#86868b', lineHeight: 1.5, display: 'block' }}>
+                      Không phát sinh chi phí môi giới. Hỗ trợ thủ tục hợp đồng nhanh chóng 24/7.
+                    </Text>
                   </div>
-                </Space>
-              </Card>
+                </Card>
+              </motion.div>
             </div>
           </Col>
         </Row>

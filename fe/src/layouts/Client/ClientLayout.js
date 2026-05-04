@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Layout, Menu, Button, Typography, Space, Row, Col, Divider, Drawer } from 'antd';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { PhoneOutlined, MenuOutlined, CloseOutlined } from '@ant-design/icons';
+import { 
+  PhoneOutlined, 
+  MenuOutlined, 
+  FacebookFilled, 
+  MessageFilled 
+} from '@ant-design/icons';
+import { motion } from 'framer-motion';
 import logo from './media/tien_duc_land_logo_2.png';
+import logoZalo from '../../assets/logo-zalo.png';
 const { Header, Content, Footer } = Layout;
 const { Text, Title } = Typography;
 
@@ -263,6 +270,116 @@ const ClientLayout = ({ children }) => {
 
         </div>
       </Footer>
+      {/* Global Floating Contact Buttons (Pill Style) */}
+      <div style={{ 
+        position: 'fixed', 
+        bottom: '24px', 
+        right: '24px', 
+        zIndex: 2000, 
+        display: 'flex', 
+        flexDirection: 'column', 
+        gap: '12px',
+        alignItems: 'flex-end'
+      }}>
+        {/* Chat Facebook Button */}
+        <motion.a
+          href="https://m.me/yourpage"
+          target="_blank"
+          rel="noopener noreferrer"
+          whileHover={{ x: -5 }}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: '#0084ff', color: '#fff',
+            width: isMobile ? '44px' : 'auto',
+            height: isMobile ? '44px' : 'auto',
+            padding: isMobile ? '0' : '8px 20px', 
+            borderRadius: '100px',
+            fontSize: '13px', fontWeight: 700,
+            boxShadow: '0 4px 15px rgba(0,132,255,0.3)',
+            textDecoration: 'none'
+          }}
+        >
+          <FacebookFilled style={{ fontSize: isMobile ? '24px' : '20px' }} />
+          {!isMobile && <span style={{ marginLeft: '10px' }}>CHAT FACEBOOK</span>}
+        </motion.a>
+
+        {/* Chat Zalo Button */}
+        <motion.a
+          href="https://zalo.me/0364862148"
+          target="_blank"
+          rel="noopener noreferrer"
+          whileHover={{ x: -5 }}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: '#0068ff', color: '#fff',
+            width: isMobile ? '44px' : 'auto',
+            height: isMobile ? '44px' : 'auto',
+            padding: isMobile ? '0' : '8px 20px', 
+            borderRadius: '100px',
+            fontSize: '13px', fontWeight: 700,
+            boxShadow: '0 4px 15px rgba(0,104,255,0.3)',
+            textDecoration: 'none'
+          }}
+        >
+          <div style={{ 
+            width: isMobile ? '30px' : '24px', 
+            height: isMobile ? '30px' : '24px', 
+            background: '#fff', borderRadius: '50%', 
+            display: 'flex', alignItems: 'center', justifyContent: 'center' 
+          }}>
+            <img src={logoZalo} alt="Zalo" style={{ width: isMobile ? '18px' : '16px' }} />
+          </div>
+          {!isMobile && <span style={{ marginLeft: '10px' }}>CHAT ZALO</span>}
+        </motion.a>
+
+        {/* Hotline Button */}
+        <motion.a
+          href="tel:0364862148"
+          whileHover={{ scale: 1.05 }}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: '#00992d', color: '#fff',
+            width: isMobile ? '50px' : 'auto',
+            height: isMobile ? '50px' : '52px',
+            padding: isMobile ? '0' : '4px 24px 4px 4px', 
+            borderRadius: '100px',
+            fontSize: '18px', fontWeight: 800,
+            boxShadow: '0 8px 20px rgba(0,153,45,0.3)',
+            textDecoration: 'none',
+            position: 'relative'
+          }}
+        >
+          <div style={{ 
+            width: isMobile ? '42px' : '44px', 
+            height: isMobile ? '42px' : '44px', 
+            background: isMobile ? 'transparent' : '#fff', 
+            borderRadius: '50%', 
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            marginRight: isMobile ? '0' : '12px',
+            boxShadow: isMobile ? 'none' : '0 0 0 4px rgba(255,255,255,0.2)'
+          }}>
+            <MessageFilled style={{ color: isMobile ? '#fff' : '#00992d', fontSize: isMobile ? '28px' : '22px' }} />
+          </div>
+          {!isMobile && "0364.862.148"}
+          <div style={{ 
+            position: 'absolute', left: '-8px', top: '-8px', 
+            right: '-8px', bottom: '-8px', 
+            borderRadius: '100px', border: '2px solid #00992d',
+            animation: 'pulse-green-global 2s infinite',
+            opacity: 0.5,
+            pointerEvents: 'none'
+          }} />
+        </motion.a>
+      </div>
+
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        @keyframes pulse-green-global {
+          0% { transform: scale(1); opacity: 0.5; }
+          70% { transform: scale(1.1); opacity: 0; }
+          100% { transform: scale(1.2); opacity: 0; }
+        }
+      `}} />
     </Layout>
   );
 };

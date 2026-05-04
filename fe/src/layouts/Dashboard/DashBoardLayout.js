@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Layout, Dropdown, Menu, message, Modal, Avatar, Button, Drawer } from "antd";
-import { UserOutlined, LockOutlined, LogoutOutlined, MenuOutlined, CloseOutlined } from "@ant-design/icons";
+import { UserOutlined, LockOutlined, LogoutOutlined, MenuOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import SidebarMenu from "../../components/Menu/SideBarMenu";
 import ModalChangePassword from "../../components/Login/ModalChangePassword";

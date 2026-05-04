@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Row, Col, Card, Spin, Button, Tag, Tooltip, Empty, Slider } from 'antd';
+import { Typography, Row, Col, Card, Spin, Button, Empty, Slider } from 'antd';
 import {
-  LoadingOutlined, RightOutlined, EnvironmentOutlined, DollarOutlined,
-  TeamOutlined, ColumnWidthOutlined, TagOutlined,
+  LoadingOutlined, RightOutlined, EnvironmentOutlined, TagOutlined,
   CompassOutlined, GlobalOutlined, BankOutlined, ShopOutlined,
-  BuildOutlined, HomeOutlined, AppstoreOutlined, FacebookFilled,
-  MessageFilled, CommentOutlined, FilterOutlined, WifiOutlined, StarFilled
+  BuildOutlined, HomeOutlined, AppstoreOutlined, FilterOutlined, WifiOutlined, StarFilled
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { getAllRooms, searchRoomsByAddress } from '../../../services/customer/HomeService';
-import logoZalo from '../../../assets/logo-zalo.png';
 const { Title, Text } = Typography;
 
 
@@ -33,8 +30,6 @@ const RoomCard = ({ room, onClick, index, activeType }) => {
   };
 
   const isRoomNew = isNew(room.lastModifiedDate);
-  const currentMonth = new Date().getMonth() + 1;
-
   // Calculate daily price for short term (premium on monthly / 30)
   const dailyPrice = Math.round(room.price / 30 / 1000) * 1000 + 150000;
 
@@ -521,66 +516,7 @@ const RoomsPage = () => {
         )}
       </div>
 
-      <div style={{
-        position: 'fixed', bottom: isMobile ? '16px' : '30px', right: isMobile ? '12px' : '24px', zIndex: 1000,
-        display: 'flex', flexDirection: 'column', gap: '10px'
-      }}>
-        {[
-          {
-            id: 'zalo',
-            icon: (
-              <img src={logoZalo} alt="Zalo" style={{ width: '40px', height: '26px' }} />
-            ),
-            color: 'white', label: 'Zalo', link: '#',
-            shadow: '0 4px 16px rgba(0,104,255,0.35)'
-          },
-          {
-            id: 'facebook',
-            icon: <FacebookFilled style={{ fontSize: '22px' }} />,
-            color: '#1877f2', label: 'Facebook', link: '#',
-            shadow: '0 4px 16px rgba(24,119,242,0.35)'
-          },
-          {
-            id: 'messenger',
-            icon: (
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2C6.477 2 2 6.145 2 11.258c0 2.91 1.454 5.508 3.722 7.228V22l3.374-1.854c.884.246 1.824.378 2.904.378 5.523 0 10-4.145 10-9.258S17.523 2 12 2zm1.096 11.758l-2.548-2.72-4.97 2.72 5.462-5.806 2.614 2.72 4.904-2.72-5.462 5.806z" fill="#fff" />
-              </svg>
-            ),
-            color: '#0084ff', label: 'Messenger', link: '#',
-            shadow: '0 4px 16px rgba(0,132,255,0.35)'
-          }
-        ].map((item, idx) => (
-          <motion.div
-            key={item.id}
-            initial={{ x: 80, opacity: 0, scale: 0 }}
-            animate={{ x: 0, opacity: 1, scale: 1 }}
-            transition={{ type: 'spring', damping: 15, stiffness: 100, delay: 0.8 + (idx * 0.1) }}
-            whileHover={{ scale: 1.12, y: -3 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <Tooltip title={isMobile ? '' : item.label} placement="left">
-              <Button
-                type="primary"
-                shape="circle"
-                icon={item.icon}
-                style={{
-                  width: isMobile ? '40px' : '44px', height: isMobile ? '40px' : '44px',
-                  backgroundColor: item.color,
-                  borderColor: 'rgba(255,255,255,0.2)',
-                  borderWidth: '1.5px',
-                  borderRadius: '50%',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: item.shadow,
-                  transition: 'all 0.3s ease',
-                  padding: 0, overflow: 'hidden'
-                }}
-                onClick={() => window.open(item.link, '_blank')}
-              />
-            </Tooltip>
-          </motion.div>
-        ))}
-      </div>
+
 
     </div>
   );

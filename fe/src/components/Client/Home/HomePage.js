@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Row, Col, Card, Spin, Button, Space, Tag, Tooltip } from 'antd';
+import { Typography, Row, Col, Card, Spin, Button, Space } from 'antd';
 import {
-  LoadingOutlined, RightOutlined, EnvironmentOutlined, DollarOutlined,
+  LoadingOutlined, RightOutlined, LeftOutlined, EnvironmentOutlined, DollarOutlined,
   TeamOutlined, ColumnWidthOutlined, CompassOutlined, GlobalOutlined,
   BankOutlined, ShopOutlined, BuildOutlined, ArrowLeftOutlined,
-  TagOutlined, FacebookFilled, MessageFilled, CommentOutlined,
-  WifiOutlined, CoffeeOutlined, SafetyOutlined, StarFilled
+  TagOutlined, FacebookFilled, MessageFilled,
+  SafetyCertificateOutlined, ThunderboltOutlined, CheckCircleFilled,
+  HomeOutlined, StarFilled, WifiOutlined, CoffeeOutlined, SafetyOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { getAllRooms, searchRoomsByAddress } from '../../../services/customer/HomeService';
-import studentBanner from '../../../assets/highlight_banner.png';
 import logoZalo from '../../../assets/logo-zalo.png';
+import logobanner from '../../../assets/logo_banner.png';
+import logobanner2 from '../../../assets/logo_banner_2.png';
 const { Title, Text } = Typography;
 
 const PRIMARY_IMAGES = [
@@ -24,6 +26,37 @@ const HOVER_IMAGES = [
   "https://images.unsplash.com/photo-1499955085172-a104c9463ece?auto=format&fit=crop&q=80&w=1200",
   "https://images.unsplash.com/photo-1536376072261-38c75010e6c9?auto=format&fit=crop&q=80&w=1200",
   "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?auto=format&fit=crop&q=80&w=1200"
+];
+
+const HOME_HERO_BANNERS = [
+  {
+    id: 1,
+    title: "Giải pháp toàn diện cho không gian sống của bạn",
+    desc: "Tìm phòng trọ minh bạch, xem ảnh thật và liên hệ nhanh — Tiến Đức Land đồng hành cùng bạn từ lúc tìm kiếm đến khi vào ở.",
+    image: logobanner2,
+  },
+  {
+    id: 2,
+    title: "Thuê trọ thông minh — tiết kiệm thời gian mỗi ngày",
+    desc: "Lọc theo khu vực, mức giá và tiện ích. Khám phá phòng trống và đặt xem chỉ với vài thao tác.",
+    image: logobanner,
+  },
+];
+
+const HOME_LOCATIONS = [
+  { name: 'Au Co', icon: <CompassOutlined /> },
+  { name: 'Trich Sai', icon: <GlobalOutlined /> },
+  { name: 'An Duong Vuong', icon: <BankOutlined /> },
+  { name: 'Tu Lien', icon: <ShopOutlined /> },
+  { name: 'Long Bien', icon: <BuildOutlined /> },
+  { name: 'Ha Dong', icon: <EnvironmentOutlined /> }
+];
+
+const HOME_STATS = [
+  { value: '200+', label: 'Phong cho thue', color: '#0071e3' },
+  { value: '1,500+', label: 'Khach hang', color: '#34c759' },
+  { value: '7', label: 'Khu vuc', color: '#ff9500' },
+  { value: '10+', label: 'Nam kinh nghiem', color: '#af52de' },
 ];
 
 const RoomCard = ({ room, onClick }) => {
@@ -368,99 +401,118 @@ const HomePage = () => {
     }
   };
 
-  return (
-    <div style={{ paddingBottom: '100px', background: '#f5f5f7' }}>
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % HOME_HERO_BANNERS.length);
+  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + HOME_HERO_BANNERS.length) % HOME_HERO_BANNERS.length);
 
-      <div style={{ margin: '0 0 60px', background: '#ffffff', overflow: 'hidden' }}>
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          minHeight: isMobile ? 'auto' : isTablet ? '420px' : '500px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: isMobile ? '24px 16px' : '40px 20px',
-          gap: isMobile ? '24px' : '40px',
-          flexWrap: 'wrap',
-          flexDirection: isMobile ? 'column' : 'row',
-        }}>
+  useEffect(() => {
+    const t = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % HOME_HERO_BANNERS.length);
+    }, 5000);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <div style={{ paddingBottom: '100px', background: '#ffffff', position: 'relative', overflow: 'hidden' }}>
+
+      {/* Hero Slider Section */}
+      <div style={{ position: 'relative', background: '#ffffff', overflow: 'hidden', padding: isMobile ? '20px 0' : '30px 0' }}>
+        <AnimatePresence mode="wait">
           <motion.div
-            initial={{ x: -200, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            style={{ flex: 1, minWidth: isMobile ? '100%' : '280px' }}
+            key={currentSlide}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            style={{ textAlign: 'center', maxWidth: '1100px', margin: '0 auto', padding: isMobile ? '0 16px' : '0 40px' }}
           >
             <Title
               level={1}
               style={{
-                fontSize: isMobile ? '36px' : isTablet ? '48px' : '64px',
+                fontSize: isMobile ? '32px' : isTablet ? '44px' : '52px',
                 fontWeight: 800,
                 letterSpacing: '-2px',
                 color: '#1d1d1f',
-                margin: 0,
+                margin: '0 auto 16px',
                 lineHeight: 1.1,
-                background: 'linear-gradient(180deg, #1d1d1f 0%, #434343 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
+                maxWidth: '900px'
               }}
             >
-              Trải nghiệm khác biệt.
+              {HOME_HERO_BANNERS[currentSlide].title}
             </Title>
-            <div style={{ width: '60px', height: '4px', background: '#0071e3', margin: '24px 0', borderRadius: '2px' }} />
-            <Text
-              style={{
-                fontSize: isMobile ? '16px' : isTablet ? '18px' : '22px',
-                color: '#515154',
-                display: 'block',
-                marginTop: '20px',
-                fontWeight: 400,
-                lineHeight: 1.6,
-                maxWidth: '500px'
-              }}
-            >
-              Khám phá không gian sống tiện nghi, sạch sẽ và an toàn. Vị trí thuận tiện thích hợp cho di chuyển đến các điểm đến lý tưởng thích hợp cho người đi du lịch và người ở lâu dài.
+            <Text style={{ fontSize: isMobile ? '16px' : '18px', color: '#86868b', maxWidth: '700px', display: 'block', margin: '0 auto 40px' }}>
+              {HOME_HERO_BANNERS[currentSlide].desc}
             </Text>
-            <Button
-              type="primary"
-              size="large"
-              style={{
-                marginTop: '44px',
-                background: '#0071e3', // Highlight with Apple Blue
-                color: '#ffffff',
-                borderRadius: '24px',
-                fontWeight: 600,
-                padding: '0 44px',
-                height: '56px',
-                fontSize: '17px',
-                border: 'none',
-                boxShadow: '0 12px 24px rgba(0,113,227,0.2)'
-              }}
-              onClick={() => {
-                document.getElementById('rooms-grid').scrollIntoView({ behavior: 'smooth' });
-              }}
-            >
-              Khám phá ngay
-            </Button>
-          </motion.div>
 
-          <motion.div
-            initial={{ x: 200, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-            style={{ flex: 1, minWidth: isMobile ? '100%' : '280px', display: 'flex', justifyContent: 'center' }}
-          >
-            <img
-              src={studentBanner}
-              alt="Highlight Banner"
-              style={{
-                width: '100%',
-                maxWidth: '550px',
-                height: 'auto'
-              }}
-            />
+            <div style={{ position: 'relative', marginTop: '20px' }}>
+              <img
+                src={HOME_HERO_BANNERS[currentSlide].image}
+                alt="Banner"
+                loading={currentSlide === 0 ? 'eager' : 'lazy'}
+                decoding="async"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  display: 'block',
+                  maxHeight: isMobile ? '280px' : '500px',
+                  objectFit: 'cover',
+                  WebkitMaskImage: 'linear-gradient(to bottom, #000 0%, #000 58%, rgba(0,0,0,0.75) 76%, transparent 100%)',
+                  maskImage: 'linear-gradient(to bottom, #000 0%, #000 58%, rgba(0,0,0,0.75) 76%, transparent 100%)'
+                }}
+              />
+
+              <div
+                onClick={(e) => { e.stopPropagation(); prevSlide(); }}
+                style={{
+                  position: 'absolute', left: isMobile ? '8px' : '20px', top: '50%', transform: 'translateY(-50%)',
+                  zIndex: 100, cursor: 'pointer', width: isMobile ? '36px' : '48px', height: isMobile ? '36px' : '48px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)',
+                  borderRadius: '50%', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+                  transition: 'all 0.3s'
+                }}
+              >
+                <LeftOutlined style={{ fontSize: isMobile ? '16px' : '20px', color: '#1d1d1f' }} />
+              </div>
+
+              <div
+                onClick={(e) => { e.stopPropagation(); nextSlide(); }}
+                style={{
+                  position: 'absolute', right: isMobile ? '8px' : '20px', top: '50%', transform: 'translateY(-50%)',
+                  zIndex: 100, cursor: 'pointer', width: isMobile ? '36px' : '48px', height: isMobile ? '36px' : '48px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)',
+                  borderRadius: '50%', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+                  transition: 'all 0.3s'
+                }}
+              >
+                <RightOutlined style={{ fontSize: isMobile ? '16px' : '20px', color: '#1d1d1f' }} />
+              </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '12px' }}>
+              {HOME_HERO_BANNERS.map((banner, index) => (
+                <button
+                  key={banner.id}
+                  type="button"
+                  onClick={() => setCurrentSlide(index)}
+                  aria-label={`Banner ${index + 1}`}
+                  style={{
+                    width: currentSlide === index ? '22px' : '8px',
+                    height: '8px',
+                    borderRadius: '999px',
+                    border: 'none',
+                    background: currentSlide === index ? '#1d1d1f' : '#d2d2d7',
+                    transition: 'all 0.25s ease',
+                    cursor: 'pointer',
+                    padding: 0
+                  }}
+                />
+              ))}
+            </div>
           </motion.div>
-        </div>
+        </AnimatePresence>
       </div>
+
 
       {/* 4. LOCATIONS SECTION - Region Discovery */}
       <div style={{ padding: isMobile ? '28px 12px' : '40px 20px', maxWidth: '1400px', margin: '0 auto 20px' }}>
@@ -481,14 +533,7 @@ const HomePage = () => {
             flexWrap: 'wrap',
             padding: '0 8px'
           }}>
-            {[
-              { name: 'Âu Cơ', icon: <CompassOutlined /> },
-              { name: 'Trích Sài', icon: <GlobalOutlined /> },
-              { name: 'An Dương Vương', icon: <BankOutlined /> },
-              { name: 'Tứ Liên', icon: <ShopOutlined /> },
-              { name: 'Long Biên', icon: <BuildOutlined /> },
-              { name: 'Hà Đông', icon: <EnvironmentOutlined /> }
-            ].map((loc, index) => (
+            {HOME_LOCATIONS.map((loc, index) => (
               <motion.div
                 key={loc.name}
                 whileHover={{ scale: 1.05, translateY: -5 }}
@@ -566,12 +611,7 @@ const HomePage = () => {
             <div style={{
               display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px', minWidth: isMobile ? '100%' : '240px'
             }}>
-              {[
-                { value: '200+', label: 'Phòng cho thuê', color: '#0071e3' },
-                { value: '1,500+', label: 'Khách hàng', color: '#34c759' },
-                { value: '7', label: 'Khu vực', color: '#ff9500' },
-                { value: '10+', label: 'Năm kinh nghiệm', color: '#af52de' },
-              ].map((stat, i) => (
+              {HOME_STATS.map((stat, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, scale: 0.9 }}
@@ -742,25 +782,81 @@ const HomePage = () => {
         </motion.div>
       </div>
 
-      {/* 6. QUY TRÌNH THUÊ PHÒNG */}
-      <div style={{ padding: isMobile ? '28px 12px 40px' : '40px 20px 60px', maxWidth: '1000px', margin: '0 auto' }}>
+      {/* 6. QUY TRÌNH THUÊ PHÒNG - Horizontal Timeline Redesign */}
+      <div style={{ padding: isMobile ? '40px 12px 60px' : '60px 20px 80px', maxWidth: '1100px', margin: '0 auto', position: 'relative' }}>
         <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
-          <Title level={2} style={{ fontSize: '28px', fontWeight: 700, textAlign: 'center', color: '#1d1d1f', marginBottom: '8px' }}>Quy trình thuê phòng</Title>
-          <Text style={{ display: 'block', textAlign: 'center', color: '#86868b', fontSize: '15px', marginBottom: '40px' }}>Chỉ 4 bước đơn giản để có phòng trọ ưng ý</Text>
-          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
-            {[
-              { step: '01', title: 'Tìm phòng', desc: 'Duyệt danh sách phòng trống theo khu vực và khoảng giá.', color: '#0071e3' },
-              { step: '02', title: 'Đặt lịch xem', desc: 'Đăng ký lịch xem phòng, chúng tôi sẽ liên hệ xác nhận.', color: '#34c759' },
-              { step: '03', title: 'Ký hợp đồng', desc: 'Thỏa thuận điều khoản, ký hợp đồng và đặt cọc.', color: '#ff9500' },
-              { step: '04', title: 'Nhận phòng', desc: 'Nhận chìa khóa, bắt đầu cuộc sống mới.', color: '#af52de' },
-            ].map((item, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.12 }}
-                style={{ flex: '1 1 200px', maxWidth: '220px', background: '#fff', borderRadius: '20px', padding: '28px 20px', textAlign: 'center', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: '1px solid #f0f0f0' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: item.color, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: 700, margin: '0 auto 16px', boxShadow: `0 6px 16px ${item.color}33` }}>{item.step}</div>
-                <Title level={5} style={{ fontSize: '15px', fontWeight: 600, margin: '0 0 8px', color: '#1d1d1f' }}>{item.title}</Title>
-                <Text style={{ color: '#86868b', fontSize: '13px', lineHeight: 1.7 }}>{item.desc}</Text>
-              </motion.div>
-            ))}
+          <Title level={2} style={{ fontSize: isMobile ? '28px' : '36px', fontWeight: 800, textAlign: 'center', color: '#1d1d1f', marginBottom: '12px', letterSpacing: '-1.5px' }}>
+            Quy trình thuê phòng
+          </Title>
+          <Text style={{ display: 'block', textAlign: 'center', color: '#86868b', fontSize: '16px', marginBottom: '60px' }}>
+            Chỉ 4 bước đơn giản để tìm thấy tổ ấm mới của bạn
+          </Text>
+
+          <div style={{ position: 'relative' }}>
+            {/* Horizontal Connecting Line (Desktop Only) */}
+            {!isMobile && (
+              <div style={{
+                position: 'absolute',
+                top: '40px',
+                left: '10%',
+                right: '10%',
+                height: '2px',
+                background: 'linear-gradient(to right, #0071e3 0%, #34c759 33%, #ff9500 66%, #af52de 100%)',
+                opacity: 0.2,
+                zIndex: 0
+              }} />
+            )}
+
+            <div style={{ display: 'flex', gap: '20px', flexWrap: isMobile ? 'wrap' : 'nowrap', justifyContent: 'center', position: 'relative', zIndex: 1 }}>
+              {[
+                { step: '01', title: 'Tìm phòng', desc: 'Duyệt danh sách phòng trống theo khu vực và khoảng giá.', color: '#0071e3' },
+                { step: '02', title: 'Đặt lịch xem', desc: 'Đăng ký lịch xem phòng, chúng tôi sẽ liên hệ xác nhận.', color: '#34c759' },
+                { step: '03', title: 'Ký hợp đồng', desc: 'Thỏa thuận điều khoản, ký hợp đồng và đặt cọc.', color: '#ff9500' },
+                { step: '04', title: 'Nhận phòng', desc: 'Nhận chìa khóa, bắt đầu cuộc sống mới.', color: '#af52de' },
+              ].map((item, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: i * 0.15 }}
+                  style={{
+                    flex: isMobile ? '1 1 100%' : '1 1 0',
+                    background: '#fff',
+                    borderRadius: '24px',
+                    padding: '32px 24px',
+                    textAlign: 'center',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.04)',
+                    border: '1px solid rgba(0,0,0,0.03)',
+                    position: 'relative'
+                  }}
+                >
+                  <div style={{
+                    width: '80px',
+                    height: '80px',
+                    borderRadius: '50%',
+                    background: item.color,
+                    color: '#fff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '24px',
+                    fontWeight: 800,
+                    margin: '-72px auto 24px', // Float above the card
+                    boxShadow: `0 12px 24px ${item.color}44`,
+                    border: '6px solid #fff'
+                  }}>
+                    {item.step}
+                  </div>
+                  <Title level={4} style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 12px', color: '#1d1d1f' }}>
+                    {item.title}
+                  </Title>
+                  <Text style={{ color: '#6e6e73', fontSize: '14px', lineHeight: 1.6 }}>
+                    {item.desc}
+                  </Text>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </motion.div>
       </div>
@@ -813,65 +909,6 @@ const HomePage = () => {
             </Space>
           </div>
         </motion.div>
-      </div>
-
-      {/* 9. FLOATING CONTACT BUTTONS */}
-      <div style={{ position: 'fixed', bottom: isMobile ? '16px' : '30px', right: isMobile ? '12px' : '24px', zIndex: 1000, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {[
-          {
-            id: 'zalo',
-            icon: (
-              <img src={logoZalo} alt="Zalo" style={{ width: '40px', height: '26px' }} />
-            ),
-            color: 'white', label: 'Zalo', link: '#',
-            shadow: '0 4px 16px rgba(0,104,255,0.35)'
-          },
-          {
-            id: 'facebook',
-            icon: <FacebookFilled style={{ fontSize: '20px' }} />,
-            color: '#1877f2', label: 'Facebook', link: '#',
-            shadow: '0 4px 16px rgba(24,119,242,0.35)'
-          },
-          {
-            id: 'messenger',
-            icon: (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2C6.477 2 2 6.145 2 11.258c0 2.91 1.454 5.508 3.722 7.228V22l3.374-1.854c.884.246 1.824.378 2.904.378 5.523 0 10-4.145 10-9.258S17.523 2 12 2zm1.096 11.758l-2.548-2.72-4.97 2.72 5.462-5.806 2.614 2.72 4.904-2.72-5.462 5.806z" fill="#fff" />
-              </svg>
-            ),
-            color: '#0084ff', label: 'Messenger', link: '#',
-            shadow: '0 4px 16px rgba(0,132,255,0.35)'
-          }
-        ].map((item, idx) => (
-          <motion.div
-            key={item.id}
-            initial={{ x: 80, opacity: 0, scale: 0 }}
-            animate={{ x: 0, opacity: 1, scale: 1 }}
-            transition={{ type: 'spring', damping: 15, stiffness: 100, delay: 0.5 + (idx * 0.1) }}
-            whileHover={{ scale: 1.12, y: -3 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <Tooltip title={isMobile ? '' : item.label} placement="left">
-              <Button
-                type="primary"
-                shape="circle"
-                icon={item.icon}
-                style={{
-                  width: isMobile ? '40px' : '44px', height: isMobile ? '40px' : '44px',
-                  backgroundColor: item.color,
-                  borderColor: 'rgba(255,255,255,0.2)',
-                  borderWidth: '1.5px',
-                  borderRadius: '50%',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: item.shadow,
-                  transition: 'all 0.3s ease',
-                  padding: 0, overflow: 'hidden'
-                }}
-                onClick={() => window.open(item.link, '_blank')}
-              />
-            </Tooltip>
-          </motion.div>
-        ))}
       </div>
 
     </div>

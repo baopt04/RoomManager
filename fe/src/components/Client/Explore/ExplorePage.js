@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Typography, Row, Col, Card, Button, Tooltip, Timeline } from 'antd';
+import { Typography, Row, Col, Card, Button, Timeline } from 'antd';
 import {
   HomeOutlined, TeamOutlined, SafetyOutlined, StarOutlined,
-  EnvironmentOutlined, PhoneOutlined, HeartOutlined, TrophyOutlined,
-  RocketOutlined, CheckCircleOutlined, FacebookFilled, MessageFilled
+  EnvironmentOutlined, HeartOutlined, TrophyOutlined,
+  RocketOutlined, CheckCircleOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import logoZalo from '../../../assets/logo-zalo.png';
 const { Title, Text, Paragraph } = Typography;
 
 const fadeUp = (delay = 0) => ({
@@ -244,42 +243,7 @@ const ExplorePage = () => {
         </motion.div>
       </div>
 
-      <div style={{
-        position: 'fixed', bottom: isMobile ? '16px' : '30px', right: isMobile ? '12px' : '24px', zIndex: 1000,
-        display: 'flex', flexDirection: 'column', gap: '10px'
-      }}>
-        {[
-          {
-            id: 'zalo',
-            icon: (
-              <img src={logoZalo} alt="Zalo" style={{ width: '40px', height: '26px' }} />
-            ),
-            color: 'white', label: 'Zalo', link: '#',
-            shadow: '0 4px 16px rgba(0,104,255,0.35)'
-          },
-          { id: 'facebook', icon: <FacebookFilled style={{ fontSize: '20px' }} />, color: '#1877f2', label: 'Facebook', shadow: '0 4px 16px rgba(24,119,242,0.35)' },
-          { id: 'messenger', icon: <MessageFilled style={{ fontSize: '18px' }} />, color: '#0084ff', label: 'Messenger', shadow: '0 4px 16px rgba(0,132,255,0.35)' },
-        ].map((item, idx) => (
-          <motion.div key={item.id}
-            initial={{ x: 80, opacity: 0, scale: 0 }}
-            animate={{ x: 0, opacity: 1, scale: 1 }}
-            transition={{ type: 'spring', damping: 15, stiffness: 100, delay: 0.8 + (idx * 0.1) }}
-            whileHover={{ scale: 1.12, y: -3 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <Tooltip title={isMobile ? '' : item.label} placement="left">
-              <Button type="primary" shape="circle" icon={item.icon}
-                style={{
-                  width: isMobile ? '40px' : '44px', height: isMobile ? '40px' : '44px', backgroundColor: item.color,
-                  borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: item.shadow, border: 'none', padding: 0, overflow: 'hidden'
-                }}
-                onClick={() => window.open('#', '_blank')}
-              />
-            </Tooltip>
-          </motion.div>
-        ))}
-      </div>
+
     </div>
   );
 };
