@@ -11,6 +11,7 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMailMessage;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -45,6 +46,15 @@ public class EmailServiceImpl implements EmailService {
             throw e;
         }
         }
+    @Async
+    @Override
+    public void sendMailAsync(String to, String subject, String body) {
+        try {
+            sendMail(to, subject, body);
+        } catch (MessagingException e) {
+            System.err.println("Failed to send async mail to " + to + ": " + e.getMessage());
+        }
+    }
     private String formatCurrency(BigDecimal money) {
         DecimalFormat formatter = new DecimalFormat("#,###₫");
         return formatter.format(money);

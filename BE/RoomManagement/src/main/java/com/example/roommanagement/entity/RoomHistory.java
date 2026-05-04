@@ -16,7 +16,13 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "room_history")
+@Table(
+        name = "room_history",
+        indexes = {
+                @Index(name = "idx_room_history_room_dates", columnList = "id_room,start_date,end_date"),
+                @Index(name = "idx_room_history_room_paid", columnList = "id_room,is_paid")
+        }
+)
 @Entity
 public class RoomHistory extends BaseEntity{
     @Column(name = "price")

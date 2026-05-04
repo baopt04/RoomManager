@@ -14,7 +14,13 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "contract")
+@Table(
+        name = "contract",
+        indexes = {
+                @Index(name = "idx_contract_room_status", columnList = "id_room,status"),
+                @Index(name = "idx_contract_customer_status", columnList = "id_customer,status")
+        }
+)
 @Builder
 
 public class Contract extends BaseEntity {

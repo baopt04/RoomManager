@@ -93,6 +93,7 @@ public class BillServiceImpl implements BillService {
     }
 
     @Override
+    @Transactional
     public CreateBillDTO createBillForCustomer(String id, CreateBillDTO request) {
         Optional<Bill> optional = billRepository.findById(id);
         if (!optional.isPresent()) {
@@ -212,15 +213,11 @@ public class BillServiceImpl implements BillService {
             roomHistoryRepository.save(roomHistory);
         }
 
-        try {
-            if (emailCustomer != null) {
-                SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-                String dateNow = formatter.format(new Date());
-                String htmlBody = emailService.generateEmailBody(bill);
-                emailService.sendMail(emailCustomer, "Hóa đơn thanh toán tiền trọ ngày :" + dateNow, htmlBody);
-            }
-        } catch (MessagingException e) {
-            e.printStackTrace();
+        if (emailCustomer != null) {
+            SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+            String dateNow = formatter.format(new Date());
+            String htmlBody = emailService.generateEmailBody(bill);
+            emailService.sendMailAsync(emailCustomer, "Hóa đơn thanh toán tiền trọ ngày :" + dateNow, htmlBody);
         }
 
         return request;
@@ -228,6 +225,7 @@ public class BillServiceImpl implements BillService {
     }
 
     @Override
+    @Transactional
     public UpdateBillDTO updateBillForCustomer(String id, UpdateBillDTO request) {
         Optional<Bill> optional = billRepository.findById(id);
         if (!optional.isPresent()) {
@@ -344,15 +342,11 @@ public class BillServiceImpl implements BillService {
         paymentHistoryRepository.save(paymentHistory);
 
         System.out.println("Check email customer" + emailCustomer);
-        try {
-            if (emailCustomer != null) {
-                SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-                String dateNow = formatter.format(new Date());
-                String htmlBody = emailService.generateEmailBody(bill);
-                emailService.sendMail(emailCustomer, "Cập nhật hóa đơn phòng trọ mới nhất ngày :" + dateNow, htmlBody);
-            }
-        } catch (MessagingException e) {
-            e.printStackTrace();
+        if (emailCustomer != null) {
+            SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+            String dateNow = formatter.format(new Date());
+            String htmlBody = emailService.generateEmailBody(bill);
+            emailService.sendMailAsync(emailCustomer, "Cập nhật hóa đơn phòng trọ mới nhất ngày :" + dateNow, htmlBody);
         }
 
         return request;

@@ -14,7 +14,14 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "room")
+@Table(
+        name = "room",
+        indexes = {
+                @Index(name = "idx_room_customer_status", columnList = "id_customer,status"),
+                @Index(name = "idx_room_house_customer", columnList = "id_house_for_rent,id_customer"),
+                @Index(name = "idx_room_status", columnList = "status")
+        }
+)
 @Builder
 public class Room extends BaseEntity {
     private String code;

@@ -15,6 +15,7 @@ import org.springframework.cglib.core.Local;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -58,6 +59,7 @@ public class ContractServiceImpl implements ContractService {
     }
 
     @Override
+    @Transactional
     public CreateContractDTO create(CreateContractDTO createContractDTO) {
         if (contractRepository.existsByRoom_Id(createContractDTO.getRoomId())) {
             throw new BusinessException(Constrants.ROOM_EXISTS);
@@ -136,6 +138,7 @@ public class ContractServiceImpl implements ContractService {
     }
 
     @Override
+    @Transactional
     public UpdateContractDTO update(String id, UpdateContractDTO updateContractDTO) {
         Optional<Contract> contract = contractRepository.findById(id);
         Optional<ContractHistory> contractHistory = contractHistoryRepository.findByRoomId(id);
