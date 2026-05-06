@@ -45,3 +45,4 @@ export const HOME_STATS = [
   { value: '7', labelKey: 'home.stats.areas', color: '#ff9500' },
   { value: '10+', labelKey: 'home.stats.exp', color: '#af52de' },
 ];
+

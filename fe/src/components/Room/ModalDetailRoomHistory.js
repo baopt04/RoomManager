@@ -130,3 +130,4 @@ const ModalDetailRoomHistory = ({ visible, onClose, id }) => {
     )
 }
 export default ModalDetailRoomHistory;
+

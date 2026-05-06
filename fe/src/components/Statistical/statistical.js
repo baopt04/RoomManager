@@ -129,7 +129,6 @@ const Statistical = () => {
   useEffect(() => {
     const fetchAllData = async () => {
       setLoading(true);
-      const startTime = Date.now();
       try {
         const [totalPriceRes, totalPriceMotherRes, allRoomsRes, totalMonthRes] = await Promise.all([
           StatisticalService.getTotalPrice(token),
@@ -140,10 +139,7 @@ const Statistical = () => {
 
         // Đảm bảo delay ít nhất 2 giây để phù hợp môi trường deploy
         /*
-        const elapsedTime = Date.now() - startTime;
-        if (false && elapsedTime < 2000) {
-          await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
-        }
+        
         */
 
         // Set dữ liệu tổng quan
@@ -543,3 +539,4 @@ const Statistical = () => {
 };
 
 export default Statistical;
+

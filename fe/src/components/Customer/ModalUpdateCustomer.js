@@ -21,7 +21,7 @@ const ModalUpdateCustomer = ({ visible, onClose, id, onSuccess }) => {
                 }
                 form.setFieldsValue(values);
             } catch (error) {
-                console.log("Lỗi lỗi dữ liệu server");
+                
 
             }
         }
@@ -176,3 +176,4 @@ const ModalUpdateCustomer = ({ visible, onClose, id, onSuccess }) => {
     )   
 }
 export default ModalUpdateCustomer;
+

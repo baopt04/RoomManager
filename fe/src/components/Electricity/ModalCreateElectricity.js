@@ -166,3 +166,4 @@ const ModalCreateElectricity = ({ visible, onClose, onSuccess }) => {
 };
 
 export default ModalCreateElectricity;
+

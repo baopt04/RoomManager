@@ -116,3 +116,4 @@ const ModalDetailHistory = ({ visible, onClose ,  id }) => {
     )
 }
 export default ModalDetailHistory;
+

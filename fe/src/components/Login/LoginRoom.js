@@ -23,8 +23,10 @@ const LoginRoom = ({ onLogin }) => {
             }, 1000);
             if (onLogin) onLogin(values);
         } catch (error) {
-            if (error.response?.data?.message) {
+            if (error.response && error.response.data && error.response.data.message) {
                 message.error(error.response.data.message)
+            } else {
+                message.error("Đăng nhập thất bại. Vui lòng kiểm tra lại kết nối!")
             }
         } finally {
             setLoading(false);
@@ -182,3 +184,4 @@ const LoginRoom = ({ onLogin }) => {
 };
 
 export default LoginRoom;
+

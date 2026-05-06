@@ -20,7 +20,7 @@ const DetailContract = () => {
   const token = localStorage.getItem("token");
   const { contractId } = useParams();
   const [oldImageUrls, setOldImageUrls] = useState([]);
-  console.log("Check chạy và");
+  
   const navigator = useNavigate();
   useEffect(() => {
 
@@ -60,12 +60,12 @@ const DetailContract = () => {
 
   useEffect(() => {
     const fetchContractDetails = async () => {
-      console.log("Check chạy hàm", contractId);
+      
 
       try {
         if (contractId) {
           const response = await ContractService.detailContract(token, contractId);
-          console.log("Detail contract:", response);
+          
 
           form.setFieldsValue({
             dateStart: dayjs(response.dateStart, 'DD/MM/YYYY'),
@@ -82,7 +82,7 @@ const DetailContract = () => {
 
           if (response.imageUrls && Array.isArray(response.imageUrls)) {
             setOldImageUrls(response.imageUrls || []);
-            console.log("Check oldImageUrls", oldImageUrls);
+            
             const formattedFileList = response.imageUrls.map((url, index) => ({
               uid: `-${index}`,
               name: `image-${index + 1}.jpg`,
@@ -257,4 +257,5 @@ const returnBack = () => {
 };
 
 export default DetailContract;
+
 

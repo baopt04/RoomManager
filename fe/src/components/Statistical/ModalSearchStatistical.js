@@ -107,7 +107,7 @@ const ModalSearchStatistical = ({ visible, onClose, roomId }) => {
         try {
             const response = await WaterService.historyWater(token, id);
             setListDataWater(response);
-            console.log("Water history data:", response);
+            
 
         } catch (error) {
             console.error("Error fetching water history:", error);
@@ -118,7 +118,7 @@ const ModalSearchStatistical = ({ visible, onClose, roomId }) => {
         try {
             const response = await ElectricityService.historyElectricity(token, id);
             setListDataElectricity(response);
-            console.log("Electricity history data:", response);
+            
 
         } catch (error) {
             console.error("Error fetching water history:", error);
@@ -128,7 +128,7 @@ const ModalSearchStatistical = ({ visible, onClose, roomId }) => {
         try {
             const response = await RoomService.findAllRoomHistory(token, id);
             setListDataRoom(response);
-            console.log("Room history data:", response);
+            
         } catch (error) {
             console.error("Error fetching room history:", error);
         }
@@ -137,7 +137,7 @@ const ModalSearchStatistical = ({ visible, onClose, roomId }) => {
         const fetchCustomer = async () => {
             try {
                 const response = await CustomerService.getAllCustomers(token);
-                console.log("Response data:", response);
+                
                 setDataCustomer(response);
             } catch (error) {
                 console.error("Failed to fetch customer data:", error);
@@ -147,7 +147,7 @@ const ModalSearchStatistical = ({ visible, onClose, roomId }) => {
     }, [token])
 
     useEffect(() => {
-        console.log("Room ID received in modal:", roomId);
+        
         if (visible && roomId) {
             searchHistoryRoom(roomId);
 
@@ -211,3 +211,4 @@ const ModalSearchStatistical = ({ visible, onClose, roomId }) => {
 };
 
 export default ModalSearchStatistical;
+

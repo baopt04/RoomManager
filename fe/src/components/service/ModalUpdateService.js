@@ -22,7 +22,7 @@ const ModalUpdateService = ({ visible, onClose, serviceId, onSuccess }) => {
                     discription: response.discription
                 })
             } catch (error) {
-                console.log("Không thể kết nối đến service!");
+                
             }
         }
         fetchServiceData();
@@ -123,3 +123,4 @@ const ModalUpdateService = ({ visible, onClose, serviceId, onSuccess }) => {
     )
 }
 export default ModalUpdateService;
+

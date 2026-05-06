@@ -9,11 +9,11 @@ const getAllcontract = async (token) => {
                 Authorization: `Bearer ${token}`,
             }
         })
-        console.log("Response data:", response.data);
+        
         return response.data;
 
     } catch (error) {
-        console.log("Error fetching customers:", error);
+        
         throw error;
     }
 }
@@ -24,10 +24,10 @@ const createContract = async (token, contractData) => {
                 Authorization: `Bearer ${token}`,
             }
         })
-        console.log("Response data:", response.data);
+        
         return response.data;
     } catch (error) {
-        console.log("Error creating contract:", error);
+        
         throw error;
     }
 }
@@ -38,10 +38,10 @@ const detailContract = async (token, id) => {
                 Authorization: `Bearer ${token}`,
             }
         })
-        console.log("Response data detail:", response.data);
+        
         return response.data;
     } catch (error) {
-        console.log("Error fetching contract details:", error);
+        
         throw error;
     }
 
@@ -53,10 +53,10 @@ const updateContract = async (token, id, contractData) => {
                 Authorization: `Bearer ${token}`,
             }
         })
-        console.log("Response data:", response.data);
+        
         return response.data;
     } catch (error) {
-        console.log("Error updating contract:", error);
+        
         throw error;
     }
 }
@@ -67,10 +67,10 @@ const historyContract = async (token, id) => {
                 Authorization: `Bearer ${token}`,
             }
         })
-        console.log("Response data history:", response.data);
+        
         return response.data;
     } catch (error) {
-        console.log("Error fetching contract history:", error);
+        
         throw error;
     }
 }
@@ -82,3 +82,4 @@ export default {
     updateContract,
     historyContract,
 };
+

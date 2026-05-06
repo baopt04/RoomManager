@@ -17,17 +17,13 @@ const ModalCreateRoomService = ({ visible, onClose }) => {
         const fetchData = async () => {
             if (!visible) return;
             setPageLoading(true);
-            const startTime = Date.now();
             try {
                 const [servicesRes, roomsRes] = await Promise.all([
                     Services.getAllService(token),
                     RoomService.getAllRooms(token)
                 ]);
 
-                const elapsedTime = Date.now() - startTime;
-                if (false && elapsedTime < 2000) {
-                    await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
-                }
+                
 
                 setDataService(servicesRes);
                 setDataRoom(roomsRes);
@@ -42,7 +38,6 @@ const ModalCreateRoomService = ({ visible, onClose }) => {
 
     const handleAddRoomService = async (values) => {
         setLoading(true);
-        const startTime = Date.now();
         try {
             values = {
                 service: { id: values.service },
@@ -50,10 +45,7 @@ const ModalCreateRoomService = ({ visible, onClose }) => {
             }
             await RoomServiceDetail.createRoomServiceDetail(token, values);
             
-            const elapsedTime = Date.now() - startTime;
-            if (false && elapsedTime < 2000) {
-                await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
-            }
+            
 
             message.success("Thêm dịch vụ thành công!");
             form.resetFields();
@@ -117,3 +109,4 @@ const ModalCreateRoomService = ({ visible, onClose }) => {
     )
 }
 export default ModalCreateRoomService;
+

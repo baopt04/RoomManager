@@ -137,3 +137,4 @@ const ModalLockerAdmin = ({ visible, onclose, id, onSuccess }) => {
 
 }
 export default ModalLockerAdmin;
+

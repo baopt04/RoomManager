@@ -222,3 +222,4 @@ const DetailBill = () => {
 };
 
 export default DetailBill;
+

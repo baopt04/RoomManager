@@ -28,7 +28,7 @@ const ModalCreateAdmin = ({ visible, onclose, onSuccess }) => {
         setLoading(true)
         try {
             const response = await AdminService.createAdmin(token, values);
-            console.log("response regestier", response);
+            
             message.success("Thêm người quản lý mới thành công")
             if (onSuccess) {
                 await onSuccess();
@@ -247,3 +247,4 @@ const ModalCreateAdmin = ({ visible, onclose, onSuccess }) => {
     )
 }
 export default ModalCreateAdmin;
+

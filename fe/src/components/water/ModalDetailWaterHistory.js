@@ -119,3 +119,4 @@ const ModalDetailWaterHistory = ({ visible, onClose, id }) => {
     )
 }
 export default ModalDetailWaterHistory;
+

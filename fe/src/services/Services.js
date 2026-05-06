@@ -8,7 +8,7 @@ const getAllService = async (token) => {
         Authorization: `Bearer ${token}`,
     },
   })
-  console.log("Response data:", response.data); 
+   
     return response.data;
   } catch (error) {
     console.error("Error fetching service:", error);
@@ -60,3 +60,4 @@ export default {
   detailService,
   updateService,
 };
+

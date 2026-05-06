@@ -164,3 +164,4 @@ export const ShortTermCard = memo(({ room, onClick }) => {
     </motion.div>
   );
 });
+

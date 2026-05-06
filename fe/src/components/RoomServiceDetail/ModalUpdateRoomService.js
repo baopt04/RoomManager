@@ -17,7 +17,6 @@ const ModalUpdateRoomService = ({ visible, onClose, serviceId }) => {
         const fetchRoomServiceData = async () => {
             if (!serviceId || !visible) return;
             setPageLoading(true);
-            const startTime = Date.now();
             try {
                 const [response, servicesRes, roomsRes] = await Promise.all([
                     RoomServiceDetail.detailRoomServiceDetail(token, serviceId),
@@ -26,10 +25,7 @@ const ModalUpdateRoomService = ({ visible, onClose, serviceId }) => {
                 ]);
 
                 // Đảm bảo loading ít nhất 2 giây
-                const elapsedTime = Date.now() - startTime;
-                if (false && elapsedTime < 2000) {
-                    await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
-                }
+                
 
                 setDataService(servicesRes);
                 setDataRoom(roomsRes);
@@ -38,7 +34,7 @@ const ModalUpdateRoomService = ({ visible, onClose, serviceId }) => {
                     room: response.room.id
                 });
             } catch (error) {
-                console.log("Không thể kết nối đến service!");
+                
                 message.error("Lỗi khi tải dữ liệu chi tiết!");
             } finally {
                 setPageLoading(false);
@@ -48,7 +44,6 @@ const ModalUpdateRoomService = ({ visible, onClose, serviceId }) => {
     }, [token, serviceId, visible])
     const handleUpdateService = async (values) => {
         setLoading(true);
-        const startTime = Date.now();
         try {
             values = {
                 service: { id: values.service },
@@ -57,10 +52,7 @@ const ModalUpdateRoomService = ({ visible, onClose, serviceId }) => {
             await RoomServiceDetail.updateRoomServiceDetail(token, serviceId, values);
             
             // Đảm bảo delay 2s khi cập nhật
-            const elapsedTime = Date.now() - startTime;
-            if (false && elapsedTime < 2000) {
-                await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
-            }
+            
 
             message.success("Cập nhật dịch vụ thành công!");
             onClose();
@@ -123,3 +115,4 @@ const ModalUpdateRoomService = ({ visible, onClose, serviceId }) => {
     )
 }
 export default ModalUpdateRoomService;
+

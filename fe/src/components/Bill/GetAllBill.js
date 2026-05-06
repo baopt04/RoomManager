@@ -27,8 +27,6 @@ import {
     CheckCircleOutlined,
     CloseCircleOutlined,
 } from "@ant-design/icons";
-import CustomerService from "../../services/CustomerService";
-import RoomService from "../../services/RoomService";
 import SaleService from "../../services/SaleService";
 import { useNavigate } from "react-router-dom";
 
@@ -36,8 +34,6 @@ const { Title, Text } = Typography;
 const { Option } = Select;
 
 const GetAllBill = () => {
-    const [dataCustomer, setDataCustomer] = useState([]);
-    const [listRoom, setListRoom] = useState([]);
     const [listBill, setListBill] = useState([]);
     const [filteredBills, setFilteredBills] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -53,26 +49,12 @@ const GetAllBill = () => {
 
     const fetchAllData = async () => {
         setLoading(true);
-        const startTime = Date.now();
         try {
-            const [customerResponse, roomResponse, billResponse] = await Promise.all([
-                CustomerService.getAllCustomers(token),
-                RoomService.getAllRooms(token),
-                SaleService.getAllBill(token)
-            ]);
-
-            const elapsedTime = Date.now() - startTime;
-            if (false && elapsedTime < 2000) {
-                await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
-            }
-
-            setDataCustomer(customerResponse);
-            setListRoom(roomResponse);
+            const billResponse = await SaleService.getAllBill(token);
             setListBill(billResponse);
             setFilteredBills(billResponse);
         } catch (error) {
             message.error("Lỗi khi tải dữ liệu!");
-            console.error("Failed to fetch data:", error);
         } finally {
             setLoading(false);
         }
@@ -82,12 +64,10 @@ const GetAllBill = () => {
         let filtered = [...listBill];
         if (keyword.trim()) {
             filtered = filtered.filter((bill) => {
-                const roomName = listRoom.find(room => room.id === bill.room)?.name || '';
-                const customerName = dataCustomer.find(customer => customer.id === bill.customer)?.name || '';
                 return (
                     bill.code?.toLowerCase().includes(keyword.toLowerCase()) ||
-                    roomName.toLowerCase().includes(keyword.toLowerCase()) ||
-                    customerName.toLowerCase().includes(keyword.toLowerCase())
+                    (bill.room || "").toString().toLowerCase().includes(keyword.toLowerCase()) ||
+                    (bill.customer || "").toString().toLowerCase().includes(keyword.toLowerCase())
                 );
             });
         }
@@ -136,20 +116,14 @@ const GetAllBill = () => {
             dataIndex: "room",
             key: "room",
             width: 150,
-            render: (room) => {
-                const roomName = listRoom.find((r) => r.id === room)?.name;
-                return <Text strong>{roomName || '—'}</Text>;
-            }
+            render: (room) => <Text strong>{room || '—'}</Text>
         },
         {
             title: "Khách hàng",
             dataIndex: 'customer',
             key: "customer",
             width: 180,
-            render: (customer) => {
-                const name = dataCustomer.find((c) => c.id === customer)?.name;
-                return <Text>{name || '—'}</Text>;
-            }
+            render: (customer) => <Text>{customer || '—'}</Text>
         },
         {
             title: "Tổng tiền",
@@ -335,3 +309,4 @@ const GetAllBill = () => {
 };
 
 export default GetAllBill;
+

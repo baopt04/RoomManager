@@ -26,9 +26,7 @@ import {
     ExclamationCircleOutlined,
     DollarCircleOutlined
 } from "@ant-design/icons";
-import RoomService from "../../services/RoomService";
 import ContractService from "../../services/ContractService";
-import HouseForRentService from "../../services/HouseForRentService";
 import { useNavigate } from "react-router-dom";
 import ModalContractHistory from "./ModalContractHistory";
 
@@ -39,8 +37,6 @@ const GetAllContract = () => {
     const token = localStorage.getItem('token');
 
     const [dataContract, setDataContract] = useState([]);
-    const [dataRoom, setDataRoom] = useState([]);
-    const [dataHouse, setDataHouse] = useState([]);
     const [keyWord, setKeyWord] = useState("");
     const [filterData, setFilterData] = useState([]);
     const [originalData, setOriginalData] = useState([]);
@@ -57,25 +53,11 @@ const GetAllContract = () => {
 
     const fetchAllData = async () => {
         setLoading(true);
-        const startTime = Date.now();
         try {
-            const [contractResponse, roomsResponse, houseResponse] = await Promise.all([
-                ContractService.getAllcontract(token),
-                RoomService.getAllRooms(token),
-                HouseForRentService.getAllHouseForRent(token)
-            ]);
-
-            // Đảm bảo loading ít nhất 2 giây để phù hợp với môi trường deploy
-            const elapsedTime = Date.now() - startTime;
-            if (false && elapsedTime < 2000) {
-                await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
-            }
-
+            const contractResponse = await ContractService.getAllcontract(token);
             setDataContract(contractResponse);
-            setDataRoom(roomsResponse);
-            setDataHouse(houseResponse);
         } catch (error) {
-            console.log("Error khi gọi server!", error);
+            
         } finally {
             setLoading(false);
         }
@@ -88,31 +70,26 @@ const GetAllContract = () => {
     useEffect(() => {
         if (dataContract && dataContract.length > 0) {
             const mapped = dataContract.map((item, index) => {
-                const roomNameFromContract = item.room;
-                const houseNameFromContract = item.houseForRent;
-                const room = dataRoom.find(r => r.name === roomNameFromContract);
-                const house = dataHouse.find(h => h.name === houseNameFromContract);
-                const finalRoomName = roomNameFromContract || (room ? room.name : "N/A");
-                const finalHouseName = houseNameFromContract || (house ? house.name : "Chưa xác định");
+                const finalRoomName = item.room || "N/A";
+                const finalHouseName = item.houseForRent || "Chưa xác định";
 
                 return {
                     ...item,
                     key: item.id,
                     stt: index + 1,
                     roomName: finalRoomName,
-                    roomPrice: room ? room.price : (item.roomPrice || 0),
+                    roomPrice: item.roomPrice || 0,
                     houseName: finalHouseName,
                     houseId: finalHouseName !== "Chưa xác định" ? finalHouseName : "unknown"
                 };
             });
             setFilterData(mapped);
             setOriginalData(mapped);
-            console.log("Mapped contracts by name:", mapped);
         } else if (dataContract && dataContract.length === 0) {
             setFilterData([]);
             setOriginalData([]);
         }
-    }, [dataContract, dataRoom, dataHouse]);
+    }, [dataContract]);
 
     const searchContract = () => {
         if (!keyWord.trim()) {
@@ -428,3 +405,5 @@ const GetAllContract = () => {
 };
 
 export default GetAllContract;
+
+

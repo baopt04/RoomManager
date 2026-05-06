@@ -13,7 +13,8 @@ import {
     Statistic,
     Tooltip,
     Avatar,
-    Divider
+    Divider,
+    Badge
 } from "antd";
 import {
     SearchOutlined,
@@ -23,61 +24,31 @@ import {
     CarOutlined,
     HomeOutlined,
     UserOutlined,
-    ReloadOutlined,
-    ExportOutlined,
-    RocketOutlined,
+    ReloadOutlined
 } from "@ant-design/icons";
 import { FaMotorcycle, FaBicycle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import RoomService from "../../services/RoomService";
 import CarService from "../../services/CarService";
-import CustomerService from "../../services/CustomerService";
 
 const { Title, Text } = Typography;
-const { Search } = Input;
 
 const GetAllCar = () => {
     const token = localStorage.getItem('token');
     const [dataCar, setDataCar] = useState([]);
-    const [dataRoom, setDataRoom] = useState([]);
-    const [dataCustomer, setDataCustomer] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [selectedHouse, setSelectedHouse] = useState("Tất cả");
     const navigate = useNavigate();
     const [keyWord, setKeyWord] = useState('');
     const [filterData, setFilterData] = useState([]);
-
-    const mapCarData = (cars, rooms, customers) => (
-        cars.map(item => {
-            const room = rooms.find(r => r.id === item.room);
-            const customer = customers.find(c => c.id === item.customer);
-            return {
-                ...item,
-                roomName: room ? room.name : "Chưa có dữ liệu",
-                customerName: customer ? customer.name : "Chưa có khách hàng"
-            };
-        })
-    );
+    const [originalData, setOriginalData] = useState([]);
 
     const fetchAllData = async () => {
         setLoading(true);
-        const startTime = Date.now();
         try {
-            const [carResponse, roomResponse, customerResponse] = await Promise.all([
-                CarService.getAllCar(token),
-                RoomService.getAllRooms(token),
-                CustomerService.getAllCustomers(token)
-            ]);
-
-            const elapsedTime = Date.now() - startTime;
-            if (false && elapsedTime < 2000) {
-                await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
-            }
-
+            const carResponse = await CarService.getAllCar(token);
             setDataCar(carResponse);
-            setDataRoom(roomResponse);
-            setDataCustomer(customerResponse);
         } catch (error) {
-            console.log("Error khi gọi server!");
+            
         } finally {
             setLoading(false);
         }
@@ -87,33 +58,67 @@ const GetAllCar = () => {
         fetchAllData();
     }, [token]);
 
-    // Map room names to car data
     useEffect(() => {
         if (dataCar.length > 0) {
             const mapped = dataCar.map(item => {
-                const room = dataRoom.find(r => r.id === item.room);
-                const customer = dataCustomer.find(c => c.id === item.customer);
                 return {
                     ...item,
-                    roomName: room ? room.name : "Chưa có dữ liệu",
-                    customerName: customer ? customer.name : "Chưa có khách hàng"
+                    roomName: item.room || "Chưa có dữ liệu",
+                    customerName: item.customer || "Chưa có khách hàng"
                 };
             });
-            setFilterData(mapped);
+
+            const sorted = mapped.sort((a, b) => {
+                const houseA = a.houseForRent || "";
+                const houseB = b.houseForRent || "";
+                if (houseA !== houseB) return houseA.localeCompare(houseB);
+                return (a.roomName || "").localeCompare(b.roomName || "");
+            });
+
+            setFilterData(sorted);
+            setOriginalData(sorted);
         }
-    }, [dataCar, dataRoom, dataCustomer]);
+    }, [dataCar]);
+
+    const houses = ["Tất cả", ...new Set(originalData.map(item => item.houseForRent).filter(Boolean))];
 
     const handleSearch = (value) => {
         setKeyWord(value);
+        let dataToFilter = originalData;
+        if (selectedHouse !== "Tất cả") {
+            dataToFilter = originalData.filter(item => item.houseForRent === selectedHouse);
+        }
+
         if (!value.trim()) {
-            setFilterData(mapCarData(dataCar, dataRoom, dataCustomer));
+            setFilterData(dataToFilter);
             return;
         }
 
-        const filtered = mapCarData(dataCar, dataRoom, dataCustomer).filter((item) =>
+        const filtered = dataToFilter.filter((item) =>
             Object.values(item).some((val) =>
                 val &&
                 val.toString().toLowerCase().includes(value.toLowerCase())
+            )
+        );
+        setFilterData(filtered);
+    };
+
+    const handleHouseChange = (house) => {
+        setSelectedHouse(house);
+        let dataToFilter = originalData;
+        if (house !== "Tất cả") {
+            dataToFilter = originalData.filter(item => item.houseForRent === house);
+        }
+
+        if (!keyWord.trim()) {
+            setFilterData(dataToFilter);
+            return;
+        }
+
+        const filtered = dataToFilter.filter((item) =>
+            Object.values(item).some((val) =>
+                val &&
+                val.toString().toLowerCase().includes(keyWord.toLowerCase())
             )
         );
         setFilterData(filtered);
@@ -172,12 +177,52 @@ const GetAllCar = () => {
 
     const columns = [
         {
-            title: 'STT',
-            dataIndex: "stt",
-            key: "stt",
-            width: 80,
-            align: 'center',
-            sorter: (a, b) => a.stt - b.stt
+            title: "Nhà",
+            dataIndex: "houseForRent",
+            key: "houseForRent",
+            width: 150,
+            onCell: (record, index) => {
+                let rowSpan = 0;
+                if (index === 0 || filterData[index - 1]?.houseForRent !== record.houseForRent) {
+                    for (let i = index; i < filterData.length; i++) {
+                        if (filterData[i].houseForRent === record.houseForRent) {
+                            rowSpan++;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+                return { rowSpan };
+            },
+            render: (text) => <Text strong><HomeOutlined style={{ marginRight: 8 }} />{text || "Chưa xác định"}</Text>
+        },
+        {
+            title: "Phòng trọ",
+            dataIndex: "roomName",
+            key: "roomName",
+            width: 150,
+            onCell: (record, index) => {
+                let rowSpan = 0;
+                // logic rowSpan for current page
+                if (index === 0 || 
+                    filterData[index - 1]?.roomName !== record.roomName || 
+                    filterData[index - 1]?.houseForRent !== record.houseForRent) {
+                    for (let i = index; i < filterData.length; i++) {
+                        if (filterData[i].roomName === record.roomName && filterData[i].houseForRent === record.houseForRent) {
+                            rowSpan++;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+                return { rowSpan };
+            },
+            render: (roomName) => (
+                <Space>
+                    <HomeOutlined style={{ color: '#52c41a' }} />
+                    <Text>{roomName || "Chưa có dữ liệu"}</Text>
+                </Space>
+            )
         },
         {
             title: "Thông tin xe",
@@ -204,18 +249,6 @@ const GetAllCar = () => {
                 );
             },
             width: 150,
-        },
-        {
-            title: "Phòng trọ",
-            dataIndex: "room",
-            key: "room",
-            render: (room, record) => (
-                <Space>
-                    <HomeOutlined style={{ color: '#52c41a' }} />
-                    <Text>{record.room}</Text>
-                </Space>
-            ),
-            sorter: (a, b) => a.room.localeCompare(b.room),
         },
         {
             title: "Khách hàng",
@@ -295,6 +328,13 @@ const GetAllCar = () => {
         }
     ];
 
+    const groupedData = filterData.reduce((acc, item) => {
+        const house = item.houseForRent || "Chưa xác định";
+        if (!acc[house]) acc[house] = [];
+        acc[house].push(item);
+        return acc;
+    }, {});
+
     const carStats = {
         total: dataCar.length,
         motorcycle: dataCar.filter(car => car.carType === 'XE_MAY').length,
@@ -373,6 +413,22 @@ const GetAllCar = () => {
                         onPressEnter={() => handleSearch(keyWord)}
                         style={{ width: 240 }}
                     />
+                    <Divider type="vertical" style={{ height: 32 }} />
+                    <Text strong>Lọc theo nhà:</Text>
+                    <div style={{ overflowX: 'auto', flex: 1 }}>
+                        <Space>
+                            {houses.map(house => (
+                                <Tag.CheckableTag
+                                    key={house}
+                                    checked={selectedHouse === house}
+                                    onChange={() => handleHouseChange(house)}
+                                    style={{ border: '1px solid #d9d9d9', padding: '4px 12px', fontSize: '13px' }}
+                                >
+                                    {house}
+                                </Tag.CheckableTag>
+                            ))}
+                        </Space>
+                    </div>
                     <Button icon={<SearchOutlined />} onClick={() => handleSearch(keyWord)}>
                         Tìm
                     </Button>
@@ -388,23 +444,33 @@ const GetAllCar = () => {
                 </div>
             </Card>
 
-            <Card size="small">
-                <Table
-                    columns={columns}
-                    dataSource={filterData}
-                    loading={loading}
-                    pagination={{
-                        pageSize: 10,
-                        showSizeChanger: true,
-                        showQuickJumper: true,
-                        showTotal: (total, range) =>
-                            `${range[0]}-${range[1]} của ${total} bản ghi`,
-                    }}
-                    scroll={{ x: 1200 }}
-                    rowKey="id"
-                    size="middle"
-                />
-            </Card>
+            {/* Grouped Data Display */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {Object.entries(groupedData).map(([house, items]) => (
+                    <Card 
+                        key={house} 
+                        title={
+                            <Space>
+                                <HomeOutlined style={{ color: '#1890ff' }} />
+                                <Text strong style={{ fontSize: '16px' }}>{house}</Text>
+                                <Badge count={items.length} style={{ backgroundColor: '#52c41a' }} />
+                            </Space>
+                        }
+                        size="small"
+                        className="house-card"
+                    >
+                        <Table
+                            columns={columns.filter(col => col.key !== 'houseForRent')}
+                            dataSource={items}
+                            loading={loading}
+                            pagination={false}
+                            scroll={{ x: 1200 }}
+                            size="middle"
+                            rowKey="id"
+                        />
+                    </Card>
+                ))}
+            </div>
 
             <style jsx>{`
                 .ant-statistic-content-value {
@@ -416,3 +482,4 @@ const GetAllCar = () => {
 };
 
 export default GetAllCar;
+

@@ -9,7 +9,7 @@ const getAllWater = async (token) => {
                 Authorization: `Bearer ${token}`,
             },
         });
-        console.log("Check service water", response.data);
+        
         return response.data;
     } catch (error) {
         throw error;
@@ -75,3 +75,4 @@ export default {
     updateWater,
     historyWater,
 };
+

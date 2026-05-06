@@ -24,9 +24,9 @@ import {
     DollarOutlined,
     CalendarOutlined,
     BulbOutlined,
-    CheckCircleOutlined
+    CheckCircleOutlined,
+    HomeOutlined
 } from "@ant-design/icons";
-import RoomService from "../../services/RoomService";
 import ElectricityService from "../../services/ElectricityService";
 import ModalCreateElectricity from "./ModalCreateElectricity";
 import ModalUpdateElectricity from "./ModalUpdateElectricity";
@@ -38,7 +38,6 @@ const GetAllElectricity = () => {
     const token = localStorage.getItem('token');
 
     const [dataElectricity, setDataElectricity] = useState([]);
-    const [dataRoom, setDataRoom] = useState([]);
     const [isModalCreate, setIsModaCreate] = useState(false);
     const [isModalUpdate, setIsModalUpdate] = useState(false);
     const [selectIdRoom, setSelectIdRoom] = useState(null);
@@ -48,25 +47,15 @@ const GetAllElectricity = () => {
     const [selectIdElectricity, setSelectIdElectricity] = useState(null);
     const [isModalDetailHistory, setIsModalDetailHistory] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [selectedHouse, setSelectedHouse] = useState("Tất cả");
 
     const fetchAllData = async () => {
         setLoading(true);
-        const startTime = Date.now();
         try {
-            const [electricityResponse, roomResponse] = await Promise.all([
-                ElectricityService.getAllElectricity(token),
-                RoomService.getAllRooms(token)
-            ]);
-
-            const elapsedTime = Date.now() - startTime;
-            if (false && elapsedTime < 2000) {
-                await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
-            }
-
+            const electricityResponse = await ElectricityService.getAllElectricity(token);
             setDataElectricity(electricityResponse);
-            setDataRoom(roomResponse);
         } catch (error) {
-            console.log("Error khi gọi server!", error);
+            
         } finally {
             setLoading(false);
         }
@@ -78,32 +67,66 @@ const GetAllElectricity = () => {
 
     // Map electricity data with room info
     useEffect(() => {
-        if (dataElectricity.length > 0 && dataRoom.length > 0) {
+        if (dataElectricity.length > 0) {
             const mapped = dataElectricity.map((item, index) => {
-                const room = dataRoom.find(r => r.id === item.room);
                 return {
                     ...item,
                     key: item.id,
-                    stt: index + 1,
-                    roomName: room ? room.name : "Không xác định"
+                    roomName: item.room || "Không xác định"
                 };
             });
+
+            mapped.sort((a, b) => {
+                const houseA = a.houseForRent || "";
+                const houseB = b.houseForRent || "";
+                if (houseA !== houseB) return houseA.localeCompare(houseB);
+                return (a.roomName || "").localeCompare(b.roomName || "");
+            });
+
             setFilterData(mapped);
             setOriginalData(mapped);
         }
-    }, [dataElectricity, dataRoom]);
+    }, [dataElectricity]);
+
+    const houses = ["Tất cả", ...new Set(originalData.map(item => item.houseForRent).filter(Boolean))];
 
     // Search functionality
     const searchElectricity = () => {
+        let dataToFilter = originalData;
+        if (selectedHouse !== "Tất cả") {
+            dataToFilter = originalData.filter(item => item.houseForRent === selectedHouse);
+        }
+
         if (!keyWord.trim()) {
-            setFilterData(originalData);
+            setFilterData(dataToFilter);
             return;
         }
 
-        const filtered = originalData.filter((item) =>
+        const filtered = dataToFilter.filter((item) =>
             Object.values(item).some((value) =>
                 value &&
                 value.toString().toLowerCase().includes(keyWord.toLowerCase())
+            )
+        );
+        setFilterData(filtered);
+    };
+
+    const handleHouseChange = (house) => {
+        setSelectedHouse(house);
+        let dataToFilter = originalData;
+        if (house !== "Tất cả") {
+            dataToFilter = originalData.filter(item => item.houseForRent === house);
+        }
+
+        if (!keyWord.trim()) {
+            setFilterData(dataToFilter);
+            return;
+        }
+
+        const filtered = dataToFilter.filter((item) =>
+            Object.values(item).some((val) =>
+                val &&
+                val.toString().toLowerCase().includes(keyWord.toLowerCase())
             )
         );
         setFilterData(filtered);
@@ -161,12 +184,51 @@ const GetAllElectricity = () => {
 
     const columns = [
         {
-            title: "STT",
-            dataIndex: "stt",
-            key: "stt",
-            width: 60,
-            align: "center",
-            sorter: (a, b) => a.stt - b.stt
+            title: "Nhà",
+            dataIndex: "houseForRent",
+            key: "houseForRent",
+            width: 150,
+            onCell: (record, index) => {
+                let rowSpan = 0;
+                if (index === 0 || filterData[index - 1]?.houseForRent !== record.houseForRent) {
+                    for (let i = index; i < filterData.length; i++) {
+                        if (filterData[i].houseForRent === record.houseForRent) {
+                            rowSpan++;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+                return { rowSpan };
+            },
+            render: (text) => <Text strong><HomeOutlined style={{ marginRight: 8 }} />{text || "Chưa xác định"}</Text>
+        },
+        {
+            title: "Phòng trọ",
+            dataIndex: "roomName",
+            key: "roomName",
+            width: 130,
+            onCell: (record, index) => {
+                let rowSpan = 0;
+                if (index === 0 || 
+                    filterData[index - 1]?.roomName !== record.roomName || 
+                    filterData[index - 1]?.houseForRent !== record.houseForRent) {
+                    for (let i = index; i < filterData.length; i++) {
+                        if (filterData[i].roomName === record.roomName && filterData[i].houseForRent === record.houseForRent) {
+                            rowSpan++;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+                return { rowSpan };
+            },
+            render: (roomName) => (
+                <Space>
+                    <HomeOutlined style={{ color: '#52c41a' }} />
+                    <Text>{roomName || "Chưa có dữ liệu"}</Text>
+                </Space>
+            )
         },
         {
             title: "Mã số",
@@ -175,19 +237,6 @@ const GetAllElectricity = () => {
             width: 100,
             sorter: (a, b) => a.code.localeCompare(b.code),
             render: (code) => <Text strong>{code}</Text>
-        },
-        {
-            title: "Phòng trọ",
-            dataIndex: "room",
-            key: "room",
-            width: 110,
-            sorter: (a, b) => a.room.localeCompare(b.room),
-            render: (roomName) => (
-                <Badge
-                    status="processing"
-                    text={roomName || "Chưa có dữ liệu"}
-                />
-            )
         },
         {
             title: "Tháng/Năm",
@@ -312,6 +361,13 @@ const GetAllElectricity = () => {
         }
     ];
 
+    const groupedData = filterData.reduce((acc, item) => {
+        const house = item.houseForRent || "Chưa xác định";
+        if (!acc[house]) acc[house] = [];
+        acc[house].push(item);
+        return acc;
+    }, {});
+
     return (
         <div>
             {/* Page Header */}
@@ -388,6 +444,22 @@ const GetAllElectricity = () => {
                         style={{ width: 240 }}
                         allowClear
                     />
+                    <Divider type="vertical" style={{ height: 32 }} />
+                    <Text strong>Lọc theo nhà:</Text>
+                    <div style={{ overflowX: 'auto', flex: 1 }}>
+                        <Space>
+                            {houses.map(house => (
+                                <Tag.CheckableTag
+                                    key={house}
+                                    checked={selectedHouse === house}
+                                    onChange={() => handleHouseChange(house)}
+                                    style={{ border: '1px solid #d9d9d9', padding: '4px 12px', fontSize: '13px' }}
+                                >
+                                    {house}
+                                </Tag.CheckableTag>
+                            ))}
+                        </Space>
+                    </div>
                     <Button icon={<SearchOutlined />} onClick={searchElectricity}>
                         Tìm
                     </Button>
@@ -397,52 +469,33 @@ const GetAllElectricity = () => {
                 </div>
             </Card>
 
-            {/* Table */}
-            <Card size="small">
-                <Table
-                    columns={columns}
-                    dataSource={filterData}
-                    loading={loading}
-                    pagination={{
-                        pageSize: 10,
-                        showSizeChanger: true,
-                        showQuickJumper: true,
-                        showTotal: (total, range) =>
-                            `${range[0]}-${range[1]} của ${total} bản ghi`,
-                    }}
-                    scroll={{ x: 1400 }}
-                    size="middle"
-                    summary={(pageData) => {
-                        let totalAmount = 0;
-                        let totalConsumption = 0;
-
-                        pageData.forEach(({ totalPrice, numberFirst, numberLast }) => {
-                            totalAmount += totalPrice || 0;
-                            totalConsumption += (numberLast || 0) - (numberFirst || 0);
-                        });
-
-                        return (
-                            <Table.Summary.Row style={{ backgroundColor: "#fafafa" }}>
-                                <Table.Summary.Cell index={0} colSpan={7}>
-                                    <Text strong>Tổng cộng trang này:</Text>
-                                </Table.Summary.Cell>
-                                <Table.Summary.Cell index={1}>
-                                    <Text strong style={{ color: "#fa8c16" }}>
-                                        <ThunderboltOutlined style={{ marginRight: 4 }} />
-                                        {formatNumber(totalConsumption)} kWh
-                                    </Text>
-                                </Table.Summary.Cell>
-                                <Table.Summary.Cell index={2}>
-                                    <Text strong style={{ color: "#52c41a" }}>
-                                        {formatCurrency(totalAmount)}
-                                    </Text>
-                                </Table.Summary.Cell>
-                                <Table.Summary.Cell index={3} colSpan={2}></Table.Summary.Cell>
-                            </Table.Summary.Row>
-                        );
-                    }}
-                />
-            </Card>
+            {/* Grouped Data Display */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {Object.entries(groupedData).map(([house, items]) => (
+                    <Card 
+                        key={house} 
+                        title={
+                            <Space>
+                                <HomeOutlined style={{ color: '#1890ff' }} />
+                                <Text strong style={{ fontSize: '16px' }}>{house}</Text>
+                                <Badge count={items.length} style={{ backgroundColor: '#52c41a' }} />
+                            </Space>
+                        }
+                        size="small"
+                        className="house-card"
+                    >
+                        <Table
+                            columns={columns.filter(col => col.key !== 'houseForRent')}
+                            dataSource={items}
+                            loading={loading}
+                            pagination={false}
+                            scroll={{ x: 1200 }}
+                            size="middle"
+                            rowKey="id"
+                        />
+                    </Card>
+                ))}
+            </div>
 
             {/* Modals */}
             <ModalCreateElectricity
@@ -471,3 +524,4 @@ const GetAllElectricity = () => {
 };
 
 export default GetAllElectricity;
+

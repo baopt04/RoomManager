@@ -88,3 +88,4 @@ const ModalDetailHost = ({ visible, onClose, hostId }) => {
   );
 };
 export default ModalDetailHost;
+

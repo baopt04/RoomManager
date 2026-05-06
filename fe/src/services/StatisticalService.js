@@ -8,7 +8,7 @@ const getTotalPrice = async (token) => {
         Authorization: `Bearer ${token} `,
       },
     })
-    console.log("Response data:", response.data);
+    
     return response.data;
   } catch (error) {
     console.error("Error fetching hosts:", error);
@@ -107,3 +107,4 @@ export default {
   getTotalCustomer,
   getTotalPriceForRoomMother
 };
+

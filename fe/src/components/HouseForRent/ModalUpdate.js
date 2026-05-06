@@ -184,3 +184,4 @@ const ModalUpdate = ({ visible, onClose, houseData, onSuccess }) => {
 };
 
 export default ModalUpdate;
+

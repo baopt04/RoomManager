@@ -9,11 +9,11 @@ const getAllRooms = async (token) => {
             }
         }
         )
-        console.log("Response data:", response.data);
+        
         return response.data;
 
     } catch (error) {
-        console.log("Error fetching rooms:", error);
+        
         throw error;
     }
 }
@@ -25,10 +25,10 @@ const createRoom = async (token, roomData) => {
                 Authorization: `Bearer ${token}`,
             }
         })
-        console.log("Response data:", response.data);
+        
         return response.data;
     } catch (error) {
-        console.log("Error creating room:", error);
+        
         throw error;
     }
 }
@@ -39,10 +39,10 @@ const detailRoom = async (token, id) => {
                 Authorization: `Bearer ${token}`,
             }
         })
-        console.log("Response data detail:", response.data);
+        
         return response.data;
     } catch (error) {
-        console.log("Error fetching room details:", error);
+        
         throw error;
     }
 
@@ -54,10 +54,10 @@ const updateRoom = async (token, id, roomData) => {
                 Authorization: `Bearer ${token}`,
             }
         })
-        console.log("Response data:", response.data);
+        
         return response.data;
     } catch (error) {
-        console.log("Error updating room:", error);
+        
         throw error;
     }
 }
@@ -73,10 +73,10 @@ const getRoomNoPayMent = async (token, mother, year) => {
                 year: year
             }
         })
-        console.log("Response data room no paymnet ", response.data);
+        
         return response.data;
     } catch (error) {
-        console.log("Error fetching room no payment:", error);
+        
         throw error;
     }
 }
@@ -168,6 +168,31 @@ const findByCustomerId = async (token , id ) => {
     }
 }
 
+const getMonthlyBillingSummary = async (token, houseForRentId, month, year) => {
+    try {
+        const response = await axiosInstance.get(`${BASE_URL}/monthly-billing-summary`, {
+            params: { houseForRentId, month, year },
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+const exportMonthlyBilling = async (token, houseForRentId, month, year) => {
+    try {
+        const response = await axiosInstance.get(`${BASE_URL}/export-monthly-billing`, {
+            params: { houseForRentId, month, year },
+            headers: { Authorization: `Bearer ${token}` },
+            responseType: 'blob'
+        });
+        return response;
+    } catch (error) {
+        throw error;
+    }
+};
+
 export default {
     getAllRooms,
     createRoom,
@@ -178,6 +203,9 @@ export default {
     detailImage ,
     findAllHouseForRentInRom , 
     findAllRoomHistory , 
-    getAllStatusRoom , 
-    findByCustomerId
+    getAllStatusRoom,
+    findByCustomerId,
+    getMonthlyBillingSummary,
+    exportMonthlyBilling
 }
+

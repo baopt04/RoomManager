@@ -583,3 +583,4 @@ const RoomDetailClient = () => {
 };
 
 export default RoomDetailClient;
+

@@ -15,7 +15,8 @@ import {
     Divider,
     Select,
     DatePicker,
-    Statistic
+    Statistic,
+    Badge
 } from "antd";
 import {
     SearchOutlined,
@@ -29,19 +30,16 @@ import {
     DollarOutlined,
     CheckCircleOutlined
 } from "@ant-design/icons";
-import RoomService from "../../services/RoomService";
 import ModalCreateMain from "./ModalCreateMain";
 import MaintencanceService from "../../services/MaintencanceService";
 import ModalUpdateMain from "./ModalUpdateMain";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
-const { RangePicker } = DatePicker;
 
 const GetAllMain = () => {
     const token = localStorage.getItem('token');
     const [dataMain, setDataMain] = useState([]);
-    const [dataRoom, setDataRoom] = useState([]);
     const [isModalCreate, setIsModalCreate] = useState(false);
     const [isModalUpdate, setIsModalUpdate] = useState(false);
     const [selectIdMain, setSelectIdMain] = useState(null);
@@ -50,23 +48,13 @@ const GetAllMain = () => {
     const [loading, setLoading] = useState(false);
     const [statusFilter, setStatusFilter] = useState("ALL");
     const [originalData, setOriginalData] = useState([]);
+    const [selectedHouse, setSelectedHouse] = useState("Tất cả");
 
     const fetchAllData = async () => {
         setLoading(true);
-        const startTime = Date.now();
         try {
-            const [mainResponse, roomResponse] = await Promise.all([
-                MaintencanceService.getAllMainTen(token),
-                RoomService.getAllRooms(token)
-            ]);
-
-            const elapsedTime = Date.now() - startTime;
-            if (false && elapsedTime < 2000) {
-                await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
-            }
-
+            const mainResponse = await MaintencanceService.getAllMainTen(token);
             setDataMain(mainResponse);
-            setDataRoom(roomResponse);
         } catch (error) {
             message.error("Lỗi khi tải dữ liệu bảo trì!");
             console.error("Failed to fetch maintenance data:", error);
@@ -81,33 +69,37 @@ const GetAllMain = () => {
 
     // Map room data with maintenance data
     useEffect(() => {
-        if (dataMain.length > 0 && dataRoom.length > 0) {
+        if (dataMain.length > 0) {
             const mapped = dataMain.map((item, index) => {
-                const room = dataRoom.find(r => r.id === item.room);
                 return {
                     ...item,
                     stt: index + 1,
                     key: item.id,
-                    roomName: room ? room.name : "Không xác định"
+                    roomName: item.room || "Không xác định"
                 };
             });
-            setOriginalData(mapped);
-            setFilterData(mapped);
-        } else if (dataMain.length > 0) {
-            const mappedWithoutRoom = dataMain.map((item, index) => ({
-                ...item,
-                stt: index + 1,
-                key: item.id,
-                roomName: "Không xác định"
-            }));
-            setOriginalData(mappedWithoutRoom);
-            setFilterData(mappedWithoutRoom);
+            // Sắp xếp theo Nhà rồi đến Phòng để thực hiện gộp dòng
+            const sorted = mapped.sort((a, b) => {
+                const houseA = a.houseForRent || "";
+                const houseB = b.houseForRent || "";
+                if (houseA !== houseB) return houseA.localeCompare(houseB);
+                return (a.roomName || "").localeCompare(b.roomName || "");
+            });
+
+            setOriginalData(sorted);
+            setFilterData(sorted);
         }
-    }, [dataMain, dataRoom]);
+    }, [dataMain]);
+
+    const houses = ["Tất cả", ...new Set(originalData.map(item => item.houseForRent).filter(Boolean))];
 
     // Search and filter function
     const handleFilter = () => {
         let filtered = [...originalData];
+
+        if (selectedHouse !== "Tất cả") {
+            filtered = filtered.filter(item => item.houseForRent === selectedHouse);
+        }
 
         // Filter by keyword
         if (keyWord.trim()) {
@@ -127,9 +119,34 @@ const GetAllMain = () => {
         setFilterData(filtered);
     };
 
+    const handleHouseChange = (house) => {
+        setSelectedHouse(house);
+        let filtered = [...originalData];
+
+        if (house !== "Tất cả") {
+            filtered = filtered.filter(item => item.houseForRent === house);
+        }
+
+        if (keyWord.trim()) {
+            filtered = filtered.filter((item) =>
+                Object.values(item).some((val) =>
+                    val &&
+                    val.toString().toLowerCase().includes(keyWord.toLowerCase())
+                )
+            );
+        }
+
+        if (statusFilter !== "ALL") {
+            filtered = filtered.filter(item => item.status === statusFilter);
+        }
+
+        setFilterData(filtered);
+    };
+
     const resetFilters = () => {
         setKeyWord("");
         setStatusFilter("ALL");
+        setSelectedHouse("Tất cả");
         fetchAllData();
     };
 
@@ -428,6 +445,22 @@ const GetAllMain = () => {
                         <Option value="DANG_XU_LY">Đang xử lý</Option>
                         <Option value="HOAN_THANH">Đã hoàn thành</Option>
                     </Select>
+                    <Divider type="vertical" style={{ height: 32 }} />
+                    <Text strong>Lọc theo nhà:</Text>
+                    <div style={{ overflowX: 'auto', flex: 1 }}>
+                        <Space>
+                            {houses.map(house => (
+                                <Tag.CheckableTag
+                                    key={house}
+                                    checked={selectedHouse === house}
+                                    onChange={() => handleHouseChange(house)}
+                                    style={{ border: '1px solid #d9d9d9', padding: '4px 12px', fontSize: '13px' }}
+                                >
+                                    {house}
+                                </Tag.CheckableTag>
+                            ))}
+                        </Space>
+                    </div>
                     <Button icon={<SearchOutlined />} onClick={handleFilter}>
                         Tìm
                     </Button>
@@ -437,23 +470,38 @@ const GetAllMain = () => {
                 </div>
             </Card>
 
-            {/* Data Table */}
-            <Card size="small">
-                <Table
-                    columns={columns}
-                    dataSource={filterData}
-                    loading={loading}
-                    pagination={{
-                        pageSize: 10,
-                        showSizeChanger: true,
-                        showQuickJumper: true,
-                        showTotal: (total, range) =>
-                            `${range[0]}-${range[1]} của ${total} bản ghi`,
-                    }}
-                    scroll={{ x: 1200 }}
-                    size="middle"
-                />
-            </Card>
+            {/* Grouped Data Display */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {Object.entries(filterData.reduce((acc, item) => {
+                    const house = item.houseForRent || "Chưa xác định";
+                    if (!acc[house]) acc[house] = [];
+                    acc[house].push(item);
+                    return acc;
+                }, {})).map(([house, items]) => (
+                    <Card 
+                        key={house} 
+                        title={
+                            <Space>
+                                <HomeOutlined style={{ color: '#1890ff' }} />
+                                <Text strong style={{ fontSize: '16px' }}>{house}</Text>
+                                <Badge count={items.length} style={{ backgroundColor: '#52c41a' }} />
+                            </Space>
+                        }
+                        size="small"
+                        className="house-card"
+                    >
+                        <Table
+                            columns={columns.filter(col => col.key !== 'houseForRent')}
+                            dataSource={items}
+                            loading={loading}
+                            pagination={false}
+                            scroll={{ x: 1200 }}
+                            size="middle"
+                            rowKey="id"
+                        />
+                    </Card>
+                ))}
+            </div>
 
             {/* Modals */}
             <ModalCreateMain
@@ -479,3 +527,4 @@ const GetAllMain = () => {
 };
 
 export default GetAllMain;
+

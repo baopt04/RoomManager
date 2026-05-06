@@ -8,7 +8,7 @@ const getAllCar = async (token) => {
                 Authorization: `Bearer ${token}`,
             }
         })
-        console.log("Chekc service water" , response.data);
+        
         
         return response.data;
     } catch (error) {
@@ -72,3 +72,4 @@ export default {
     updateCar , 
     deleteCar
 }
+

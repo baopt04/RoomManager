@@ -19,7 +19,7 @@ const ModalChangePassword = ({ visible, onclose }) => {
             form.resetFields();
             onclose();
         } catch (error) {
-            if (error.message && error.response.data && error.response.data.message) {
+            if (error.response && error.response.data && error.response.data.message) {
                 message.error(error.response.data.message);
             } else {
                 message.error("Lỗi server. vui lòng thử lại sau !");
@@ -71,3 +71,4 @@ const ModalChangePassword = ({ visible, onclose }) => {
     )
 }
 export default ModalChangePassword
+

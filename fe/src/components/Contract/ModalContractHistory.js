@@ -185,3 +185,4 @@ const ModalContractHistory = ({ visible, onClose, id }) => {
     )
 }
 export default ModalContractHistory;
+

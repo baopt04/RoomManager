@@ -35,7 +35,7 @@ const ModalUpdateElectricity = ({ visible, onClose, id, onSuccess }) => {
 
                 })
             } catch (error) {
-                console.log("Không thể kết nối tới service!");
+                
             }
         }
         fetchDetail();
@@ -159,3 +159,4 @@ const ModalUpdateElectricity = ({ visible, onClose, id, onSuccess }) => {
 };
 
 export default ModalUpdateElectricity;
+

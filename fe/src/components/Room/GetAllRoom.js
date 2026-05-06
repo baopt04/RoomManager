@@ -22,9 +22,11 @@ import {
     HomeOutlined,
     ApartmentOutlined,
     ExclamationCircleOutlined,
-    CheckCircleOutlined
+    CheckCircleOutlined,
+    FileExcelOutlined
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import { message } from "antd";
 import RoomService from "../../services/RoomService";
 import HouseForRentService from "../../services/HouseForRentService";
 import CustomerService from "../../services/CustomerService";
@@ -57,7 +59,6 @@ const GetAllRoom = () => {
 
     const fetchAllData = async () => {
         setLoading(true);
-        const startTime = Date.now();
         try {
             const [rooms, houses, customers, status] = await Promise.all([
                 RoomService.getAllRooms(token),
@@ -66,10 +67,7 @@ const GetAllRoom = () => {
                 RoomService.getAllStatusRoom(token)
             ]);
 
-            const elapsedTime = Date.now() - startTime;
-            if (false && elapsedTime < 2000) {
-                await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
-            }
+            
 
             setDataRoom(rooms);
             setFilterData(rooms);
@@ -127,6 +125,41 @@ const GetAllRoom = () => {
     const detailRoomHistory = (id) => {
         setSelectIdRoom(id);
         setIsModalDetail(true);
+    };
+
+    const handleExportMonthlyBilling = async () => {
+        const now = new Date();
+        const month = now.getMonth() + 1;
+        const year = now.getFullYear();
+
+        try {
+            message.loading({ content: "Đang tạo file Excel...", key: "export_bill" });
+            const response = await RoomService.exportMonthlyBilling(token, selectedHouseId, month, year);
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+
+            let fileName;
+            if (selectedHouseId === "all") {
+                fileName = `Bang_Ke_Tong_Hop_Thang_${month}_${year}.xlsx`;
+            } else {
+                const houseName = dataHouseForRent.find(h => h.id === selectedHouseId)?.name || "Nha";
+                const safeHouseName = houseName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '_');
+                fileName = `Bang_Ke_${safeHouseName}_Thang_${month}_${year}.xlsx`;
+            }
+            
+            link.setAttribute('download', fileName);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+
+            message.success({ content: "Xuất file Excel thành công!", key: "export_bill" });
+        } catch (error) {
+            console.error("Export error:", error);
+            message.error({ content: "Lỗi khi xuất file Excel!", key: "export_bill" });
+        }
     };
 
     const columns = [
@@ -308,6 +341,17 @@ const GetAllRoom = () => {
                     <Button icon={<SearchOutlined />} onClick={handleSearch}>
                         Tìm
                     </Button>
+                    <Button 
+                        icon={<FileExcelOutlined />} 
+                        onClick={handleExportMonthlyBilling}
+                        style={{ 
+                            backgroundColor: "#1d6f42", 
+                            color: "white",
+                            borderRadius: 6 
+                        }}
+                    >
+                        Xuất bảng kê
+                    </Button>
                     <Button icon={<ReloadOutlined />} onClick={fetchAllData}>
                         Làm mới
                     </Button>
@@ -337,3 +381,4 @@ const GetAllRoom = () => {
 };
 
 export default GetAllRoom;
+

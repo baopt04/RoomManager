@@ -8,7 +8,7 @@ const getAllMainTen = async (token) => {
                 Authorization: `Bearer ${token}`,
             }
         })
-        console.log("Chekc service mainten" , response.data);
+        
         
         return response.data;
     } catch (error) {
@@ -72,3 +72,4 @@ export default {
     updateMainTen , 
     deleteMainTen
 }
+

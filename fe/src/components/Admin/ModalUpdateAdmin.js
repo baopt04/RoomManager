@@ -36,7 +36,7 @@ const ModalUpdateAdmin = ({ visible, onclose, id, onSuccess }) => {
                 })
 
             } catch (error) {
-                console.log("Không tìm thấy admin ");
+                
 
             }
         }
@@ -45,7 +45,7 @@ const ModalUpdateAdmin = ({ visible, onclose, id, onSuccess }) => {
     const updateAdmin = async (values) => {
         try {
             const response = await AdminService.updateAdmin(token, values, id);
-            console.log("Check update admin", response);
+            
             message.success("Cập nhật thành công!")
             if (onSuccess) {
                 await onSuccess();
@@ -254,3 +254,4 @@ const ModalUpdateAdmin = ({ visible, onclose, id, onSuccess }) => {
     )
 }
 export default ModalUpdateAdmin;
+

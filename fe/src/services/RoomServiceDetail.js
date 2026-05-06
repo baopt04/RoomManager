@@ -9,11 +9,11 @@ const getAllRoomServiceDetail = async (token) => {
             }
         }
         )
-        console.log("Response data:", response.data);
+        
         return response.data;
 
     } catch (error) {
-        console.log("Error fetching rooms:", error);
+        
         throw error;
     }
 }
@@ -25,10 +25,10 @@ const createRoomServiceDetail = async (token, roomServiceData) => {
                 Authorization: `Bearer ${token}`,
             }
         })
-        console.log("Response data:", response.data);
+        
         return response.data;
     } catch (error) {
-        console.log("Error creating room Service:", error);
+        
         throw error;
     }
 }
@@ -39,10 +39,10 @@ const detailRoomServiceDetail = async (token, id) => {
                 Authorization: `Bearer ${token}`,
             }
         })
-        console.log("Response data detail:", response.data);
+        
         return response.data;
     } catch (error) {
-        console.log("Error fetching room service details:", error);
+        
         throw error;
     }
 
@@ -54,10 +54,10 @@ const updateRoomServiceDetail = async (token, id, roomServiceData) => {
                 Authorization: `Bearer ${token}`,
             }
         })
-        console.log("Response data:", response.data);
+        
         return response.data;
     } catch (error) {
-        console.log("Error updating room service:", error);
+        
         throw error;
     }
 }
@@ -69,10 +69,10 @@ const deleteRoomServiceDetail = async (token, id) => {
                 Authorization: `Bearer ${token}`,
             }
         })
-        console.log("Response delete room service:", response.data);
+        
         return response.data;
     } catch (error) {
-        console.log("Error deleting room service:", error);
+        
         throw error;
     }
 }
@@ -84,3 +84,4 @@ export default {
     updateRoomServiceDetail,
     deleteRoomServiceDetail,
 }
+

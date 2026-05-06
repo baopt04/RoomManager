@@ -16,7 +16,7 @@ const Register = () => {
         setLoading(true);
         try {
             const response = await LoginService.registerRoom(values);
-            console.log("Check response register", response);
+            
             message.success("Đăng ký thành công! Vui lòng đăng nhập.");
             setTimeout(() => {
                 navigate('/login');
@@ -440,3 +440,4 @@ const Register = () => {
 };
 
 export default Register;
+

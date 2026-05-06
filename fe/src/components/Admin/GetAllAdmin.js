@@ -51,7 +51,7 @@ const GetAllAdmin = () => {
             setDataAdmin(response);
             setFilteredAdmin(response);
         } catch (error) {
-            console.log("error get admin");
+            
         } finally {
             setLoading(false);
         }
@@ -427,3 +427,4 @@ const GetAllAdmin = () => {
 };
 
 export default GetAllAdmin;
+

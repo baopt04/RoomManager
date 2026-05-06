@@ -28,7 +28,7 @@ const ModalDetail = ({ visible, onClose, houseData, hostId }) => {
 
   useEffect(() => {
     const fetchHouseDetail = async () => {
-      console.log("Check id house" , houseData);
+      
       
       try {
         const data = await HouseForRentService.detailHouseForRent(
@@ -137,3 +137,4 @@ const ModalDetail = ({ visible, onClose, houseData, hostId }) => {
 };
 
 export default ModalDetail;
+

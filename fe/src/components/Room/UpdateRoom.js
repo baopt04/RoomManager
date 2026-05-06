@@ -72,7 +72,7 @@ const UpdateRoom = () => {
 
                 setFileList(convertedImages);
             } catch (error) {
-                console.log("Error load update");
+                
             }
         }
         fetchHouseDetail();
@@ -304,3 +304,4 @@ const UpdateRoom = () => {
     )
 }
 export default UpdateRoom;
+

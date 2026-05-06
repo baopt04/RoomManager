@@ -42,7 +42,7 @@ const ModalCreate = ({ visible, onClose, onSuccess }) => {
                     if (onSuccess) onSuccess();
                     onClose();
                 } catch (error) {
-                    console.log("Error in catch:", error);
+                    
                     if (error.response && error.response.data) {
                         const messageError = error.response.data.message;
                         if (messageError.includes("Tên đã tồn tại")) {
@@ -179,3 +179,4 @@ const ModalCreate = ({ visible, onClose, onSuccess }) => {
     )
 }
 export default ModalCreate;
+

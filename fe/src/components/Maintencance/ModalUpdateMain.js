@@ -40,7 +40,7 @@ const ModalUpdateMain = ({ visible, onClose, id, onSuccess }) => {
                     status: response.status
                 })
             } catch (error) {
-                console.log("Lỗi lấy dữ liệu server");
+                
 
             }
         }
@@ -214,3 +214,4 @@ const ModalUpdateMain = ({ visible, onClose, id, onSuccess }) => {
 };
 
 export default ModalUpdateMain;
+

@@ -61,17 +61,13 @@ const GetAllHouseForRent = () => {
 
     const fetchAllData = async () => {
         setLoading(true);
-        const startTime = Date.now();
         try {
             const [houses, hosts] = await Promise.all([
                 HouseForRentService.getAllHouseForRent(token),
                 HostService.getAllHosts(token)
             ]);
 
-            const elapsedTime = Date.now() - startTime;
-            if (false && elapsedTime < 2000) {
-                await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime));
-            }
+            
 
             setDataHouseForRent(houses);
             setFilteredHouseForRent(houses);
@@ -372,3 +368,4 @@ const GetAllHouseForRent = () => {
 };
 
 export default GetAllHouseForRent;
+

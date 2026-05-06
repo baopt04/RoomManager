@@ -9,11 +9,11 @@ const getAllCustomers = async (token) => {
                 Authorization: `Bearer ${token}`,
             }
         })
-        console.log("Response data:", response.data);
+        
         return response.data;
 
     } catch (error) {
-        console.log("Error fetching customers:", error);
+        
         throw error;
     }
 }
@@ -24,10 +24,10 @@ const createCustomer = async (token, customerData) => {
                 Authorization: `Bearer ${token}`,
             }
         })
-        console.log("Response data:", response.data);
+        
         return response.data;
     } catch (error) {
-        console.log("Error creating customer:", error);
+        
         throw error;
     }
 }
@@ -38,10 +38,10 @@ const detailCustomer = async (token, id) => {
                 Authorization: `Bearer ${token}`,
             }
         })
-        console.log("Response data detail:", response.data);
+        
         return response.data;
     } catch (error) {
-        console.log("Error fetching customer details:", error);
+        
         throw error;
     }
 
@@ -53,10 +53,10 @@ const updateCustomer = async (token, id, customerData) => {
                 Authorization: `Bearer ${token}`,
             }
         })
-        console.log("Response data:", response.data);
+        
         return response.data;
     } catch (error) {
-        console.log("Error updating customer:", error);
+        
         throw error;
     }
 }
@@ -67,3 +67,4 @@ export default {
     detailCustomer,
     updateCustomer,
 };
+

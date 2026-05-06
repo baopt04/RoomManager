@@ -21,7 +21,7 @@ const ModalDetailService = ({ visible, onClose, serviceId }) => {
                     discription: response.discription
                 })
             } catch (error) {
-                console.log("Không thể kết nối đến service!");
+                
             }
         }
         fetchServiceData();
@@ -95,3 +95,4 @@ const ModalDetailService = ({ visible, onClose, serviceId }) => {
     )
 }
 export default ModalDetailService;
+

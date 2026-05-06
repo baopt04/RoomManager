@@ -56,7 +56,7 @@ axiosInstance.interceptors.response.use(
             isRefreshing = true;
 
             try {
-                console.log('🔄 Đang refresh token...');
+                
 
                 const res = await axios.post(
                     `${process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080'}/public/refresh-token`,
@@ -81,7 +81,7 @@ axiosInstance.interceptors.response.use(
                 return axiosInstance(originalRequest);
 
             } catch (refreshError) {
-                console.log('❌ Refresh token thất bại:', refreshError);
+                
 
                 processQueue(refreshError, null);
 
@@ -104,3 +104,4 @@ axiosInstance.interceptors.response.use(
 );
 
 export default axiosInstance;
+

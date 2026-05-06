@@ -23,8 +23,8 @@
   /* Sizing Constraints */
   --sidebar-width: 260px;
   --header-height: 64px;
-  --radius-sm: 10px;
-  --radius-md: 12px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
   --radius-lg: 24px;
 
   /* Shadows - Minimal and soft */
@@ -148,15 +148,34 @@ code {
 }
 
 
-/* Inputs */
 .ant-input,
+.ant-input-affix-wrapper,
 .ant-picker,
-.ant-select-selector {
+.ant-select-selector,
+.ant-input-number {
   border-radius: var(--radius-sm) !important;
   font-family: 'Inter', sans-serif !important;
   background: var(--color-surface-secondary) !important;
   color: var(--color-text) !important;
   border: 1px solid var(--color-border) !important;
+  padding: 8px 12px !important;
+}
+
+/* Fix nested rounding in Affix wrapper (Search inputs) */
+.ant-input-affix-wrapper {
+  padding: 4px 12px !important;
+}
+
+.ant-input-affix-wrapper .ant-input {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 4px 0 !important;
+}
+
+.ant-input-affix-wrapper-focused {
+  box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.15) !important;
+  border-color: var(--color-primary) !important;
 }
 
 .ant-input::placeholder, .ant-select-selection-placeholder {
@@ -206,6 +225,45 @@ code {
 
 .ant-modal-title {
   color: var(--color-text) !important;
+  font-weight: 600 !important;
+}
+
+/* Tabs - MacBook Style */
+.ant-tabs-nav::before {
+  border-bottom: 1px solid var(--color-border) !important;
+}
+
+.ant-tabs-tab {
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0 !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  padding: 10px 16px !important;
+  margin: 0 4px 0 0 !important;
+}
+
+.ant-tabs-tab-active {
+  background: rgba(0, 113, 227, 0.05) !important;
+}
+
+.ant-tabs-tab-btn {
+  font-weight: 500 !important;
+  color: var(--color-text-secondary) !important;
+}
+
+.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: var(--color-primary) !important;
+}
+
+.ant-tabs-ink-bar {
+  height: 3px !important;
+  border-radius: 3px 3px 0 0 !important;
+  background: var(--color-primary) !important;
+}
+
+/* Buttons inside Modals and elsewhere */
+.ant-modal-footer .ant-btn {
+  height: 38px !important;
+  padding: 0 20px !important;
+  border-radius: 10px !important;
 }
 
 /* Statistic */

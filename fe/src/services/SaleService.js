@@ -10,11 +10,11 @@ const createBill = async (token , id) => {
                 Authorization: `Bearer ${token}`,
             }
         })
-        console.log("Response data:", response.data);
+        
         return response.data;
 
     } catch (error) {
-        console.log("Error fetching customers:", error);
+        
         throw error;
     }
 }
@@ -25,10 +25,10 @@ const saveBill = async (token, id ,  billData) => {
                 Authorization: `Bearer ${token}`,
             }
         })
-        console.log("Response data:", response.data);
+        
         return response.data;
     } catch (error) {
-        console.log("Error creating customer:", error);
+        
         throw error;
     }
 }
@@ -103,3 +103,4 @@ export default {
     detailBillDetail ,
     update
 };
+

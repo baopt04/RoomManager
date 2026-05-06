@@ -110,3 +110,4 @@ export const ListingRoomCard = memo(({ room, onClick, index, activeType }) => {
     </motion.div>
   );
 });
+

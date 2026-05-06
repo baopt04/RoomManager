@@ -129,3 +129,4 @@ const ModalUpdateHost = ({ visible, onClose, hostId, onSuccess }) => {
   );
 };
 export default ModalUpdateHost;
+

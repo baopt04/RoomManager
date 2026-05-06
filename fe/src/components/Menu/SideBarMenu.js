@@ -279,3 +279,4 @@ const SidebarMenu = ({ onClose }) => {
 };
 
 export default SidebarMenu;
+
