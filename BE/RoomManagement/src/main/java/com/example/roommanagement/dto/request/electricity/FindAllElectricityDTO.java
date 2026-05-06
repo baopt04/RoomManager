@@ -21,4 +21,5 @@ public class FindAllElectricityDTO {
     private Integer year;
     private String status;
     private String room;
+    private String houseForRent;
 }

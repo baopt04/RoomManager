@@ -21,5 +21,6 @@ public class FindAllWaterDTO {
     private Integer mother;
     private Integer year;
     private String status;
+    private String houseForRent;
     private String room;
 }

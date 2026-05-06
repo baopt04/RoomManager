@@ -43,4 +43,5 @@ public class Constrants {
     public static final String EMAIL_FOUND = "Không tìm thấy email!";
     public static final String TOKEN_EXPIRATION = "RefreshToken đã hết hạn . Vui lòng đăng nhập lại!";
     public static final String REFRESH_TOKEN_FOUND = "RefrehToken không tồm tại ";
+    public static final String INVALID_MONTH = "Tháng không hợp lệ (1-12).";
 }

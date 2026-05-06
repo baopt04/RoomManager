@@ -4,6 +4,7 @@ import com.example.roommanagement.dto.request.roomServiceDetail.FindAllRoomServi
 import com.example.roommanagement.entity.RoomService;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -22,5 +23,13 @@ public interface RoomServiceDetailRepository extends JpaRepository<RoomService ,
             """, nativeQuery = true)
     List<FindAllRoomServiceDetail> findAllRoomService();
     boolean existsByRoom_IdAndServiceS_Id(String room_id , String service_id);
+
+    @Query("""
+            SELECT DISTINCT rs FROM RoomService rs
+            JOIN FETCH rs.serviceS
+            JOIN FETCH rs.room
+            WHERE rs.room.id IN :roomIds
+            """)
+    List<RoomService> findAllByRoomIdsWithServiceAndRoom(@Param("roomIds") List<String> roomIds);
 
 }

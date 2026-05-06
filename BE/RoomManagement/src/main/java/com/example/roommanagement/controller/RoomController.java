@@ -5,17 +5,17 @@ import com.example.roommanagement.dto.request.room.*;
 import com.example.roommanagement.entity.Image;
 import com.example.roommanagement.entity.Room;
 import com.example.roommanagement.infrastructure.error.Reponse;
+import com.example.roommanagement.service.ExportExcelService;
 import com.example.roommanagement.service.RoomService;
 import org.hibernate.annotations.processing.Find;
 import org.hibernate.sql.Update;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -23,6 +23,9 @@ import java.util.List;
 public class RoomController {
     @Autowired
     private RoomService roomService;
+
+    @Autowired
+    private ExportExcelService exportExcelService;
     @GetMapping("/getAll")
     public ResponseEntity<List<FindAllRoomDTO>> getAll() {
         List<FindAllRoomDTO> list = roomService.findAllRooms();
@@ -58,6 +61,44 @@ public class RoomController {
     public ResponseEntity<RoomDetailProjection> findTotalPriceRoom(@RequestParam("id") String id) {
         RoomDetailProjection reponse = roomService.findTotalPriceRoom(id);
         return new ResponseEntity<>(reponse, HttpStatus.OK);
+    }
+
+    /**
+     * Bảng tổng hợp theo nhà: mỗi phòng một cột dữ liệu (điện, nước, dịch vụ tách loại, tiền nhà, tổng) — phục vụ xuất Excel.
+     */
+    @GetMapping("/monthly-billing-summary")
+    public ResponseEntity<HouseMonthlyBillingSummaryDTO> getMonthlyBillingSummary(
+            @RequestParam("houseForRentId") String houseForRentId,
+            @RequestParam(value = "month", required = false) Integer month,
+            @RequestParam(value = "year", required = false) Integer year) {
+        HouseMonthlyBillingSummaryDTO response = roomService.getHouseMonthlyBillingSummary(houseForRentId, month, year);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/export-monthly-billing")
+    public ResponseEntity<byte[]> exportMonthlyBilling(
+            @RequestParam(value = "houseForRentId", required = false) String houseForRentId,
+            @RequestParam(value = "month", required = false) Integer month,
+            @RequestParam(value = "year", required = false) Integer year) throws IOException {
+        
+        List<HouseMonthlyBillingSummaryDTO> summaries;
+        String fileName;
+
+        if (houseForRentId == null || houseForRentId.isEmpty() || houseForRentId.equalsIgnoreCase("all")) {
+            summaries = roomService.getAllHousesMonthlyBillingSummary(month, year);
+            fileName = "Bang_Ke_Tong_Hop_Thang_" + (month != null ? month : "") + "_" + (year != null ? year : "") + ".xlsx";
+        } else {
+            HouseMonthlyBillingSummaryDTO data = roomService.getHouseMonthlyBillingSummary(houseForRentId, month, year);
+            summaries = List.of(data);
+            fileName = "Bang_Ke_" + data.getHouseForRentName().replace(" ", "_") + "_Thang_" + data.getMonth() + "_" + data.getYear() + ".xlsx";
+        }
+
+        byte[] excelContent = exportExcelService.exportMonthlyBillingSummary(summaries);
+        
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(fileName).build().toString())
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(excelContent);
     }
     @GetMapping("/findAllImages/{id}")
     public ResponseEntity<List<FindAllImageProjection>> findAllImageForRoom(@PathVariable String id) {

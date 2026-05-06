@@ -3,6 +3,7 @@ package com.example.roommanagement.repository;
 import com.example.roommanagement.dto.request.electricity.FindAllElectricityDTO;
 import com.example.roommanagement.dto.request.water.FindAllWaterDTO;
 import com.example.roommanagement.entity.Electricity;
+import com.example.roommanagement.infrastructure.constant.StatusWaterEndElectric;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -22,6 +23,12 @@ public interface ElectricityRepository extends CrudRepository<Electricity, Strin
     boolean existsByRoom_Id(String id);
     Optional<Electricity> findTopByRoomIdOrderByLastModifiedDateDesc(String roomId);
 
+    Optional<Electricity> findFirstByRoom_IdAndMotherAndYearAndStatusOrderByLastModifiedDateDesc(
+            String roomId, Integer mother, Integer year, StatusWaterEndElectric status);
+
+    Optional<Electricity> findFirstByRoom_IdAndMotherAndYearOrderByLastModifiedDateDesc(
+            String roomId, Integer mother, Integer year);
+
     @Query(value = """
             select 
             row_number() over(order by r.last_modified_date desc ) as stt ,
@@ -35,9 +42,11 @@ public interface ElectricityRepository extends CrudRepository<Electricity, Strin
                         r.mother as mother ,
                                     r.year as year ,
                         r.status as status,
-            rm.name as room
+            rm.name as room , 
+                        hfr.name as houseForRent
             from electricity r
             left join room rm on rm.id = r.id_room
+                         left join house_for_rent hfr on hfr.id = rm.id_house_for_rent
             """, nativeQuery = true)
     List<FindAllElectricityDTO> findAllElectricity();
 

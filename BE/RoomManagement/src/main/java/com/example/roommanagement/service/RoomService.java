@@ -2,10 +2,6 @@ package com.example.roommanagement.service;
 
 import com.example.roommanagement.dto.request.image.FindAllImageProjection;
 import com.example.roommanagement.dto.request.room.*;
-import com.example.roommanagement.dto.request.statistical.RoomRevenueProjection;
-import com.example.roommanagement.entity.Image;
-import com.example.roommanagement.entity.Room;
-import com.example.roommanagement.infrastructure.error.Reponse;
 
 import java.util.List;
 
@@ -22,4 +18,14 @@ public interface RoomService {
     List<FindAllRoomHistoryProjection> findAllRoomHistory(String idRoom);
     List<RoomStatusCountProjection> getAllStatusRoom();
     List<FindAllRoomDTO> findAllRoomByCustomer(String idCustomer);
+
+    /**
+     * Tổng hợp tiền điện, nước, dịch vụ và tiền phòng của mọi phòng thuộc một nhà trong tháng/năm (xuất Excel).
+     */
+    HouseMonthlyBillingSummaryDTO getHouseMonthlyBillingSummary(String houseForRentId, Integer month, Integer year);
+
+    /**
+     * Tổng hợp cho tất cả các nhà.
+     */
+    java.util.List<HouseMonthlyBillingSummaryDTO> getAllHousesMonthlyBillingSummary(Integer month, Integer year);
 }

@@ -25,9 +25,11 @@ public interface CarRepository extends JpaRepository<Car , Long> {
                 c.brand_car as brandCar,
                 c.color as color , 
                 r.name as room , 
+                hfr.name as houseForRent ,
                 ct.name as customer
             from car c
             left join room r on r.id = c.id_room
+                             left join house_for_rent hfr on hfr.id = r.id_house_for_rent
             left join customer ct on ct.id = c.id_customer
             """ , nativeQuery = true)
     List<FindAllCarDTO> findAllCars();

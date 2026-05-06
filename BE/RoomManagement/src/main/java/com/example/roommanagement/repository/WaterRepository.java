@@ -1,8 +1,8 @@
 package com.example.roommanagement.repository;
 
 import com.example.roommanagement.dto.request.water.FindAllWaterDTO;
-import com.example.roommanagement.entity.Electricity;
 import com.example.roommanagement.entity.Water;
+import com.example.roommanagement.infrastructure.constant.StatusWaterEndElectric;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -19,6 +19,12 @@ public interface WaterRepository extends JpaRepository<Water, String> {
 boolean existsByRoom_Id(String id);
     Optional<Water> findTopByRoomIdOrderByLastModifiedDateDesc(String roomId);
 
+    Optional<Water> findFirstByRoom_IdAndMotherAndYearAndStatusOrderByLastModifiedDateDesc(
+            String roomId, Integer mother, Integer year, StatusWaterEndElectric status);
+
+    Optional<Water> findFirstByRoom_IdAndMotherAndYearOrderByLastModifiedDateDesc(
+            String roomId, Integer mother, Integer year);
+
     @Query(value = """
             select 
             row_number() over(order by r.last_modified_date desc ) as stt ,
@@ -32,10 +38,12 @@ boolean existsByRoom_Id(String id);
                         r.mother as mother ,
                                     r.year as year ,
                         r.status as status ,
-            rm.name as room
+            rm.name as room,
+                        hfr.name as houseForRent
             from water r
             left join room rm on rm.id = r.id_room
-            """, nativeQuery = true)
+                        left join house_for_rent hfr on hfr.id = rm.id_house_for_rent
+         """, nativeQuery = true)
     List<FindAllWaterDTO> findAllWaters();
 
     @Modifying

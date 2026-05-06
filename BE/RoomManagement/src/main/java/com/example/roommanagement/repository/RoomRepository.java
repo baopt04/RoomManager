@@ -201,4 +201,12 @@ public interface RoomRepository extends JpaRepository<Room, String> {
     @Query("SELECT c.status FROM Contract c WHERE c.room.id = :roomId")
     StatusContract getContractStatus(@Param("roomId") String roomId);
 
+    @Query("""
+            SELECT DISTINCT r FROM Room r
+            LEFT JOIN FETCH r.customer
+            WHERE r.houseForRent.id = :houseForRentId
+            ORDER BY r.name ASC
+            """)
+    List<Room> findRoomsForHouseOrderByName(@Param("houseForRentId") String houseForRentId);
+
 }

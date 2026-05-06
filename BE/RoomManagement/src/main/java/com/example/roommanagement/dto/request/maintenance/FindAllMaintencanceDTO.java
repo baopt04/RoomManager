@@ -21,5 +21,5 @@ public class FindAllMaintencanceDTO {
     private BigDecimal expense;
     private String status;
     private String room;
-
+    private String houseForRent;
 }

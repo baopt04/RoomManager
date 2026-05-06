@@ -19,6 +19,7 @@ public class FindAllCarDTO   {
     private String brandCar;
     private String color;
     private String room;
+    private String houseForRent;
     private String customer;
 
 }

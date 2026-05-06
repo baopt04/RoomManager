@@ -26,9 +26,11 @@ public interface MaintenaceRepository extends JpaRepository<Maintenance, String>
             m.discription as description ,
             m.expense as expense ,
             m.status as status ,
-            r.name as room 
+            r.name as room ,
+                hfr.name as houseForRent
              from maintenance m
              left join room r on r.id = m.id_room
+                         left join house_for_rent hfr on hfr.id = r.id_house_for_rent
             """, nativeQuery = true)
     List<FindAllMaintencanceDTO> findAllMaintencance();
     @Transactional

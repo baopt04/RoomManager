@@ -7,6 +7,7 @@ import com.example.roommanagement.entity.*;
 import com.example.roommanagement.infrastructure.constant.Constrants;
 import com.example.roommanagement.infrastructure.constant.StatusContract;
 import com.example.roommanagement.infrastructure.constant.StatusRoom;
+import com.example.roommanagement.infrastructure.constant.StatusWaterEndElectric;
 import com.example.roommanagement.infrastructure.error.BusinessException;
 import com.example.roommanagement.infrastructure.error.Reponse;
 import com.example.roommanagement.repository.*;
@@ -16,7 +17,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.text.Normalizer;
+import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -256,6 +263,215 @@ public class RoomServiceImpl implements RoomService {
         return roomRepository.findByCustomer_Id(idCustomer);
     }
 
+    @Override
+    public HouseMonthlyBillingSummaryDTO getHouseMonthlyBillingSummary(String houseForRentId, Integer month, Integer year) {
+        HouseForRent house = houseForRentRepository.findById(houseForRentId)
+                .orElseThrow(() -> new BusinessException(Constrants.HOUSE_FOR_RENT_FOUND));
+
+        YearMonth current = YearMonth.now();
+        int monthVal = month != null ? month : current.getMonthValue();
+        int yearVal = year != null ? year : current.getYear();
+        if (month != null && (monthVal < 1 || monthVal > 12)) {
+            throw new BusinessException(Constrants.INVALID_MONTH);
+        }
+
+        List<Room> rooms = roomRepository.findRoomsForHouseOrderByName(houseForRentId);
+        List<String> roomIds = rooms.stream().map(Room::getId).toList();
+
+        Map<String, List<com.example.roommanagement.entity.RoomService>> servicesByRoom = Map.of();
+        if (!roomIds.isEmpty()) {
+            List<com.example.roommanagement.entity.RoomService> allLinks =
+                    roomServiceDetailRepository.findAllByRoomIdsWithServiceAndRoom(roomIds);
+            servicesByRoom = allLinks.stream()
+                    .collect(Collectors.groupingBy(rs -> rs.getRoom().getId()));
+        }
+
+        List<RoomMonthlyBillingDTO> columns = new ArrayList<>();
+        for (Room room : rooms) {
+            columns.add(buildMonthlyBillingColumn(room, monthVal, yearVal, servicesByRoom.getOrDefault(room.getId(), List.of())));
+        }
+
+        return HouseMonthlyBillingSummaryDTO.builder()
+                .houseForRentId(house.getId())
+                .houseForRentName(house.getName())
+                .month(monthVal)
+                .year(yearVal)
+                .rooms(columns)
+                .build();
+    }
+
+    @Override
+    public List<HouseMonthlyBillingSummaryDTO> getAllHousesMonthlyBillingSummary(Integer month, Integer year) {
+        List<HouseForRent> allHouses = houseForRentRepository.findAll();
+        List<HouseMonthlyBillingSummaryDTO> result = new ArrayList<>();
+        for (HouseForRent house : allHouses) {
+            result.add(getHouseMonthlyBillingSummary(house.getId(), month, year));
+        }
+        return result;
+    }
+
+    private RoomMonthlyBillingDTO buildMonthlyBillingColumn(
+            Room room,
+            int monthVal,
+            int yearVal,
+            List<com.example.roommanagement.entity.RoomService> roomServices) {
+        Electricity electricity = pickElectricityForMonth(room.getId(), monthVal, yearVal).orElse(null);
+        Water water = pickWaterForMonth(room.getId(), monthVal, yearVal).orElse(null);
+        //electricity
+        BigDecimal electricFirst = electricity != null ? electricity.getNumberFirst() : null;
+        BigDecimal electricLast = electricity != null ? electricity.getNumberLast() : null;
+        BigDecimal electricUsed = calculateElectricityUsed(electricity);
+        BigDecimal electricAmount = calculateElectricityAmount(electricity, electricUsed);
+        // water
+        BigDecimal waterNumberFirst = water != null ? water.getNumberFirst() : null;
+        BigDecimal waterNumberLast = water != null ? water.getNumberLast() : null;
+        BigDecimal waterUsed = calculateWaterUsed(water);
+        BigDecimal waterAmount = calculateWaterAmount(water , waterUsed);
+
+        BigDecimal elevator = BigDecimal.ZERO;
+        BigDecimal wifi = BigDecimal.ZERO;
+        BigDecimal general = BigDecimal.ZERO;
+        List<ServiceLineAmountDTO> lines = new ArrayList<>();
+
+        for (com.example.roommanagement.entity.RoomService rs : roomServices) {
+            ServiceS svc = rs.getServiceS();
+            if (svc == null) {
+                continue;
+            }
+            BigDecimal price = nz(svc.getPrice());
+            lines.add(ServiceLineAmountDTO.builder()
+                    .serviceName(svc.getName())
+                    .amount(price)
+                    .build());
+            String name = svc.getName();
+            if (isElevatorServiceName(name)) {
+                elevator = elevator.add(price);
+            } else if (isWifiServiceName(name)) {
+                wifi = wifi.add(price);
+            } else {
+                general = general.add(price);
+            }
+        }
+
+        BigDecimal totalServices = elevator.add(wifi).add(general);
+        BigDecimal roomRent = nz(room.getPrice());
+        BigDecimal grandTotal = electricAmount.add(waterAmount).add(totalServices).add(roomRent);
+
+        String customerName = room.getCustomer() != null ? room.getCustomer().getName() : null;
+        String columnTitle = room.getName();
+        if (customerName != null && !customerName.isBlank()) {
+            columnTitle = room.getName() + " - " + customerName;
+        }
+
+        return RoomMonthlyBillingDTO.builder()
+                .roomId(room.getId())
+                .roomName(room.getName())
+                .roomPrice(room.getPrice())
+                .customerName(customerName)
+                .columnTitle(columnTitle)
+                .electricityNumberFirst(electricFirst)
+                .electricityNumberLast(electricLast)
+                .electricityUsed(electricUsed)
+                .electricityAmount(electricAmount)
+                .waterNumberFirst(waterNumberFirst)
+                .waterNumberLast(waterNumberLast)
+                .waterUsed(waterUsed)
+                .waterAmount(waterAmount)
+                .elevatorFee(elevator)
+                .wifiFee(wifi)
+                .generalServiceFee(general)
+                .totalServiceFee(totalServices)
+                .roomRent(roomRent)
+                .grandTotal(grandTotal)
+                .serviceLines(lines)
+                .build();
+    }
+
+    private Optional<Electricity> pickElectricityForMonth(String roomId, int monthVal, int yearVal) {
+        Optional<Electricity> unpaid = electricityRepository
+                .findFirstByRoom_IdAndMotherAndYearAndStatusOrderByLastModifiedDateDesc(
+                        roomId, monthVal, yearVal, StatusWaterEndElectric.CHUA_THANH_TOAN);
+        return unpaid.isPresent()
+                ? unpaid
+                : electricityRepository.findFirstByRoom_IdAndMotherAndYearOrderByLastModifiedDateDesc(roomId, monthVal, yearVal);
+    }
+
+    private Optional<Water> pickWaterForMonth(String roomId, int monthVal, int yearVal) {
+        Optional<Water> unpaid = waterRepository
+                .findFirstByRoom_IdAndMotherAndYearAndStatusOrderByLastModifiedDateDesc(
+                        roomId, monthVal, yearVal, StatusWaterEndElectric.CHUA_THANH_TOAN);
+        return unpaid.isPresent()
+                ? unpaid
+                : waterRepository.findFirstByRoom_IdAndMotherAndYearOrderByLastModifiedDateDesc(roomId, monthVal, yearVal);
+    }
+
+    private static BigDecimal calculateElectricityUsed(Electricity e) {
+        if (e == null) {
+            return BigDecimal.ZERO;
+        }
+        if (e.getNumberFirst() != null && e.getNumberLast() != null) {
+            return e.getNumberLast().subtract(e.getNumberFirst());
+        }
+        return nz(e.getDataClose());
+    }
+    private static BigDecimal calculateWaterUsed(Water e) {
+        if (e == null) {
+            return BigDecimal.ZERO;
+        }
+        if (e.getNumberFirst() != null && e.getNumberLast() != null) {
+            return e.getNumberLast().subtract(e.getNumberFirst());
+        }
+        return nz(e.getDataClose());
+    }
+
+
+    private static BigDecimal calculateElectricityAmount(Electricity e, BigDecimal used) {
+        if (e == null) {
+            return BigDecimal.ZERO;
+        }
+        if (e.getTotalPrice() != null) {
+            return e.getTotalPrice();
+        }
+        if (e.getUnitPrice() != null && used.compareTo(BigDecimal.ZERO) != 0) {
+            return e.getUnitPrice().multiply(used);
+        }
+        return BigDecimal.ZERO;
+    }
+    private static BigDecimal calculateWaterAmount(Water e, BigDecimal used) {
+        if (e == null) {
+            return BigDecimal.ZERO;
+        }
+        if (e.getTotalPrice() != null) {
+            return e.getTotalPrice();
+        }
+        if (e.getUnitPrice() != null && used.compareTo(BigDecimal.ZERO) != 0) {
+            return e.getUnitPrice().multiply(used);
+        }
+        return BigDecimal.ZERO;
+    }
+
+    private static BigDecimal nz(BigDecimal v) {
+        return v != null ? v : BigDecimal.ZERO;
+    }
+
+    private static String normalizeAsciiLower(String s) {
+        if (s == null || s.isBlank()) {
+            return "";
+        }
+        String decomposed = Normalizer.normalize(s.trim(), Normalizer.Form.NFD);
+        String withoutMarks = decomposed.replaceAll("\\p{M}+", "");
+        return withoutMarks.toLowerCase(Locale.ROOT);
+    }
+
+    private static boolean isElevatorServiceName(String serviceName) {
+        String n = normalizeAsciiLower(serviceName);
+        return n.contains("thang") && n.contains("may");
+    }
+
+    private static boolean isWifiServiceName(String serviceName) {
+        return normalizeAsciiLower(serviceName).contains("wifi");
+    }
+
 
     @Autowired
     private RoomRepository roomRepository;
@@ -273,4 +489,10 @@ public class RoomServiceImpl implements RoomService {
     private RoomHistoryRepository roomHistoryRepository;
     @Autowired
     private ContractRepository contractRepository;
+    @Autowired
+    private WaterRepository waterRepository;
+    @Autowired
+    private ElectricityRepository electricityRepository;
+    @Autowired
+    private RoomServiceDetailRepository roomServiceDetailRepository;
 }
