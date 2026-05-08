@@ -8,6 +8,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useLanguage } from '../../../contexts/LanguageContext';
+import { useClientBreakpoints } from '../hooks/useClientBreakpoints';
 const { Title, Text, Paragraph } = Typography;
 
 const fadeUp = (delay = 0) => ({
@@ -42,15 +43,7 @@ const TIMELINE_DATA = [
 const ExplorePage = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const [viewportWidth, setViewportWidth] = useState(window.innerWidth);
-  const isMobile = viewportWidth <= 768;
-  const isTablet = viewportWidth <= 1024;
-
-  useEffect(() => {
-    const handleResize = () => setViewportWidth(window.innerWidth);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  const { isPhone, isTabletLike } = useClientBreakpoints();
 
   const STATS_T = [
     { icon: <HomeOutlined />, value: '200+', label: t('explorePage.stats.rooms'), color: '#0071e3' },
@@ -80,9 +73,9 @@ const ExplorePage = () => {
 
 
       <div style={{
-        position: 'relative', minHeight: isMobile ? '300px' : isTablet ? '340px' : '400px', overflow: 'hidden',
+        position: 'relative', minHeight: isPhone ? '300px' : isTabletLike ? '340px' : '400px', overflow: 'hidden',
         background: '#000000',
-        padding: isMobile ? '60px 0' : '80px 0'
+        padding: isPhone ? '60px 0' : '80px 0'
       }}>
         {/* Soft, premium blurred mesh glows */}
         <div style={{
@@ -101,7 +94,7 @@ const ExplorePage = () => {
         <div style={{
           maxWidth: '1200px', margin: '0 auto', height: '100%',
           display: 'flex', flexDirection: 'column', justifyContent: 'center',
-          padding: isMobile ? '0 16px' : '0 24px', position: 'relative', zIndex: 1
+          padding: isPhone ? '0 16px' : '0 24px', position: 'relative', zIndex: 1
         }}>
           <motion.div {...fadeUp()}>
             <Text className="custom-color" style={{
@@ -111,7 +104,7 @@ const ExplorePage = () => {
               {t('explorePage.hero.subtitle')}
             </Text>
             <Title level={1} className="custom-color" style={{
-              color: '#ffffff', fontSize: isMobile ? '36px' : isTablet ? '44px' : '56px', fontWeight: 700,
+              color: '#ffffff', fontSize: isPhone ? '36px' : isTabletLike ? '44px' : '56px', fontWeight: 700,
               margin: 0, lineHeight: 1.15, letterSpacing: '-1.5px', maxWidth: '750px'
             }}>
               {t('explorePage.hero.title1')}{' '}
@@ -126,7 +119,7 @@ const ExplorePage = () => {
               {t('explorePage.hero.title3')}
             </Title>
             <Text className="custom-color" style={{
-              color: '#a1a1a6', fontSize: isMobile ? '16px' : '19px',
+              color: '#a1a1a6', fontSize: isPhone ? '16px' : '19px',
               display: 'block', marginTop: '24px', maxWidth: '580px', lineHeight: 1.6, fontWeight: 400
             }}>
               {t('explorePage.hero.desc')}
@@ -135,7 +128,7 @@ const ExplorePage = () => {
         </div>
       </div>
 
-      <div style={{ maxWidth: '1200px', margin: isMobile ? '-24px auto 0' : '-50px auto 0', padding: isMobile ? '0 12px' : '0 24px', position: 'relative', zIndex: 10 }}>
+      <div style={{ maxWidth: '1200px', margin: isPhone ? '-24px auto 0' : '-50px auto 0', padding: isPhone ? '0 12px' : '0 24px', position: 'relative', zIndex: 10 }}>
         <motion.div {...fadeUp(0.2)}>
           <Row gutter={[16, 16]}>
             {STATS_T.map((s, i) => (
@@ -163,7 +156,7 @@ const ExplorePage = () => {
         </motion.div>
       </div>
 
-      <div style={{ maxWidth: '900px', margin: '60px auto 0', padding: isMobile ? '0 12px' : '0 24px' }}>
+      <div style={{ maxWidth: '900px', margin: '60px auto 0', padding: isPhone ? '0 12px' : '0 24px' }}>
         <motion.div {...fadeUp()}>
           <div style={{ textAlign: 'center', marginBottom: '40px' }}>
             <Title level={2} style={{ fontSize: '32px', fontWeight: 700, color: '#1d1d1f', margin: 0 }}>
@@ -174,7 +167,7 @@ const ExplorePage = () => {
           <Card style={{
             borderRadius: '28px', border: '1px solid rgba(0,0,0,0.04)',
             boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
-          }} bodyStyle={{ padding: isMobile ? '24px' : '48px' }}>
+          }} bodyStyle={{ padding: isPhone ? '24px' : '48px' }}>
             <Paragraph style={{ fontSize: '16px', lineHeight: 2, color: '#515154' }}>
               {t('explorePage.story.p1')}
             </Paragraph>
@@ -188,7 +181,7 @@ const ExplorePage = () => {
         </motion.div>
       </div>
 
-      <div style={{ maxWidth: '800px', margin: '60px auto 0', padding: isMobile ? '0 12px' : '0 24px' }}>
+      <div style={{ maxWidth: '800px', margin: '60px auto 0', padding: isPhone ? '0 12px' : '0 24px' }}>
         <motion.div {...fadeUp()}>
           <div style={{ textAlign: 'center', marginBottom: '40px' }}>
             <Title level={2} style={{ fontSize: '28px', fontWeight: 700, color: '#1d1d1f', margin: 0 }}>
@@ -196,7 +189,7 @@ const ExplorePage = () => {
             </Title>
             <div style={{ width: '50px', height: '4px', background: '#0071e3', margin: '16px auto 0', borderRadius: '2px' }} />
           </div>
-          <Timeline mode={isMobile ? 'left' : 'alternate'} items={TIMELINE_DATA_T.map((item, idx) => ({
+          <Timeline mode={isPhone ? 'left' : 'alternate'} items={TIMELINE_DATA_T.map((item, idx) => ({
             color: idx === TIMELINE_DATA_T.length - 1 ? '#af52de' : '#0071e3',
             dot: idx === TIMELINE_DATA_T.length - 1 ? <CheckCircleOutlined style={{ fontSize: '18px', color: '#af52de' }} /> : undefined,
             children: (
@@ -215,7 +208,7 @@ const ExplorePage = () => {
         </motion.div>
       </div>
 
-      <div style={{ maxWidth: '1200px', margin: '60px auto 0', padding: isMobile ? '0 12px' : '0 24px' }}>
+      <div style={{ maxWidth: '1200px', margin: '60px auto 0', padding: isPhone ? '0 12px' : '0 24px' }}>
         <motion.div {...fadeUp()}>
           <div style={{ textAlign: 'center', marginBottom: '36px' }}>
             <Title level={2} style={{ fontSize: '28px', fontWeight: 700, color: '#1d1d1f', margin: 0 }}>
@@ -252,7 +245,7 @@ const ExplorePage = () => {
         </motion.div>
       </div>
 
-      <div style={{ maxWidth: '800px', margin: '60px auto 0', padding: isMobile ? '0 12px' : '0 24px' }}>
+      <div style={{ maxWidth: '800px', margin: '60px auto 0', padding: isPhone ? '0 12px' : '0 24px' }}>
         <motion.div {...fadeUp()}>
           <Card style={{
             borderRadius: '24px', border: 'none', textAlign: 'center',

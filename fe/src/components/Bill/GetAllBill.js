@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
     Table,
     Input,
@@ -14,7 +14,6 @@ import {
     Statistic,
     message,
     Flex,
-    Divider
 } from "antd";
 import {
     SearchOutlined,
@@ -43,11 +42,7 @@ const GetAllBill = () => {
     const token = localStorage.getItem("token");
     const navigate = useNavigate();
 
-    useEffect(() => {
-        fetchAllData();
-    }, [token]);
-
-    const fetchAllData = async () => {
+    const fetchAllData = useCallback(async () => {
         setLoading(true);
         try {
             const billResponse = await SaleService.getAllBill(token);
@@ -58,7 +53,11 @@ const GetAllBill = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [token]);
+
+    useEffect(() => {
+        fetchAllData();
+    }, [fetchAllData]);
 
     const handleFilter = () => {
         let filtered = [...listBill];

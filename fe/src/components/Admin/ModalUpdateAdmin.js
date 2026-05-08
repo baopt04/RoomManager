@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, Button, Card, Typography, message, Select, Modal } from "antd";
-import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, TeamOutlined, UserAddOutlined } from "@ant-design/icons";
+import { Form, Input, Button, Typography, message, Select, Modal } from "antd";
+import { UserOutlined, MailOutlined, PhoneOutlined, TeamOutlined } from "@ant-design/icons";
 import AdminService from "../../services/AdminService";
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -44,8 +44,7 @@ const ModalUpdateAdmin = ({ visible, onclose, id, onSuccess }) => {
     }, [token, id, form])
     const updateAdmin = async (values) => {
         try {
-            const response = await AdminService.updateAdmin(token, values, id);
-            
+            await AdminService.updateAdmin(token, values, id);
             message.success("Cập nhật thành công!")
             if (onSuccess) {
                 await onSuccess();
@@ -65,7 +64,7 @@ const ModalUpdateAdmin = ({ visible, onclose, id, onSuccess }) => {
     }
     return (
         <Modal
-            visible={visible}
+            open={visible}
             onCancel={close}
             footer={null}
         >

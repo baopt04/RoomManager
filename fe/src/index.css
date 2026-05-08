@@ -3,7 +3,7 @@
 /* GLOBAL THEME - APPLE MINIMAL */
 :root {
   /* Apple System Font Stack */
-  --font-family-primary: 'Inter', -apple-system, BlinkMacSystemFont, "San Francisco", "Helvetica Neue", "Segoe UI", Roboto, sans-serif;
+  --font-family-primary: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
 
   /* Color Palette - Light Mode */
   --color-bg: #f9f9fb;
@@ -60,6 +60,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: var(--font-family-primary);
 }
 
 body {
@@ -81,7 +82,6 @@ code {
 .ant-btn {
   border-radius: var(--radius-sm) !important;
   font-weight: 500 !important;
-  font-family: 'Inter', sans-serif !important;
   box-shadow: none !important;
 }
 
@@ -154,7 +154,6 @@ code {
 .ant-select-selector,
 .ant-input-number {
   border-radius: var(--radius-sm) !important;
-  font-family: 'Inter', sans-serif !important;
   background: var(--color-surface-secondary) !important;
   color: var(--color-text) !important;
   border: 1px solid var(--color-border) !important;
@@ -498,4 +497,77 @@ h1:not(.custom-color), h2:not(.custom-color), h3:not(.custom-color), h4:not(.cus
   .ant-pagination-options {
     display: none !important;
   }
+}
+
+/* ============ Client (Customer) — lightweight global styles ============ */
+
+/* HomePage: tabs + search segments */
+.custom-tabs .ant-tabs-ink-bar {
+  background-color: #27ae60 !important;
+  height: 3px !important;
+  border-radius: 3px !important;
+}
+.custom-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #27ae60 !important;
+  font-weight: 700 !important;
+}
+.custom-tabs .ant-tabs-nav::before {
+  display: none !important;
+}
+.custom-tabs .ant-tabs-tab {
+  padding: 12px 0 !important;
+  margin: 0 32px 0 0 !important;
+}
+.search-segment {
+  transition: all 0.3s ease;
+}
+.search-segment:hover {
+  background: #f0f4f2 !important;
+}
+
+/* HomePage: carousel dots + arrow reset */
+.custom-carousel-dots li button {
+  background: #dcdde1 !important;
+  height: 6px !important;
+  border-radius: 3px !important;
+}
+.custom-carousel-dots li.ant-carousel-active button {
+  background: #27ae60 !important;
+  width: 24px !important;
+}
+.slick-prev,
+.slick-next {
+  width: 40px !important;
+  height: 40px !important;
+  z-index: 2 !important;
+}
+.slick-prev:before,
+.slick-next:before {
+  content: none !important;
+}
+
+/* BlogPage: hover + pagination active */
+.blog-card-hover {
+  transition: all 0.3s ease !important;
+}
+.blog-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08) !important;
+}
+.ant-pagination-item-active {
+  border-color: #27ae60 !important;
+  background: #27ae60 !important;
+}
+.ant-pagination-item-active a {
+  color: #fff !important;
+}
+
+/* BlogDetail: rich text list */
+.blog-rich-text ul {
+  padding-left: 20px;
+  margin: 20px 0;
+}
+.blog-rich-text li {
+  margin-bottom: 12px;
+  color: #515154;
 }

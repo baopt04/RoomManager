@@ -1,646 +1,613 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Row, Col, Card, Spin, Button, Space } from 'antd';
+import { Typography, Row, Col, Card, Spin, Button, Input, Tabs, Badge, Carousel } from 'antd';
 import {
-  LoadingOutlined, RightOutlined, LeftOutlined, EnvironmentOutlined, DollarOutlined,
-  TeamOutlined, ColumnWidthOutlined, CompassOutlined, GlobalOutlined,
-  BankOutlined, ShopOutlined, BuildOutlined, ArrowLeftOutlined,
-  TagOutlined, FacebookFilled, MessageFilled,
-  SafetyCertificateOutlined, ThunderboltOutlined, CheckCircleFilled,
-  HomeOutlined, StarFilled, WifiOutlined, CoffeeOutlined, SafetyOutlined
+  SearchOutlined,
+  EnvironmentOutlined,
+  DollarOutlined,
+  RightOutlined,
+  LeftOutlined,
+  StarFilled,
+  SafetyCertificateOutlined,
+  MessageOutlined,
+  TeamOutlined,
+  ArrowRightOutlined,
+  HomeOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useLanguage } from '../../../contexts/LanguageContext';
-import { getAllRooms, searchRoomsByAddress } from '../../../services/customer/HomeService';
-import logoZalo from '../../../assets/logo-zalo.png';
-import logobanner from '../../../assets/logo_banner.png';
-import logobanner2 from '../../../assets/logo_banner_2.png';
-import {
-  PRIMARY_IMAGES, HOVER_IMAGES, HOME_HERO_BANNERS, HOME_LOCATIONS, HOME_STATS
-} from './HomeConstants';
-import { RoomCard, ShortTermCard } from './subcomponents/HomeCards';
+import { motion } from 'framer-motion';
+import { getAllRooms } from '../../../services/customer/HomeService';
+import { PRIMARY_IMAGES } from './HomeConstants';
+import { RoomCard } from './subcomponents/HomeCards';
+import bannerPhu from '../../../assets/banner_phu.png';
+import bannerChinh from '../../../assets/banner_chinh.png';
+import back1 from '../../../assets/back-1.jpg';
+import back2 from '../../../assets/back-2.jpg';
+import back3 from '../../../assets/back-3.jpg';
+import back4 from '../../../assets/back-4.jpg';
+import { useClientBreakpoints } from '../hooks/useClientBreakpoints';
+
 const { Title, Text } = Typography;
-
-
-
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
   const [dataRooms, setDataRooms] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(null);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-  const [isTablet, setIsTablet] = useState(window.innerWidth <= 1024);
+  const { isPhone, isTabletLike } = useClientBreakpoints();
+  const CustomPrevArrow = (props) => {
+    const { onClick } = props;
+    return (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'absolute',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          left: isTabletLike ? '8px' : '-50px',
+          zIndex: 2,
+          width: '44px',
+          height: '44px',
+          background: '#fff',
+          borderRadius: '50%',
+          boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+          cursor: 'pointer',
+          transition: 'all 0.3s ease'
+        }}
+        onClick={onClick}
+      >
+        <LeftOutlined style={{ fontSize: '18px', color: '#27ae60' }} />
+      </div>
+    );
+  };
 
-  const token = localStorage.getItem("token");
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
-      setIsTablet(window.innerWidth <= 1024);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const fetchRooms = async () => {
-    setLoading(true);
-    setIsSearching(false);
-    setSearchQuery(null);
-    try {
-      const response = await getAllRooms();
-      const vacantRooms = response.filter(room => room.status === "TRONG");
-
-      const sortedRooms = vacantRooms.sort((a, b) => {
-        const dateA = new Date(a.lastModifiedDate || 0);
-        const dateB = new Date(b.lastModifiedDate || 0);
-        const now = new Date();
-
-        const isANew = (now - dateA) / (1000 * 60 * 60 * 24) <= 3;
-        const isBNew = (now - dateB) / (1000 * 60 * 60 * 24) <= 3;
-
-        if (isANew && !isBNew) return -1;
-        if (!isANew && isBNew) return 1;
-
-        return dateB - dateA;
-      });
-
-      const mappedRooms = sortedRooms.map((room, index) => ({
-        ...room,
-        displayImage: PRIMARY_IMAGES[index % PRIMARY_IMAGES.length],
-        hoverImage: HOVER_IMAGES[index % HOVER_IMAGES.length]
-      }));
-      setDataRooms(mappedRooms);
-    } catch (error) {
-      console.error("Failed to load rooms:", error);
-    } finally {
-      setLoading(false);
-    }
+  const CustomNextArrow = (props) => {
+    const { onClick } = props;
+    return (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'absolute',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          right: isTabletLike ? '8px' : '-50px',
+          zIndex: 2,
+          width: '44px',
+          height: '44px',
+          background: '#fff',
+          borderRadius: '50%',
+          boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+          cursor: 'pointer',
+          transition: 'all 0.3s ease'
+        }}
+        onClick={onClick}
+      >
+        <RightOutlined style={{ fontSize: '18px', color: '#27ae60' }} />
+      </div>
+    );
   };
 
   useEffect(() => {
     fetchRooms();
   }, []);
 
-  const handleSearchByAddress = async (address) => {
+  const fetchRooms = async () => {
     setLoading(true);
-    setIsSearching(true);
-    setSearchQuery(address);
     try {
-      const response = await searchRoomsByAddress(address);
-
-      // Sort search results same way
-      const sortedRooms = response.sort((a, b) => {
-        const dateA = new Date(a.lastModifiedDate || 0);
-        const dateB = new Date(b.lastModifiedDate || 0);
-        const now = new Date();
-
-        const isANew = (now - dateA) / (1000 * 60 * 60 * 24) <= 3;
-        const isBNew = (now - dateB) / (1000 * 60 * 60 * 24) <= 3;
-
-        if (isANew && !isBNew) return -1;
-        if (!isANew && isBNew) return 1;
-
-        return dateB - dateA;
-      });
-
-      const mappedRooms = sortedRooms.map((room, index) => ({
+      const response = await getAllRooms();
+      const vacantRooms = response.filter(room => room.status === "TRONG");
+      const mappedRooms = vacantRooms.map((room, index) => ({
         ...room,
-        displayImage: PRIMARY_IMAGES[index % PRIMARY_IMAGES.length],
-        hoverImage: HOVER_IMAGES[index % HOVER_IMAGES.length]
+        displayImage: PRIMARY_IMAGES[index % PRIMARY_IMAGES.length]
       }));
       setDataRooms(mappedRooms);
-
-      // Scroll to results
-      document.getElementById('rooms-grid').scrollIntoView({ behavior: 'smooth' });
     } catch (error) {
-      console.error("Search failed:", error);
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Failed to load rooms:", error);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % HOME_HERO_BANNERS.length);
-  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + HOME_HERO_BANNERS.length) % HOME_HERO_BANNERS.length);
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 40 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.8, ease: "easeOut" }
+    }
+  };
 
-  useEffect(() => {
-    const t = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % HOME_HERO_BANNERS.length);
-    }, 8000);
-    return () => clearInterval(t);
-  }, []);
+  const fadeInLeft = {
+    hidden: { opacity: 0, x: -50 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.8, ease: "easeOut" }
+    }
+  };
+
+  const fadeInRight = {
+    hidden: { opacity: 0, x: 50 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { duration: 0.8, ease: "easeOut" }
+    }
+  };
+
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
 
   return (
-    <div style={{ paddingBottom: '100px', background: '#ffffff', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ background: '#fff' }}>
 
-      {/* Hero Slider Section */}
-      <div style={{ position: 'relative', background: '#ffffff', overflow: 'hidden', padding: isMobile ? '20px 0' : '30px 0' }}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentSlide}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            variants={{
-              hidden: { opacity: 0 },
-              visible: {
-                opacity: 1,
-                transition: {
-                  staggerChildren: 0.3,
-                  duration: 0.6
-                }
-              },
-              exit: { opacity: 0, transition: { duration: 0.4 } }
-            }}
-            style={{ textAlign: 'center', maxWidth: '1100px', margin: '0 auto', padding: isMobile ? '0 16px' : '0 40px' }}
-          >
-            <motion.div
-              variants={{
-                hidden: { opacity: 0, x: -50 },
-                visible: { opacity: 1, x: 0, transition: { duration: 1.2, ease: [0.16, 1, 0.3, 1] } }
-              }}
-            >
-              <Title
-                level={1}
-                style={{
-                  fontSize: isMobile ? '32px' : isTablet ? '44px' : '52px',
-                  fontWeight: 800,
-                  letterSpacing: '-2px',
-                  color: '#1d1d1f',
-                  margin: '0 auto 16px',
-                  lineHeight: 1.1,
-                  maxWidth: '900px'
-                }}
-              >
-                {t(HOME_HERO_BANNERS[currentSlide].titleKey)}
-              </Title>
-            </motion.div>
-            <motion.div
-              variants={{
-                hidden: { opacity: 0, x: 50 },
-                visible: { opacity: 1, x: 0, transition: { duration: 1.2, ease: [0.16, 1, 0.3, 1] } }
-              }}
-            >
-              <Text style={{ fontSize: isMobile ? '16px' : '18px', color: '#86868b', maxWidth: '700px', display: 'block', margin: '0 auto 40px' }}>
-                {t(HOME_HERO_BANNERS[currentSlide].descKey)}
-              </Text>
-            </motion.div>
-
-            <motion.div
-              variants={{
-                hidden: { opacity: 0, y: 40, scale: 0.95 },
-                visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 1.5, ease: [0.16, 1, 0.3, 1] } }
-              }}
-              style={{ position: 'relative', marginTop: '20px' }}
-            >
-              <img
-                src={HOME_HERO_BANNERS[currentSlide].image}
-                alt="Banner"
-                loading={currentSlide === 0 ? 'eager' : 'lazy'}
-                decoding="async"
-                style={{
-                  width: '100%',
-                  height: 'auto',
-                  display: 'block',
-                  maxHeight: isMobile ? '280px' : '500px',
-                  objectFit: 'cover'
-                }}
-              />
-
-              <div
-                onClick={(e) => { e.stopPropagation(); prevSlide(); }}
-                style={{
-                  position: 'absolute', left: isMobile ? '8px' : '20px', top: '50%', transform: 'translateY(-50%)',
-                  zIndex: 100, cursor: 'pointer', width: isMobile ? '36px' : '48px', height: isMobile ? '36px' : '48px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: 'rgba(255,255,255,0.95)',
-                  borderRadius: '50%', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-                  transition: 'all 0.3s'
-                }}
-              >
-                <LeftOutlined style={{ fontSize: isMobile ? '16px' : '20px', color: '#1d1d1f' }} />
-              </div>
-
-              <div
-                onClick={(e) => { e.stopPropagation(); nextSlide(); }}
-                style={{
-                  position: 'absolute', right: isMobile ? '8px' : '20px', top: '50%', transform: 'translateY(-50%)',
-                  zIndex: 100, cursor: 'pointer', width: isMobile ? '36px' : '48px', height: isMobile ? '36px' : '48px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: 'rgba(255,255,255,0.95)',
-                  borderRadius: '50%', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-                  transition: 'all 0.3s'
-                }}
-              >
-                <RightOutlined style={{ fontSize: isMobile ? '16px' : '20px', color: '#1d1d1f' }} />
-              </div>
-            </motion.div>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '12px' }}>
-              {HOME_HERO_BANNERS.map((banner, index) => (
-                <button
-                  key={banner.id}
-                  type="button"
-                  onClick={() => setCurrentSlide(index)}
-                  aria-label={`Banner ${index + 1}`}
-                  style={{
-                    width: currentSlide === index ? '22px' : '8px',
-                    height: '8px',
-                    borderRadius: '999px',
-                    border: 'none',
-                    background: currentSlide === index ? '#1d1d1f' : '#d2d2d7',
-                    transition: 'all 0.25s ease',
-                    cursor: 'pointer',
-                    padding: 0
-                  }}
-                />
-              ))}
-            </div>
-          </motion.div>
-        </AnimatePresence>
-      </div>
-
-
-      {/* 4. LOCATIONS SECTION - Region Discovery */}
-      <div style={{ padding: isMobile ? '28px 12px' : '40px 20px', maxWidth: '1400px', margin: '0 auto 20px' }}>
+      {/* 1. HERO SECTION - CLEAN FLOW LAYOUT */}
+      <motion.section
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={fadeInUp}
+        style={{
+          width: '100%',
+          padding: isPhone ? '16px' : isTabletLike ? '24px 24px 40px' : '40px 60px 60px',
+          background: '#fff',
+          position: 'relative',
+          zIndex: 1
+        }}
+      >
+        {/* Banner Image Container */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
+          variants={fadeInUp}
+          style={{
+            width: '100%',
+            borderRadius: '10px',
+            boxShadow: '0 12px 40px rgba(0,0,0,0.08)',
+            background: '#fff',
+            marginBottom: '40px',
+            overflow: 'hidden',
+            transform: 'translateZ(0)'
+          }}
         >
-          <Title level={2} style={{ fontSize: '28px', fontWeight: 600, letterSpacing: '-0.5px', marginBottom: '32px', paddingLeft: '8px', textAlign: 'center' }}>
-            {t('home.searchRegion')}
-          </Title>
+          <img
+            src={bannerChinh}
+            alt="Hero Banner"
+            style={{ width: '100%', display: 'block', borderRadius: '10px' }}
+          />
+        </motion.div>
+
+        {/* Interactive Search Box - Enhanced & Even Wider */}
+        <motion.div
+          variants={fadeInUp}
+          transition={{ delay: 0.2 }}
+          style={{
+            width: '100%',
+            maxWidth: '1400px',
+            margin: isPhone ? '0 auto 40px' : '0 auto 80px',
+            zIndex: 10,
+            padding: isPhone ? '0' : isTabletLike ? '0 12px' : '0 20px'
+          }}
+        >
+          <Card style={{
+            borderRadius: isPhone ? '20px' : '32px',
+            boxShadow: '0 30px 90px rgba(0,0,0,0.08)',
+            border: 'none',
+            padding: isPhone ? '15px' : isTabletLike ? '18px 20px 24px' : '20px 30px 35px',
+            background: '#fff'
+          }}>
+            {!isPhone && (
+              <Tabs
+                className="custom-tabs"
+                defaultActiveKey="1"
+                items={[
+                  { key: '1', label: 'Tìm theo khu vực' },
+                  { key: '2', label: 'Tìm theo tuyến đường' },
+                  { key: '3', label: 'Tìm theo trường đại học' },
+                ]}
+                style={{ marginBottom: '25px' }}
+              />
+            )}
+
+            <div style={{
+              display: 'flex',
+              flexDirection: isPhone ? 'column' : 'row',
+              gap: '0',
+              alignItems: 'stretch',
+              background: '#f8faf9',
+              borderRadius: '20px',
+              padding: '8px'
+            }}>
+              <div className="search-segment" style={{
+                flex: 1.5,
+                padding: '12px 24px',
+                borderRadius: '16px',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center'
+              }}>
+                <Text strong style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Khu vực</Text>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <EnvironmentOutlined style={{ color: '#27ae60', fontSize: '16px' }} />
+                  <Input
+                    placeholder="Bạn muốn tìm ở đâu?"
+                    variant="borderless"
+                    style={{ padding: 0, fontWeight: 600, fontSize: '16px', color: '#1a4332', width: '100%' }}
+                  />
+                </div>
+              </div>
+
+              {!isPhone && <div style={{ width: '1px', height: '40px', background: '#dce5e0', alignSelf: 'center' }} />}
+
+              <div className="search-segment" style={{
+                flex: 1,
+                padding: '12px 24px',
+                borderRadius: '16px',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center'
+              }}>
+                <Text strong style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Khoảng giá</Text>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <DollarOutlined style={{ color: '#27ae60', fontSize: '16px' }} />
+                  <Input
+                    placeholder="Chọn mức giá"
+                    variant="borderless"
+                    style={{ padding: 0, fontWeight: 600, fontSize: '16px', color: '#1a4332', width: '100%' }}
+                  />
+                </div>
+              </div>
+
+              {!isPhone && <div style={{ width: '1px', height: '40px', background: '#dce5e0', alignSelf: 'center' }} />}
+
+              <div style={{
+                padding: '4px',
+                display: 'flex',
+                alignItems: 'center'
+              }}>
+                <Button
+                  type="primary"
+                  icon={<SearchOutlined style={{ fontSize: '18px' }} />}
+                  size="large"
+                  onClick={() => navigate('/rooms')}
+                  style={{
+                    height: '60px',
+                    minWidth: isPhone ? '100%' : isTabletLike ? '150px' : '180px',
+                    borderRadius: '16px',
+                    background: '#1a4332',
+                    borderColor: '#1a4332',
+                    fontWeight: 700,
+                    fontSize: '17px',
+                    boxShadow: '0 10px 25px rgba(26, 67, 50, 0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '10px'
+                  }}
+                >
+                  Tìm ngay
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          variants={staggerContainer}
+          style={{
+            display: 'grid',
+            gridTemplateColumns: isPhone ? 'repeat(2, 1fr)' : isTabletLike ? 'repeat(4, 1fr)' : 'repeat(4, 1fr)',
+            gap: isPhone ? '16px' : isTabletLike ? '20px' : '30px',
+            padding: isPhone ? '0' : isTabletLike ? '0 12px' : '0 60px'
+          }}
+        >
+          {[
+            { icon: <HomeOutlined />, title: 'Nguồn phòng đa dạng', sub: 'Hàng nghìn lựa chọn' },
+            { icon: <DollarOutlined />, title: 'Giá cả minh bạch', sub: 'Không phát sinh phí' },
+            { icon: <TeamOutlined />, title: 'Hỗ trợ tận tâm', sub: 'Tư vấn 24/7' },
+            { icon: <SafetyCertificateOutlined />, title: 'An toàn & uy tín', sub: 'Thông tin xác thực' },
+          ].map((item, i) => (
+            <motion.div
+              key={i}
+              variants={fadeInUp}
+              style={{ display: 'flex', alignItems: 'center', gap: '15px' }}
+            >
+              <div style={{ width: '48px', height: '48px', background: '#eafaf1', color: '#27ae60', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+                {item.icon}
+              </div>
+              <div>
+                <Text strong style={{ display: 'block', fontSize: '14px', color: '#1a4332' }}>{item.title}</Text>
+                <Text style={{ fontSize: '12px', color: '#999' }}>{item.sub}</Text>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+      </motion.section>
+
+      {/* 2. POPULAR LOCATIONS */}
+      <motion.section
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+        variants={fadeInUp}
+        style={{ padding: isPhone ? '40px 16px' : '80px 20px', maxWidth: '1400px', margin: '0 auto' }}
+      >
+        <div style={{ padding: isPhone ? '0' : isTabletLike ? '0 12px' : '0 40px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isPhone ? '24px' : '40px' }}>
+            <Title level={2} style={{ margin: 0, fontSize: isPhone ? '22px' : '28px', fontWeight: 700 }}>Khu vực phổ biến</Title>
+            <Button type="link" style={{ color: '#45C97C', fontWeight: 800, fontSize: isPhone ? '13px' : '14px' }}>Xem tất cả <RightOutlined style={{ fontSize: '12px' }} /></Button>
+          </div>
+
+          <Row gutter={[20, 20]}>
+            {[
+              { name: 'Long Biên', rooms: '1.200+', img: back1 },
+              { name: 'Tứ liên', rooms: '850+', img: back2 },
+              { name: 'Âu Cơ', rooms: '2.100+', img: back3 },
+              { name: 'Minh Khai', rooms: '1.500+', img: back4 },
+              { name: 'Hà Đông', rooms: '1.800+', img: back3 },
+              { name: 'Cầu Giấy', rooms: '1.800+', img: back1 },
+            ].map((loc, i) => (
+              <Col xs={12} sm={8} md={8} lg={4} key={i}>
+                <motion.div
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, amount: 0.1 }}
+                  variants={i % 2 === 0 ? fadeInLeft : fadeInRight}
+                  whileHover={{ y: -10 }}
+                  transition={{ type: 'spring', stiffness: 300 }}
+                >
+                  <Card
+                    cover={<img src={loc.img} alt={loc.name} style={{ height: '160px', objectFit: 'cover', borderRadius: '16px' }} />}
+                    style={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', textAlign: 'center' }}
+                    bodyStyle={{ padding: '15px' }}
+                  >
+                    <Text strong style={{ display: 'block', fontSize: '16px' }}>{loc.name}</Text>
+                    <Text style={{ color: '#95a5a6', fontSize: '13px' }}>{loc.rooms} phòng</Text>
+                  </Card>
+                </motion.div>
+              </Col>
+            ))}
+          </Row>
+        </div>
+      </motion.section>
+
+      {/* 3. FEATURED ROOMS */}
+      <motion.section
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+        variants={fadeInUp}
+        style={{ padding: isPhone ? '40px 16px' : '80px 20px', background: '#f9fbf9' }}
+      >
+        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: isPhone ? '0' : isTabletLike ? '0 12px' : '0 40px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isPhone ? '24px' : '40px' }}>
+            <Title level={2} style={{ margin: 0, fontSize: isPhone ? '22px' : '28px', fontWeight: 700 }}>Phòng trọ nổi bật</Title>
+            <Button type="link" style={{ color: '#27ae60', fontWeight: 600, fontSize: isPhone ? '13px' : '14px' }}>Xem tất cả <RightOutlined style={{ fontSize: '12px' }} /></Button>
+          </div>
+
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '100px 0' }}>
+              <Spin size="large" tip="Đang tải danh sách phòng..." />
+            </div>
+          ) : dataRooms && dataRooms.length > 0 ? (
+            <Row gutter={[24, 24]}>
+              {dataRooms.slice(0, 4).map((room, i) => (
+                <Col xs={12} sm={12} md={6} key={room.id || i}>
+                  <RoomCard room={room} onClick={() => navigate(`/room/${room.slug}-${room.id}`)} />
+                </Col>
+              ))}
+            </Row>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '100px 0', background: '#fff', borderRadius: '32px', border: '2px dashed #f0f0f0' }}>
+              <Text type="secondary" style={{ fontSize: '16px' }}>Hiện tại không có phòng trọ nổi bật nào khả dụng.</Text>
+            </div>
+          )}
+        </div>
+      </motion.section>
+
+      {/* 4. WHY CHOOSE US */}
+      <motion.section
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+        variants={fadeInUp}
+        style={{ padding: isPhone ? '60px 16px' : '100px 20px', maxWidth: '1400px', margin: '0 auto' }}
+      >
+        <div style={{ padding: isPhone ? '0' : isTabletLike ? '0 12px' : '0 40px' }}>
+          <Title level={2} style={{ textAlign: 'center', marginBottom: '10px', fontSize: isPhone ? '22px' : '32px', fontWeight: 800 }}>Vì sao chọn Tiến Đức Land?</Title>
+          <Text style={{ display: 'block', textAlign: 'center', color: '#7f8c8d', fontSize: isPhone ? '14px' : '16px', marginBottom: isPhone ? '32px' : '60px' }}>Mang lại giá trị thực cho người thuê và chủ trọ</Text>
 
           <div style={{
             display: 'flex',
-            justifyContent: 'center',
-            gap: '16px',
             flexWrap: 'wrap',
-            padding: '0 8px'
+            justifyContent: isPhone ? 'center' : 'space-between',
+            gap: '20px'
           }}>
-            {HOME_LOCATIONS.map((loc, index) => (
+            {[
+              { icon: <SafetyCertificateOutlined />, title: 'Phòng thật, giá thật', desc: 'Thông tin chính xác, hình ảnh thực tế 100%.', color: '#45C97C' },
+              { icon: <SearchOutlined />, title: 'Tìm kiếm dễ dàng', desc: 'Bộ lọc thông minh giúp bạn tìm phòng nhanh chóng.', color: '#45C97C' },
+              { icon: <MessageOutlined />, title: 'Liên hệ nhanh chóng', desc: 'Kết nối trực tiếp với chủ trọ qua zalo hoặc gọi điện.', color: '#45C97C' },
+              { icon: <TeamOutlined />, title: 'Hỗ trợ tận tâm', desc: 'Đội ngũ tư vấn trực tuyến 24/7 hoàn toàn miễn phí.', color: '#45C97C' },
+              { icon: <SafetyCertificateOutlined />, title: 'An toàn & Bảo mật', desc: 'Thông tin được xác thực, bảo vệ quyền lợi người dùng.', color: '#45C97C' },
+            ].map((item, i) => (
               <motion.div
-                key={loc.name}
-                whileHover={{ scale: 1.05, translateY: -5 }}
-                whileTap={{ scale: 0.95 }}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: index * 0.1 }}
+                key={i}
+                variants={i % 2 === 0 ? fadeInLeft : fadeInRight}
+                whileHover={{ scale: 1.05 }}
                 style={{
-                  background: '#ffffff',
-                  padding: isMobile ? '12px 16px' : '16px 24px',
-                  borderRadius: '20px',
+                  textAlign: 'center',
+                  padding: '40px 20px',
+                  borderRadius: '24px',
+                  background: '#fff',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+                  flex: isPhone ? '1 1 100%' : '1 1 0',
+                  minWidth: isPhone ? '100%' : '200px',
+                  maxWidth: isPhone ? '100%' : '250px'
+                }}
+              >
+                <div style={{
+                  width: '64px',
+                  height: '64px',
+                  background: item.color,
+                  borderRadius: '16px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '12px',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-                  border: '1px solid #f0f0f0'
-                }}
-                onClick={() => handleSearchByAddress(loc.name)}
-              >
-                <div style={{ fontSize: '20px', color: '#0071e3' }}>{loc.icon}</div>
-                <Text strong style={{ fontSize: isMobile ? '14px' : '16px', color: '#1d1d1f' }}>{loc.name}</Text>
+                  justifyContent: 'center',
+                  margin: '0 auto 24px',
+                  fontSize: '28px',
+                  color: '#2c3e50'
+                }}>
+                  {item.icon}
+                </div>
+                <Title level={4} style={{ fontSize: '18px', fontWeight: 700, marginBottom: '12px' }}>{item.title}</Title>
+                <Text style={{ color: '#7f8c8d', lineHeight: 1.6 }}>{item.desc}</Text>
               </motion.div>
             ))}
           </div>
-        </motion.div>
-      </div>
-
-      <div style={{ padding: isMobile ? '30px 16px 20px' : '60px 20px 40px', maxWidth: '1200px', margin: '0 auto' }}>
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-        >
-          <div style={{
-            display: 'flex', gap: '40px', alignItems: 'center', flexWrap: 'wrap',
-            background: '#ffffff', borderRadius: '24px', padding: '40px',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.04)', border: '1px solid #f0f0f0'
-          }}>
-            <div style={{ flex: 1, minWidth: isMobile ? '100%' : '280px' }}>
-              <Text style={{
-                color: '#0071e3', fontSize: '12px', fontWeight: 600,
-                letterSpacing: '2px', textTransform: 'uppercase', display: 'block', marginBottom: '8px'
-              }}>
-                {t('home.aboutTag')}
-              </Text>
-              <Title level={3} style={{
-                fontSize: '26px', fontWeight: 700, color: '#1d1d1f',
-                margin: '0 0 12px', lineHeight: 1.3
-              }}>
-                {t('home.aboutTitle')}
-              </Title>
-              <Text style={{
-                color: '#86868b', fontSize: '15px', lineHeight: 1.8, display: 'block', marginBottom: '12px'
-              }}>
-                {t('home.aboutDesc1')}
-              </Text>
-              <Text style={{
-                color: '#86868b', fontSize: '15px', lineHeight: 1.8, display: 'block', marginBottom: '20px'
-              }}>
-                {t('home.aboutDesc2')}
-              </Text>
-              <Button
-                type="link"
-                onClick={() => navigate('/support')}
-                style={{ padding: 0, color: '#0071e3', fontWeight: 600, fontSize: '15px' }}
-              >
-                {t('home.learnMore')} <RightOutlined style={{ fontSize: '12px' }} />
-              </Button>
-            </div>
-
-
-            <div style={{
-              display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px', minWidth: isMobile ? '100%' : '240px'
-            }}>
-              {HOME_STATS.map((stat, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: i * 0.1 }}
-                  style={{
-                    textAlign: 'center', padding: '16px 12px',
-                    background: '#f5f5f7', borderRadius: '16px'
-                  }}
-                >
-                  <Title level={4} style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: stat.color }}>
-                    {stat.value}
-                  </Title>
-                  <Text style={{ color: '#86868b', fontSize: '12px' }}>{t(stat.labelKey)}</Text>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </motion.div>
-      </div>
-
-      <div style={{ padding: isMobile ? '36px 0' : '60px 0', background: '#f5f5f7', overflow: 'hidden' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: isMobile ? '0 12px' : '0 20px' }}>
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'flex-end', gap: '12px', flexWrap: 'wrap', marginBottom: '32px' }}>
-              <div>
-                <Text style={{
-                  color: '#0071e3', fontSize: '13px', fontWeight: 600,
-                  letterSpacing: '2px', textTransform: 'uppercase', display: 'block', marginBottom: '12px'
-                }}>
-                  {t('home.shortTerm.tag')}
-                </Text>
-                <Title level={2} style={{ fontSize: '32px', fontWeight: 700, margin: 0, color: '#1d1d1f' }}>
-                  {t('home.shortTerm.title')}
-                </Title>
-              </div>
-              <Button
-                type="link"
-                icon={<RightOutlined />}
-                style={{ color: '#0071e3', fontWeight: 600, fontSize: '15px' }}
-                onClick={() => navigate('/rooms')}
-              >
-                {t('home.shortTerm.viewAll')}
-              </Button>
-            </div>
-          </motion.div>
-
-          <div style={{
-            display: 'flex',
-            overflowX: 'auto',
-            padding: '20px 0 40px',
-            msOverflowStyle: 'none',
-            scrollbarWidth: 'none',
-            WebkitOverflowScrolling: 'touch',
-            cursor: 'grab'
-          }} className="hide-scrollbar">
-            {dataRooms.length > 0 ? (
-              dataRooms.slice(0, 5).map((room, idx) => (
-                <ShortTermCard
-                  key={room.id}
-                  room={room}
-                  onClick={() => navigate(`/room/${room.slug}-${room.id}`)}
-                />
-              ))
-            ) : (
-              [1, 2, 3].map(i => (
-                <div key={i} style={{ width: '320px', height: '400px', background: '#fff', borderRadius: '24px', marginRight: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Spin />
-                </div>
-              ))
-            )}
-          </div>
-
-          <style dangerouslySetInnerHTML={{
-            __html: `
-            .hide-scrollbar::-webkit-scrollbar { display: none; }
-          `}} />
         </div>
-      </div>
+      </motion.section>
 
-      <div id="rooms-grid" style={{ padding: isMobile ? '16px 12px' : '20px 24px', maxWidth: '1200px', margin: '0 auto' }}>
-        <Title level={2} style={{ fontSize: '28px', fontWeight: 600, letterSpacing: '-0.5px', marginBottom: '32px', paddingLeft: '8px', textAlign: 'center' }}>
-          {isSearching && searchQuery ? `${t('home.search.result')} ${searchQuery.toUpperCase()}` : t('home.vacantRooms')}
-        </Title>
-
-        {isSearching && (
-          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-            <Button type="link" onClick={fetchRooms} style={{ color: '#0071e3', fontSize: '16px' }}>
-              <ArrowLeftOutlined /> {t('home.search.back')}
-            </Button>
+      {/* 5. TESTIMONIALS */}
+      <motion.section
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+        variants={fadeInUp}
+        style={{ padding: isPhone ? '40px 16px' : '100px 20px', background: '#f9fbf9' }}
+      >
+        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: isPhone ? '0' : isTabletLike ? '0 12px' : '0 40px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isPhone ? '24px' : '40px', flexWrap: 'wrap', gap: '8px' }}>
+            <Title level={2} style={{ margin: 0, fontSize: isPhone ? '22px' : '28px', fontWeight: 700 }}>Khách hàng nói gì về Tiến Đức Land?</Title>
+            {!isPhone && <Button type="link" style={{ color: '#27ae60', fontWeight: 600 }}>Xem tất cả đánh giá <RightOutlined style={{ fontSize: '12px' }} /></Button>}
           </div>
-        )}
-
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '100px 0' }}>
-            <Spin indicator={<LoadingOutlined style={{ fontSize: 40, color: '#1d1d1f' }} spin />} />
-          </div>
-        ) : (
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.1 }}
-            variants={{
-              hidden: {},
-              visible: { transition: { staggerChildren: 0.15 } }
-            }}
-          >
-            <Row gutter={isMobile ? [12, 20] : [24, 40]}>
-              {dataRooms.length > 0 ? (
-                // 4 items per row is lg={6} because 24 / 6 = 4
-                dataRooms.map((room) => (
-                  <Col xs={24} md={12} lg={6} xl={6} key={room.id}>
-                    <motion.div
-                      variants={{
-                        hidden: { opacity: 0, y: 50 },
-                        visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } }
-                      }}
-                    >
-                      <RoomCard room={room} onClick={() => navigate(`/room/${room.slug}-${room.id}`)} />
-                    </motion.div>
-                  </Col>
-                ))
-              ) : (
-                <Col span={24}>
-                  <div style={{ textAlign: 'center', padding: '60px 0', color: '#86868b', fontSize: '18px' }}>
-                    {isSearching ? t('home.search.notFound') : t('home.search.noRooms')}
-                  </div>
-                </Col>
-              )}
-            </Row>
-          </motion.div>
-        )}
-      </div>
-      <div style={{ padding: isMobile ? '30px 16px' : '60px 20px', maxWidth: '1200px', margin: '0 auto' }}>
-        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
-          <Title level={2} style={{ fontSize: '28px', fontWeight: 700, textAlign: 'center', color: '#1d1d1f', marginBottom: '8px' }}>
-            {t('home.whyChoose')}
-          </Title>
-          <Text style={{ display: 'block', textAlign: 'center', color: '#86868b', fontSize: '15px', marginBottom: '40px' }}>
-            {t('home.whyDesc')}
-          </Text>
-          <Row gutter={[20, 20]}>
-            {(Array.isArray(t('home.whyItems')) ? t('home.whyItems') : []).map((item, i) => (
-              <Col xs={24} sm={12} md={8} key={i}>
-                <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.08 }}>
-                  <div style={{ background: '#fff', borderRadius: '20px', padding: '28px 24px', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: '1px solid #f0f0f0', height: '100%' }}>
-                    <div style={{ fontSize: '32px', marginBottom: '12px' }}>{item.icon}</div>
-                    <Title level={5} style={{ fontSize: '16px', fontWeight: 600, margin: '0 0 8px', color: '#1d1d1f' }}>{item.title}</Title>
-                    <Text style={{ color: '#86868b', fontSize: '14px', lineHeight: 1.7 }}>{item.desc}</Text>
-                  </div>
-                </motion.div>
-              </Col>
-            ))}
-          </Row>
-        </motion.div>
-      </div>
-
-      {/* 6. QUY TRÌNH THUÊ PHÒNG - Horizontal Timeline Redesign */}
-      <div style={{ padding: isMobile ? '40px 12px 60px' : '60px 20px 80px', maxWidth: '1100px', margin: '0 auto', position: 'relative' }}>
-        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
-          <Title level={2} style={{ fontSize: isMobile ? '28px' : '36px', fontWeight: 800, textAlign: 'center', color: '#1d1d1f', marginBottom: '12px', letterSpacing: '-1.5px' }}>
-            {t('home.processTitle')}
-          </Title>
-          <Text style={{ display: 'block', textAlign: 'center', color: '#86868b', fontSize: '16px', marginBottom: '60px' }}>
-            {t('home.processDesc')}
-          </Text>
 
           <div style={{ position: 'relative' }}>
-            {/* Horizontal Connecting Line (Desktop Only) */}
-            {!isMobile && (
-              <div style={{
-                position: 'absolute',
-                top: '40px',
-                left: '10%',
-                right: '10%',
-                height: '2px',
-                background: 'linear-gradient(to right, #0071e3 0%, #34c759 33%, #ff9500 66%, #af52de 100%)',
-                opacity: 0.2,
-                zIndex: 0
-              }} />
-            )}
-
-            <div style={{ display: 'flex', gap: '20px', flexWrap: isMobile ? 'wrap' : 'nowrap', justifyContent: 'center', position: 'relative', zIndex: 1 }}>
-              {(Array.isArray(t('home.processSteps')) ? t('home.processSteps') : []).map((item, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: i * 0.15 }}
-                  style={{
-                    flex: isMobile ? '1 1 100%' : '1 1 0',
-                    background: '#fff',
-                    borderRadius: '24px',
-                    padding: '32px 24px',
-                    textAlign: 'center',
-                    boxShadow: '0 10px 30px rgba(0,0,0,0.04)',
-                    border: '1px solid rgba(0,0,0,0.03)',
-                    position: 'relative'
-                  }}
-                >
-                  <div style={{
-                    width: '80px', height: '80px', borderRadius: '50%',
-                    background: item.color, color: '#fff',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '24px', fontWeight: 800,
-                    margin: '-72px auto 24px',
-                    boxShadow: `0 12px 24px ${item.color}44`,
-                    border: '6px solid #fff'
-                  }}>
-                    {item.step}
-                  </div>
-                  <Title level={4} style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 12px', color: '#1d1d1f' }}>
-                    {item.title}
-                  </Title>
-                  <Text style={{ color: '#6e6e73', fontSize: '14px', lineHeight: 1.6 }}>
-                    {item.desc}
-                  </Text>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* 7. ĐÁNH GIÁ KHÁCH HÀNG */}
-      <div style={{ padding: isMobile ? '28px 12px 40px' : '40px 20px 60px', maxWidth: '1200px', margin: '0 auto' }}>
-        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
-          <Title level={2} style={{ fontSize: '28px', fontWeight: 700, textAlign: 'center', color: '#1d1d1f', marginBottom: '8px' }}>
-            {t('home.testimonials.title')}
-          </Title>
-          <Text style={{ display: 'block', textAlign: 'center', color: '#86868b', fontSize: '15px', marginBottom: '40px' }}>
-            {t('home.testimonials.subtitle')}
-          </Text>
-          <Row gutter={[20, 20]}>
-            {(Array.isArray(t('home.testimonials.items')) ? t('home.testimonials.items') : []).map((r, i) => (
-              <Col xs={24} md={8} key={i}>
-                <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.1 }}>
-                  <div style={{ background: '#fff', borderRadius: '20px', padding: '28px 24px', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', border: '1px solid #f0f0f0', height: '100%' }}>
-                    <div style={{ marginBottom: '12px' }}>{Array.from({ length: 5 }).map((_, si) => (<span key={si} style={{ fontSize: '16px', color: si < r.rating ? '#ffb800' : '#e0e0e0' }}>★</span>))}</div>
-                    <Text style={{ color: '#515154', fontSize: '14px', lineHeight: 1.8, display: 'block', marginBottom: '16px', fontStyle: 'italic' }}>"{r.text}"</Text>
-                    <div style={{ borderTop: '1px solid #f5f5f7', paddingTop: '12px' }}>
-                      <Text strong style={{ color: '#1d1d1f', fontSize: '14px', display: 'block' }}>{r.name}</Text>
-                      <Text style={{ color: '#86868b', fontSize: '12px' }}>{r.role}</Text>
+            <Carousel
+              autoplay
+              draggable
+              dots={{ className: 'custom-carousel-dots' }}
+              slidesToShow={isPhone ? 1 : isTabletLike ? 2 : 3}
+              slidesToScroll={1}
+              infinite={true}
+              style={{ paddingBottom: '30px' }}
+              arrows={!isPhone}
+              prevArrow={<CustomPrevArrow />}
+              nextArrow={<CustomNextArrow />}
+            >
+              {[
+                { name: 'Minh Thư', role: 'Sinh viên, TP.HCM', text: 'Em đã tìm được phòng ưng ý chỉ trong 1 ngày. Giao diện dễ dùng, lọc phòng rất tiện!', img: 'https://i.pravatar.cc/150?u=1' },
+                { name: 'Hoàng Nam', role: 'Nhân viên văn phòng', text: 'Thông tin rõ ràng, hình ảnh thật. Chủ trọ hỗ trợ nhiệt tình, cảm ơn Tiến Đức Land.', img: 'https://i.pravatar.cc/150?u=2' },
+                { name: 'Thanh Trúc', role: 'Nhân viên', text: 'Nhờ Tiến Đức Land mà mình đã tìm được phòng gần chỗ làm, giá hợp lý.', img: 'https://i.pravatar.cc/150?u=3' },
+                { name: 'Anh Tuấn', role: 'Kinh doanh tự do', text: 'Hệ thống quản lý rất tốt, tôi đăng tin và tìm khách thuê cực nhanh.', img: 'https://i.pravatar.cc/150?u=4' },
+                { name: 'Mai Lan', role: 'Thiết kế đồ họa', text: 'Giao diện web rất đẹp và hiện đại, trải nghiệm tìm phòng thật sự mượt mà.', img: 'https://i.pravatar.cc/150?u=5' },
+                { name: 'Quốc Bảo', role: 'Kỹ sư phần mềm', text: 'Tôi thích cách lọc phòng theo bản đồ và khu vực, rất chính xác.', img: 'https://i.pravatar.cc/150?u=6' },
+                { name: 'Hà Vy', role: 'Freelancer', text: 'Dịch vụ hỗ trợ khách hàng của Tiến Đức Land rất tuyệt vời, giải đáp thắc mắc 24/7.', img: 'https://i.pravatar.cc/150?u=7' },
+                { name: 'Đức Anh', role: 'Sinh viên năm cuối', text: 'Phòng trọ ở đây đa dạng, phù hợp với túi tiền sinh viên chúng em.', img: 'https://i.pravatar.cc/150?u=8' },
+                { name: 'Thùy Chi', role: 'Giáo viên mầm non', text: 'Tôi đã giới thiệu cho đồng nghiệp và ai cũng tìm được phòng tốt.', img: 'https://i.pravatar.cc/150?u=9' },
+                { name: 'Quang Huy', role: 'Lập trình viên', text: 'Tìm phòng chưa bao giờ dễ dàng đến thế. 10 điểm cho chất lượng!', img: 'https://i.pravatar.cc/150?u=10' },
+                { name: 'Bích Phượng', role: 'Kế toán', text: 'Mọi thông tin về giá điện nước đều minh bạch, không lo bị ép giá.', img: 'https://i.pravatar.cc/150?u=11' },
+                { name: 'Tấn Phát', role: 'Quản lý nhà hàng', text: 'Tiện ích xung quanh phòng được liệt kê rất đầy đủ và chi tiết.', img: 'https://i.pravatar.cc/150?u=12' },
+              ].map((t, i) => (
+                <div key={i} style={{ padding: '0 12px' }}>
+                  <Card style={{ borderRadius: '24px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', margin: '10px 5px', height: '260px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+                      <div style={{ fontSize: '24px', color: '#27ae60' }}>"</div>
+                      <div style={{ display: 'flex', gap: '2px' }}>
+                        {[1, 2, 3, 4, 5].map(s => <StarFilled key={s} style={{ color: '#f1c40f', fontSize: '12px' }} />)}
+                      </div>
                     </div>
-                  </div>
+                    <Text style={{ display: 'block', marginBottom: '25px', fontSize: '15px', fontStyle: 'italic', color: '#34495e', height: '80px', overflow: 'hidden' }}>{t.text}</Text>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <img src={t.img} alt={t.name} style={{ width: '48px', height: '48px', borderRadius: '50%' }} />
+                      <div>
+                        <Text strong style={{ display: 'block' }}>{t.name}</Text>
+                        <Text style={{ fontSize: '12px', color: '#95a5a6' }}>{t.role}</Text>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+              ))}
+            </Carousel>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* 6. BLOG / EXPERIENCE */}
+      <motion.section
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+        variants={fadeInUp}
+        style={{ padding: isPhone ? '40px 16px' : '100px 20px', maxWidth: '1400px', margin: '0 auto' }}
+      >
+        <div style={{ padding: isPhone ? '0' : isTabletLike ? '0 12px' : '0 40px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isPhone ? '24px' : '40px' }}>
+            <Title level={2} style={{ margin: 0, fontSize: isPhone ? '22px' : '28px', fontWeight: 700 }}>Kinh nghiệm thuê trọ</Title>
+            <Button type="link" style={{ color: '#27ae60', fontWeight: 600, fontSize: isPhone ? '13px' : '14px' }}>Xem tất cả <RightOutlined style={{ fontSize: '12px' }} /></Button>
+          </div>
+
+          <Row gutter={[24, 24]}>
+            {[
+              { title: 'Kinh nghiệm thuê trọ sinh viên cần biết', date: '12/05/2024', tag: 'Kinh nghiệm', img: 'https://images.unsplash.com/photo-1522770179533-24471fcdba45?q=80&w=2070' },
+              { title: 'Cách bố trí phòng trọ nhỏ đẹp và tiện nghi', date: '10/05/2024', tag: 'Phong thủy', img: back3 },
+              { title: 'Những điều cần kiểm tra khi thuê phòng trọ', date: '08/05/2024', tag: 'Kinh nghiệm', img: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=2070' },
+              { title: 'Xu hướng phòng trọ được ưa chuộng 2024', date: '05/05/2024', tag: 'Xu hướng', img: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=2070' },
+            ].map((blog, i) => (
+              <Col xs={12} sm={12} md={6} key={i}>
+                <motion.div variants={fadeInUp} whileHover={{ y: -5 }}>
+                  <Card
+                    cover={<img src={blog.img} alt={blog.title} style={{ height: '180px', objectFit: 'cover', borderRadius: '16px 16px 0 0' }} />}
+                    style={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}
+                  >
+                    <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                      <Badge count={blog.tag} style={{ backgroundColor: '#eafaf1', color: '#45C97C', boxShadow: 'none' }} />
+                      <Text style={{ fontSize: '12px', color: '#95a5a6' }}>{blog.date}</Text>
+                    </div>
+                    <Title level={5} style={{ fontSize: '16px', height: '44px', overflow: 'hidden' }}>{blog.title}</Title>
+                    <Button type="link" style={{ padding: 0, color: '#45C97C' }}>Đọc thêm <ArrowRightOutlined style={{ fontSize: '12px' }} /></Button>
+                  </Card>
                 </motion.div>
               </Col>
             ))}
           </Row>
-        </motion.div>
-      </div>
+        </div>
+      </motion.section>
 
-      {/* 8. CTA */}
-      <div style={{ padding: isMobile ? '0 12px 40px' : '0 20px 60px', maxWidth: '900px', margin: '0 auto' }}>
-        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
-          <div style={{ background: 'linear-gradient(135deg, #1d1d1f 0%, #2d2d2f 100%)', borderRadius: '24px', padding: isMobile ? '32px 20px' : '48px 40px', textAlign: 'center', boxShadow: '0 12px 40px rgba(0,0,0,0.12)' }}>
-            <Title level={3} className="custom-color" style={{ color: '#fff', fontSize: '26px', fontWeight: 700, margin: 0 }}>{t('home.cta.title')}</Title>
-            <Text className="custom-color" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '15px', display: 'block', margin: '12px 0 28px', lineHeight: 1.7 }}>
-              {t('home.cta.subtitle')} <strong className="custom-color" style={{ color: '#fff' }}>0364.862.148</strong>
-            </Text>
-            <Space size="middle" wrap>
-              <Button type="primary" size="large" onClick={() => { document.getElementById('rooms-grid').scrollIntoView({ behavior: 'smooth' }); }}
-                style={{ background: '#0071e3', border: 'none', borderRadius: '16px', fontWeight: 600, height: '48px', padding: '0 32px', fontSize: '15px', boxShadow: '0 8px 20px rgba(0,113,227,0.3)' }}>
-                {t('home.cta.viewRooms')}
-              </Button>
-              <Button size="large" onClick={() => navigate('/support')}
-                style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.3)', color: '#fff', borderRadius: '16px', fontWeight: 600, height: '48px', padding: '0 32px', fontSize: '15px' }}>
-                {t('home.cta.learnMore')}
-              </Button>
-            </Space>
-          </div>
-        </motion.div>
-      </div>
+      {/* 7. CTA SECTION */}
+      <motion.section
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+        variants={fadeInUp}
+        style={{ padding: isPhone ? '0 16px 40px' : '0 20px 80px', maxWidth: '1400px', margin: '0 auto' }}
+      >
+        <div style={{ padding: isPhone ? '0' : isTabletLike ? '0 12px' : '0 40px' }}>
+          <motion.div
+            initial={{ y: 50, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            onClick={() => navigate('/post-room')}
+            style={{ cursor: 'pointer', overflow: 'hidden', borderRadius: '32px' }}
+          >
+            <img
+              src={bannerPhu}
+              alt="Bạn đang có phòng trống? Đăng tin ngay!"
+              style={{ width: '100%', display: 'block', boxShadow: '0 20px 40px rgba(0,0,0,0.08)' }}
+            />
+          </motion.div>
+        </div>
+      </motion.section>
 
     </div>
   );

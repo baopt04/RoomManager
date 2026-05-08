@@ -1,18 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Row, Col, Card, Spin, Button, Divider, message, Breadcrumb, Modal, Form, Input, DatePicker, Image, Tag, Skeleton, Space } from 'antd';
-import { 
-  EnvironmentOutlined, 
-  TeamOutlined, 
-  PhoneOutlined, 
-  CheckCircleFilled, 
-  HomeOutlined,
-  StarFilled,
-  WifiOutlined,
-  CoffeeOutlined,
-  SafetyOutlined,
-  ThunderboltOutlined,
-  ExpandOutlined,
-  AppstoreOutlined
+import { Typography, Row, Col, Card, Button, Divider, message, Breadcrumb, Modal, Form, Input, DatePicker, Image, Skeleton, Rate, Avatar, Tag, Space } from 'antd';
+import {
+  EnvironmentOutlined, PhoneOutlined, CheckCircleFilled,
+  HomeOutlined, WifiOutlined, CoffeeOutlined, SafetyOutlined,
+  ThunderboltOutlined, ExpandOutlined, AppstoreOutlined, HeartOutlined,
+  ClockCircleOutlined, UserOutlined, MessageOutlined, VideoCameraOutlined,
+  CarOutlined, FireOutlined, ArrowUpOutlined, RestOutlined, EditOutlined,
+  ClearOutlined, CustomerServiceOutlined
 } from '@ant-design/icons';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -20,7 +14,8 @@ import { useLanguage } from '../../../contexts/LanguageContext';
 import { getRoomDetail } from '../../../services/customer/HomeService';
 import { createRoomViewing } from '../../../services/customer/RoomViewing';
 import dayjs from 'dayjs';
-
+import { useClientBreakpoints } from '../hooks/useClientBreakpoints';
+import avata3 from '../../../assets/back-3.jpg';
 const { Title, Text, Paragraph } = Typography;
 const DEFAULT_IMAGES = [
   "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=1200",
@@ -33,7 +28,6 @@ const DEFAULT_IMAGES = [
 const RoomDetailClient = () => {
   const { slugAndId } = useParams();
   const { t, tName } = useLanguage();
-  // Shorthand: rd('modal.title') === t('home.roomDetail.modal.title')
   const rd = (key) => t(`home.roomDetail.${key}`);
   const id = slugAndId?.substring(slugAndId.length - 36);
   const navigate = useNavigate();
@@ -43,13 +37,8 @@ const RoomDetailClient = () => {
   const [loading, setLoading] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  const [selectedImg, setSelectedImg] = useState(0);
+  const { isPhone } = useClientBreakpoints();
 
   const handleContactSubmit = async (values) => {
     Modal.confirm({
@@ -69,36 +58,25 @@ const RoomDetailClient = () => {
       onOk: async () => {
         setSubmitting(true);
         try {
-          const payload = {
-            name: values.name,
-            phone: values.phone,
-            idRoom: room.id,
+          await createRoomViewing({
+            name: values.name, phone: values.phone, idRoom: room.id,
             viewDate: values.viewDate ? dayjs(values.viewDate).format('DD-MM-YYYY HH:mm:ss') : null,
             note: values.note || ""
-          };
-
-          await createRoomViewing(payload);
-
+          });
           message.success(rd('modal.success'));
           form.resetFields();
           setIsModalVisible(false);
         } catch (error) {
-          console.error("Failed to create room viewing:", error);
           message.error(error.response?.data?.message || rd('modal.error'));
-        } finally {
-          setSubmitting(false);
-        }
+        } finally { setSubmitting(false); }
       }
     });
   };
 
   const formatCurrency = (amount) => {
     if (!amount) return "Liên hệ";
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-      maximumFractionDigits: 0
-    }).format(amount).replace("₫", "VNĐ");
+    const m = amount / 1000000;
+    return `${m % 1 === 0 ? m : m.toFixed(1)} triệu/tháng`;
   };
 
   useEffect(() => {
@@ -108,479 +86,435 @@ const RoomDetailClient = () => {
       try {
         const roomData = await getRoomDetail(id);
         setRoom(roomData);
-
-        if (roomData.images && roomData.images.length > 0) {
-          setImages(roomData.images);
-        } else {
-          setImages(DEFAULT_IMAGES);
-        }
-
+        setImages(roomData.images?.length > 0 ? roomData.images : DEFAULT_IMAGES);
       } catch (error) {
-        console.error("Failed to load room data:", error);
         message.error("Không thể tải thông tin phòng!");
-      } finally {
-        setLoading(false);
-      }
+      } finally { setLoading(false); }
     };
-
-    if (id) {
-      fetchRoomData();
-    }
+    if (id) fetchRoomData();
   }, [id]);
 
   const displayImages = room ? [...images] : [...DEFAULT_IMAGES];
-  if (room) {
-    while (displayImages.length < 5) {
-      displayImages.push(DEFAULT_IMAGES[displayImages.length % DEFAULT_IMAGES.length]);
-    }
-  }
+  if (room) { while (displayImages.length < 5) displayImages.push(DEFAULT_IMAGES[displayImages.length % DEFAULT_IMAGES.length]); }
 
-  const renderSkeleton = () => (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 20px' }}>
-      <Row gutter={[12, 12]} style={{ height: isMobile ? '300px' : '520px', marginBottom: '40px' }}>
-        <Col xs={24} md={14}><Skeleton.Button active style={{ width: '100%', height: '100%', borderRadius: '28px' }} /></Col>
-        <Col xs={0} md={10}>
-          <Row gutter={[12, 12]} style={{ height: '100%' }}>
-            {[1, 2, 3, 4].map(i => (
-              <Col span={12} key={i} style={{ height: 'calc(50% - 6px)' }}><Skeleton.Button active style={{ width: '100%', height: '100%', borderRadius: '16px' }} /></Col>
-            ))}
-          </Row>
-        </Col>
-      </Row>
-      <Row gutter={[40, 40]}>
-        <Col xs={24} lg={16}>
-          <Skeleton active paragraph={{ rows: 2 }} title={{ width: '60%' }} style={{ marginBottom: '40px' }} />
-          <Row gutter={[16, 16]} style={{ marginBottom: '40px' }}>
-            {[1, 2, 3, 4].map(i => (
-              <Col xs={12} sm={6} key={i}><Skeleton.Button active style={{ width: '100%', height: '100px', borderRadius: '20px' }} /></Col>
-            ))}
-          </Row>
-          <Skeleton active paragraph={{ rows: 6 }} />
-        </Col>
-        <Col xs={24} lg={8}><Skeleton.Button active style={{ width: '100%', height: '400px', borderRadius: '28px' }} /></Col>
+  if (loading) return (
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 24px' }}>
+      <Skeleton.Button active style={{ width: '100%', height: '400px', borderRadius: '16px' }} />
+      <Row gutter={24} style={{ marginTop: 24 }}>
+        <Col xs={24} lg={16}><Skeleton active paragraph={{ rows: 8 }} /></Col>
+        <Col xs={24} lg={8}><Skeleton.Button active style={{ width: '100%', height: '300px', borderRadius: '16px' }} /></Col>
       </Row>
     </div>
   );
 
+  if (!room) return (
+    <div style={{ textAlign: 'center', padding: '100px 20px' }}>
+      <Title level={3}>{rd('notFound')}</Title>
+      <Button size="large" onClick={() => navigate('/')}>{rd('backHome')}</Button>
+    </div>
+  );
+
+  const amenities = [
+    { icon: <ThunderboltOutlined />, name: "Máy lạnh" },
+    { icon: <HomeOutlined />, name: "Giường" },
+    { icon: <AppstoreOutlined />, name: "Tủ quần áo" },
+    { icon: <EditOutlined />, name: "Bàn làm việc" },
+    { icon: <CoffeeOutlined />, name: "Kệ bếp" },
+    { icon: <SafetyOutlined />, name: "Tủ lạnh" },
+    { icon: <ClearOutlined />, name: "Máy giặt" },
+    { icon: <RestOutlined />, name: "Nhà vệ sinh riêng" },
+    { icon: <WifiOutlined />, name: "Wifi" },
+    { icon: <ClockCircleOutlined />, name: "Giờ giấc tự do" },
+    { icon: <UserOutlined />, name: "Không chung chủ" },
+    { icon: <VideoCameraOutlined />, name: "Camera an ninh" },
+    { icon: <FireOutlined />, name: "Bình chữa cháy" },
+    { icon: <ArrowUpOutlined />, name: "Thang máy" },
+    { icon: <CarOutlined />, name: "Bãi xe" },
+    { icon: <CustomerServiceOutlined />, name: "Khu để xe" },
+  ];
+
+  const reviews = [
+    {
+      name: "Minh Tuấn",
+      date: "Đã thuê tháng 03/2024",
+      rating: 5,
+      comment: "Phòng đẹp, sạch sẽ, đúng như hình. Chủ nhà cực kỳ dễ thương, hỗ trợ nhiệt tình.",
+      avatar: "https://i.pravatar.cc/150?u=mt"
+    },
+    {
+      name: "Thanh Mai",
+      date: "Đã thuê tháng 02/2024",
+      rating: 5,
+      comment: "Vị trí thuận tiện, khu vực an ninh. Mình rất hài lòng khi thuê phòng ở đây.",
+      avatar: "https://i.pravatar.cc/150?u=tm"
+    }
+  ];
+
   return (
-    <div style={{ background: '#f5f5f7', paddingBottom: '80px', minHeight: '100vh' }}>
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        style={{ background: '#fff', borderBottom: '1px solid rgba(0,0,0,0.05)', padding: '12px 0' }}
-      >
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px', display: 'flex', alignItems: 'center' }}>
-          <Breadcrumb
-            separator={<span style={{ color: '#d2d2d7' }}>/</span>}
-            style={{ fontSize: '14px', fontWeight: 500 }}
-            items={[
-              { title: <Link to="/" style={{ color: '#86868b', transition: 'color 0.3s' }}>{rd('breadcrumb.home')}</Link> },
-              { title: <Link to="/rooms" style={{ color: '#86868b' }}>{rd('breadcrumb.rooms')}</Link> },
-              { title: <span style={{ color: '#1d1d1f' }}>{loading ? <Skeleton.Input size="small" active /> : (tName(room?.name) || `Phòng ${room?.code || slugAndId}`)}</span> }
-            ]}
-          />
+    <div style={{ background: '#fff', paddingBottom: '80px', minHeight: '100vh', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial' }}>
+      {/* Breadcrumb */}
+      <div style={{ background: '#fff', padding: '16px 0' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: isPhone ? '0 16px' : '0 24px' }}>
+          <Breadcrumb separator=">" style={{ fontSize: '13px' }} items={[
+            { title: <Link to="/" style={{ color: '#888' }}>Trang chủ</Link> },
+            { title: <Link to="/rooms" style={{ color: '#888' }}>Tìm phòng</Link> },
+            { title: <span style={{ color: '#1a1a1a', fontWeight: 500 }}>{tName(room.name) || `Phòng ${room.code}`}</span> }
+          ]} />
         </div>
-      </motion.div>
+      </div>
 
-      {loading ? renderSkeleton() : (
-        !room ? (
-          <div style={{ textAlign: 'center', padding: '100px 20px', background: '#f5f5f7', minHeight: '80vh' }}>
-            <Title level={3}>{rd('notFound')}</Title>
-            <Button size="large" style={{ borderRadius: '12px' }} onClick={() => navigate('/')}>{rd('backHome')}</Button>
-          </div>
-        ) : (
-          <>
-            <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 20px' }}>
-              <motion.div 
-                initial={{ opacity: 0 }} 
-                animate={{ opacity: 1 }} 
-                transition={{ duration: 0.4 }}
-                style={{ position: 'relative', marginBottom: '40px' }}
-              >
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: isPhone ? '0 16px 80px' : '0 24px' }}>
+        <Row gutter={[32, 32]}>
+          {/* LEFT COLUMN */}
+          <Col xs={24} lg={16}>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+              {/* Gallery Section */}
+              <div style={{ position: 'relative', marginBottom: '24px' }}>
                 <Image.PreviewGroup>
-                  <Row gutter={[12, 12]} style={{
-                    height: isMobile ? '300px' : '520px',
-                    borderRadius: '28px',
-                    overflow: 'hidden'
-                  }}>
-                    <Col xs={24} md={14} style={{ height: '100%' }}>
-                      <div style={{ height: '100%', overflow: 'hidden', borderRadius: '16px' }}>
-                        <Image
-                          src={displayImages[0]}
-                          alt="Main"
-                          wrapperStyle={{ width: '100%', height: '100%' }}
-                          style={{
-                            width: '100%', height: '100%',
-                            objectFit: 'cover', cursor: 'pointer',
-                            transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)'
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.04)'}
-                          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                        />
-                      </div>
-                    </Col>
-
-                    <Col xs={0} md={10} style={{ height: '100%' }}>
-                      <Row gutter={[12, 12]} style={{ height: '100%' }}>
-                        {displayImages.slice(1, 5).map((img, idx) => (
-                          <Col span={12} key={idx} style={{ height: 'calc(50% - 6px)' }}>
-                            <div style={{ height: '100%', overflow: 'hidden', borderRadius: '16px', position: 'relative' }}>
-                              <Image
-                                src={img}
-                                alt={`Room ${idx + 2}`}
-                                wrapperStyle={{ width: '100%', height: '100%' }}
-                                style={{
-                                  width: '100%', height: '100%',
-                                  objectFit: 'cover', cursor: 'pointer',
-                                  transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)'
-                                }}
-                                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.08)'}
-                                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                              />
-                              {idx === 3 && images.length > 5 && (
-                                <div
-                                  style={{
-                                    position: 'absolute', inset: 0,
-                                    background: 'rgba(0,0,0,0.6)',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    color: '#fff', fontSize: '18px', fontWeight: 600,
-                                    pointerEvents: 'none', borderRadius: '16px'
-                                  }}
-                                >
-                                  +{images.length - 4} ảnh
-                                </div>
-                              )}
-                            </div>
-                          </Col>
-                        ))}
-                      </Row>
-                    </Col>
-
-                    <div style={{ display: 'none' }}>
-                      {displayImages.slice(5).map((img, idx) => (
-                        <Image key={idx + 5} src={img} />
-                      ))}
+                  <div style={{ borderRadius: '16px', overflow: 'hidden', height: isPhone ? '280px' : '480px', position: 'relative' }}>
+                    <Image
+                      src={displayImages[selectedImg]}
+                      alt="Main"
+                      wrapperStyle={{ width: '100%', height: '100%' }}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                    {/* Heart Favorite Icon */}
+                    <div style={{
+                      position: 'absolute', top: 20, right: 20, zIndex: 10,
+                      width: 44, height: 44, background: '#fff', borderRadius: '50%',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer'
+                    }}>
+                      <HeartOutlined style={{ fontSize: 20, color: '#1d1d1f' }} />
                     </div>
-                  </Row>
+                    {/* Image Counter */}
+                    <div style={{
+                      position: 'absolute', bottom: 20, left: 20, zIndex: 10,
+                      background: 'rgba(0,0,0,0.5)', color: '#fff', padding: '4px 12px',
+                      borderRadius: '12px', fontSize: '13px', fontWeight: 500
+                    }}>
+                      {selectedImg + 1} / {displayImages.length}
+                    </div>
+                  </div>
+                  <div style={{ display: 'none' }}>{displayImages.map((img, i) => <Image key={i} src={img} />)}</div>
                 </Image.PreviewGroup>
 
-                <Button
-                  style={{
-                    position: 'absolute', bottom: '24px', right: '24px',
-                    borderRadius: '14px', fontWeight: 600, padding: '12px 24px',
-                    height: 'auto', background: '#ffffff',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
-                    border: 'none', display: 'flex', alignItems: 'center', gap: '10px',
-                    zIndex: 10
-                  }}
-                  onClick={() => {
-                    const firstImage = document.querySelector('.ant-image-img');
-                    if (firstImage) firstImage.click();
-                  }}
-                >
-                  <AppstoreOutlined style={{ fontSize: '18px' }} />
-                  {rd('allImages')}
-                </Button>
-              </motion.div>
-
-              <Row gutter={[40, 40]}>
-                <Col xs={24} lg={16}>
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }} 
-                    animate={{ opacity: 1, y: 0 }} 
-                    transition={{ duration: 0.4, delay: 0.1 }}
-                  >
-                    <div style={{ marginBottom: '32px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                        <Tag color="blue" style={{ borderRadius: '6px', fontWeight: 600, margin: 0, padding: '2px 10px' }}>{rd('tags.vacant')}</Tag>
-                        <Tag color="green" style={{ borderRadius: '6px', fontWeight: 600, margin: 0, padding: '2px 10px' }}>{rd('tags.offer')} {dayjs().format('MM')}</Tag>
-                      </div>
-                      <Title level={1} style={{ margin: '0 0 12px', fontWeight: 800, fontSize: isMobile ? '32px' : '44px', letterSpacing: '-2px', color: '#1d1d1f' }}>
-                        {tName(room.name) || `Phòng ${room.code || slugAndId}`}
-                      </Title>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#86868b', fontSize: '16px' }}>
-                        <EnvironmentOutlined style={{ color: '#0071e3' }} />
-                        <Text style={{ color: '#86868b' }}>{tName(room.houseForRent?.address) || "Hà Nội"}</Text>
-                        <Divider type="vertical" />
-                        <Text style={{ color: '#86868b' }}>{rd('floor')} {room.floor || "0"}</Text>
-                      </div>
-                    </div>
-
-                    {/* Bento Grid Info Cards */}
-                    <motion.div
-                      initial="hidden"
-                      animate="visible"
-                      variants={{
-                        hidden: { opacity: 0 },
-                        visible: {
-                          opacity: 1,
-                          transition: { staggerChildren: 0.1, delayChildren: 0.4 }
-                        }
+                {/* Thumbnails */}
+                <div style={{ display: 'flex', gap: 12, marginTop: 12, overflowX: 'auto', paddingBottom: 8 }}>
+                  {displayImages.slice(0, 10).map((img, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => setSelectedImg(idx)}
+                      style={{
+                        width: isPhone ? 70 : 100, height: isPhone ? 52 : 75, borderRadius: 8, overflow: 'hidden',
+                        cursor: 'pointer', flexShrink: 0,
+                        border: selectedImg === idx ? '3px solid #27ae60' : 'none',
+                        transition: 'all 0.2s ease',
+                        opacity: selectedImg === idx ? 1 : 0.7
                       }}
                     >
-                      <Row gutter={[16, 16]} style={{ marginBottom: '40px' }}>
-                        {[
-                          { icon: <ExpandOutlined />, label: rd('bento.area'), value: `${room.acreage} m²`, color: '#eef4ff', iconColor: '#0071e3' },
-                          { icon: <TeamOutlined />, label: rd('bento.capacity'), value: `${rd('bento.max')} ${room.peopleMax} ${rd('bento.people')}`, color: '#f0fcf4', iconColor: '#34c759' },
-                          { icon: <HomeOutlined />, label: rd('bento.type'), value: rd('bento.typeValue'), color: '#fff9f0', iconColor: '#ff9500' },
-                          { icon: <SafetyOutlined />, label: rd('bento.security'), value: '24/7', color: '#fdf2f8', iconColor: '#af52de' }
-                        ].map((item, idx) => (
-                          <Col xs={12} sm={6} key={idx}>
-                            <motion.div 
-                              variants={{
-                                hidden: { opacity: 0, y: 20 },
-                                visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
-                              }}
-                              style={{
-                                background: item.color, borderRadius: '20px', padding: '20px',
-                                height: '100%', border: '1px solid rgba(0,0,0,0.02)',
-                                display: 'flex', flexDirection: 'column', gap: '12px'
-                              }}
-                            >
-                              <div style={{ 
-                                width: '36px', height: '36px', borderRadius: '10px', 
-                                background: '#fff', display: 'flex', alignItems: 'center', 
-                                justifyContent: 'center', color: item.iconColor, fontSize: '18px',
-                                boxShadow: '0 4px 10px rgba(0,0,0,0.05)'
-                              }}>
-                                {item.icon}
-                              </div>
-                              <div>
-                                <Text style={{ display: 'block', fontSize: '13px', color: '#86868b', marginBottom: '2px' }}>{item.label}</Text>
-                                <Text strong style={{ fontSize: '15px', color: '#1d1d1f' }}>{item.value}</Text>
-                              </div>
-                            </motion.div>
-                          </Col>
-                        ))}
-                      </Row>
-                    </motion.div>
-
-                    <Divider style={{ margin: '40px 0' }} />
-
-                    <motion.div 
-                      initial={{ opacity: 0 }}
-                      whileInView={{ opacity: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.4 }}
-                      style={{ marginBottom: '48px' }}
-                    >
-                      <Title level={3} style={{ fontWeight: 700, fontSize: '24px', marginBottom: '20px', letterSpacing: '-0.5px' }}>
-                        {rd('about.title')}
-                      </Title>
-                      <Paragraph style={{ fontSize: '17px', lineHeight: '1.8', color: '#424245', marginBottom: '24px' }}>
-                        {rd('about.desc1')} {tName(room.houseForRent?.nameHouse) || rd('about.desc2')}, {rd('about.desc3')}
-                      </Paragraph>
-                      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px' }}>
-                        {(Array.isArray(rd('about.features')) ? rd('about.features') : []).map((text, i) => (
-                          <motion.div 
-                            key={i} 
-                            initial={{ opacity: 0, x: -10 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: i * 0.1 }}
-                            style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
-                          >
-                            <CheckCircleFilled style={{ color: '#34c759', fontSize: '18px' }} />
-                            <Text style={{ fontSize: '16px', color: '#1d1d1f' }}>{text}</Text>
-                          </motion.div>
-                        ))}
-                      </div>
-                    </motion.div>
-
-                    <motion.div 
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6 }}
-                      style={{ marginBottom: '20px' }}
-                    >
-                      <Title level={3} style={{ fontWeight: 700, fontSize: '24px', marginBottom: '24px', letterSpacing: '-0.5px' }}>
-                        {rd('amenities.title')}
-                      </Title>
-                      <Row gutter={[20, 20]}>
-                        {[
-                          { icon: <ThunderboltOutlined />, name: rd('amenities.ac') },
-                          { icon: <HomeOutlined />, name: rd('amenities.bed') },
-                          { icon: <CoffeeOutlined />, name: rd('amenities.closet') },
-                          { icon: <WifiOutlined />, name: rd('amenities.wifi') },
-                          { icon: <SafetyOutlined />, name: rd('amenities.kitchen') },
-                          { icon: <StarFilled />, name: rd('amenities.heater') }
-                        ].map((item, idx) => (
-                          <Col xs={12} sm={8} key={idx}>
-                            <motion.div 
-                              whileHover={{ scale: 1.05 }}
-                              style={{
-                                display: 'flex', alignItems: 'center', gap: '12px',
-                                padding: '16px', borderRadius: '16px', border: '1px solid #f2f2f7',
-                                background: '#fafafa', transition: 'all 0.3s'
-                              }}
-                            >
-                              <span style={{ fontSize: '20px', color: '#1d1d1f' }}>{item.icon}</span>
-                              <Text strong style={{ fontSize: '14px', color: '#1d1d1f' }}>{item.name}</Text>
-                            </motion.div>
-                          </Col>
-                        ))}
-                      </Row>
-                    </motion.div>
-                  </motion.div>
-                </Col>
-
-                <Col xs={24} lg={8}>
-                  <div style={{ position: 'sticky', top: '150px' }}>
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4, delay: 0.2 }}
-                    >
-                      <Card
-                        style={{
-                          borderRadius: '28px',
-                          border: '1px solid rgba(0,0,0,0.06)',
-                          boxShadow: '0 24px 80px rgba(0,0,0,0.1)',
-                          overflow: 'hidden',
-                          background: '#fff'
-                        }}
-                        bodyStyle={{ padding: '32px' }}
-                      >
-                        <div style={{ marginBottom: '24px' }}>
-                          <Text style={{ fontSize: '14px', color: '#86868b', fontWeight: 500 }}>{rd('pricing.title')}</Text>
-                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginTop: '4px' }}>
-                            <Text style={{ fontSize: '32px', fontWeight: 800, color: '#1d1d1f', letterSpacing: '-1px' }}>
-                              {formatCurrency(room.price)}
-                            </Text>
-                            <Text style={{ fontSize: '16px', color: '#86868b' }}>{rd('pricing.month')}</Text>
-                          </div>
-                        </div>
-
-                        <Divider style={{ margin: '24px 0', opacity: 0.6 }} />
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <ThunderboltOutlined style={{ color: '#ff9500' }} />
-                              <Text style={{ color: '#515154' }}>{rd('pricing.electric')}</Text>
-                            </div>
-                            <Text strong>{formatCurrency(room.electricUnitPrice)}/kWh</Text>
-                          </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <EnvironmentOutlined style={{ color: '#0071e3' }} />
-                              <Text style={{ color: '#515154' }}>{rd('pricing.water')}</Text>
-                            </div>
-                            <Text strong>{rd('pricing.waterPrice')}</Text>
-                          </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <SafetyOutlined style={{ color: '#af52de' }} />
-                              <Text style={{ color: '#515154' }}>{rd('pricing.other')}</Text>
-                            </div>
-                            <Text strong>{rd('pricing.free')}</Text>
-                          </div>
-                        </div>
-
-                        <Button
-                          type="primary"
-                          size="large"
-                          block
-                          style={{
-                            height: '56px',
-                            borderRadius: '16px',
-                            fontSize: '17px',
-                            fontWeight: 700,
-                            background: '#1d1d1f',
-                            borderColor: '#1d1d1f',
-                            boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '10px'
-                          }}
-                          onClick={() => setIsModalVisible(true)}
-                        >
-                          <PhoneOutlined /> {rd('pricing.book')}
-                        </Button>
-
-                        <div style={{ marginTop: '20px', textAlign: 'center', padding: '0 10px' }}>
-                          <Text style={{ fontSize: '12px', color: '#86868b', lineHeight: 1.5, display: 'block' }}>
-                            {rd('pricing.note')}
-                          </Text>
-                        </div>
-                      </Card>
-                    </motion.div>
-                  </div>
-                </Col>
-              </Row>
-            </div>
-
-            <Modal
-              title={<Title level={4} style={{ margin: 0 }}>{rd('modal.title')}</Title>}
-              open={isModalVisible}
-              onCancel={() => setIsModalVisible(false)}
-              footer={null}
-              centered
-              styles={{ body: { padding: '24px 0 0 0' } }}
-            >
-              <div style={{ background: '#f5f5f7', padding: '16px', borderRadius: '12px', marginBottom: '24px' }}>
-                <Text strong style={{ display: 'block', fontSize: '15px', color: '#1d1d1f' }}>{rd('modal.hostInfo')}</Text>
-                <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'space-between' }}>
-                  <Text>{rd('modal.representative')}</Text>
-                  <Text strong>{room.host?.name || room.houseForRent?.host?.name || rd('modal.management')}</Text>
+                      <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                  ))}
                 </div>
-                <div style={{ marginTop: '4px', display: 'flex', justifyContent: 'space-between' }}>
-                  <Text>{rd('modal.phone')}</Text>
-                  <Text strong style={{ color: '#0071e3' }}>
-                    <a href={`tel:${room.host?.phoneNumber || room.houseForRent?.host?.phoneNumber || "19001234"}`}>
-                      {room.host?.phoneNumber || room.houseForRent?.host?.phoneNumber || "0364.862.148"}
-                    </a>
-                  </Text>
-                </div>
-                <Text type="secondary" style={{ fontSize: '13px', display: 'block', marginTop: '8px' }}>
-                  {rd('modal.desc')}
-                </Text>
               </div>
 
-              <Form form={form} layout="vertical" onFinish={handleContactSubmit}>
-                <Form.Item label={rd('modal.nameLabel')} name="name" rules={[{ required: true, message: 'Vui lòng nhập tên của bạn!' }]}>
-                  <Input size="large" placeholder={rd('modal.namePlaceholder')} />
-                </Form.Item>
-                <Form.Item label={rd('modal.phoneLabel')} name="phone" rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}>
-                  <Input size="large" placeholder={rd('modal.phonePlaceholder')} />
-                </Form.Item>
-                <Form.Item label={rd('modal.dateLabel')} name="viewDate" rules={[{ required: true, message: 'Vui lòng chọn ngày và giờ xem phòng!' }]}>
-                  <DatePicker
-                    showTime
-                    size="large"
-                    style={{ width: '100%' }}
-                    placeholder={rd('modal.datePlaceholder')}
-                    format="DD-MM-YYYY HH:mm"
-                    disabledDate={(current) => current && current < dayjs().startOf('day')}
-                  />
-                </Form.Item>
-                <Form.Item label={rd('modal.roomLabel')} name="roomCode" initialValue={tName(room.name) || `Phòng ${room.code || slugAndId}`}>
-                  <Input size="large" disabled />
-                </Form.Item>
-                <Form.Item label={rd('modal.noteLabel')} name="note">
-                  <Input.TextArea rows={3} placeholder={rd('modal.notePlaceholder')} />
-                </Form.Item>
-                <Button
-                  type="primary"
-                  size="large"
-                  htmlType="submit"
-                  block
-                  loading={submitting}
-                  style={{ background: '#1d1d1f', borderColor: '#1d1d1f', height: '48px', borderRadius: '12px' }}
-                >
-                  {rd('modal.submit')}
+              {/* Title and Price Section */}
+              <div style={{ marginBottom: 32 }}>
+                <Title level={1} style={{ margin: '0 0 8px', fontWeight: 700, fontSize: isPhone ? '24px' : '36px', color: '#1d1d1f' }}>
+                  {tName(room.name) || `Phòng full nội thất, cửa sổ lớn`}
+                </Title>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#86868b', fontSize: 16, marginBottom: 16 }}>
+                  <EnvironmentOutlined style={{ color: '#86868b' }} />
+                  <span>{tName(room.houseForRent?.address) || 'Tây Hồ - Hà Nội'}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                  <span style={{ color: '#27ae60', fontSize: 28, fontWeight: 700 }}>{formatCurrency(room.price)}</span>
+                </div>
+
+                {/* Quick Info Grid */}
+                <Row gutter={[24, 16]} style={{ marginTop: 24 }}>
+                  <Col span={8} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <ExpandOutlined style={{ fontSize: 20, color: '#86868b' }} />
+                    <Text style={{ color: '#1d1d1f', fontSize: 15 }}>{room.acreage}m²</Text>
+                  </Col>
+                  <Col span={8} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <AppstoreOutlined style={{ fontSize: 20, color: '#86868b' }} />
+                    <Text style={{ color: '#1d1d1f', fontSize: 15 }}>Full nội thất</Text>
+                  </Col>
+                  <Col span={8} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <ClockCircleOutlined style={{ fontSize: 20, color: '#86868b' }} />
+                    <Text style={{ color: '#1d1d1f', fontSize: 15 }}>Giờ tự do</Text>
+                  </Col>
+                </Row>
+              </div>
+
+              <Divider style={{ margin: '32px 0' }} />
+
+              {/* Amenities Section */}
+              <div style={{ marginBottom: 40 }}>
+                <Title level={4} style={{ fontSize: 20, fontWeight: 700, marginBottom: 24, color: '#1d1d1f' }}>Tiện ích</Title>
+                <Row gutter={[16, 24]}>
+                  {amenities.map((item, idx) => (
+                    <Col xs={12} sm={8} md={6} key={idx}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <span style={{ fontSize: 20, color: '#27ae60', display: 'flex' }}>{item.icon}</span>
+                        <Text style={{ fontSize: 14, color: '#424245' }}>{item.name}</Text>
+                      </div>
+                    </Col>
+                  ))}
+                </Row>
+              </div>
+
+              <Divider style={{ margin: '32px 0' }} />
+
+              {/* Description Section */}
+              <div style={{ marginBottom: 48 }}>
+                <Title level={4} style={{ fontSize: 20, fontWeight: 700, marginBottom: 20, color: '#1d1d1f' }}>Mô tả chi tiết</Title>
+                <Paragraph style={{ fontSize: 15, lineHeight: 1.6, color: '#424245', marginBottom: 24 }}>
+                  Phòng rộng rãi, thoáng mát với cửa sổ lớn đón nắng tự nhiên. Full nội thất chỉ cần xách vali vào ở ngay.
+                </Paragraph>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {[
+                    "Khu vực an ninh, yên tĩnh",
+                    "Gần chợ, siêu thị, tiện di chuyển",
+                    "Giờ giấc tự do, không chung chủ",
+                    "Phù hợp cho nhân viên văn phòng, sinh viên"
+                  ].map((text, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <CheckCircleFilled style={{ color: '#27ae60', fontSize: 16 }} />
+                      <Text style={{ fontSize: 15, color: '#424245' }}>{text}</Text>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <Divider style={{ margin: '40px 0' }} />
+
+              {/* Review Section */}
+              <div style={{ marginBottom: 48 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                  <Title level={4} style={{ fontSize: 20, fontWeight: 700, margin: 0, color: '#1d1d1f' }}>Đánh giá từ người thuê trước</Title>
+                  <Button type="link" style={{ color: '#27ae60', fontWeight: 600 }}>Xem tất cả (12)</Button>
+                </div>
+
+                <Row gutter={[24, 24]} align="middle">
+                  <Col xs={24} md={6}>
+                    <div style={{ textAlign: 'center', padding: '24px', background: '#f9f9fb', borderRadius: '16px' }}>
+                      <Title level={2} style={{ margin: '0 0 8px', fontWeight: 700, color: '#1d1d1f' }}>4.8 <span style={{ fontSize: 16, fontWeight: 400, color: '#86868b' }}>/ 5</span></Title>
+                      <Rate disabled defaultValue={5} style={{ fontSize: 14, color: '#fadb14' }} />
+                      <div style={{ marginTop: 8, color: '#86868b', fontSize: 13 }}>(12 đánh giá)</div>
+                    </div>
+                  </Col>
+                  <Col xs={24} md={18}>
+                    <Row gutter={[24, 24]}>
+                      {reviews.map((rev, i) => (
+                        <Col xs={24} key={i}>
+                          <div style={{ background: '#fff', border: '1px solid #f0f0f2', borderRadius: '16px', padding: 20 }}>
+                            <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+                              <Avatar src={rev.avatar} size={48} />
+                              <div>
+                                <Text strong style={{ display: 'block', fontSize: 15 }}>{rev.name}</Text>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                  <Text style={{ fontSize: 12, color: '#86868b' }}>{rev.date}</Text>
+                                  <Rate disabled defaultValue={rev.rating} style={{ fontSize: 10 }} />
+                                </div>
+                              </div>
+                            </div>
+                            <Paragraph style={{ margin: 0, color: '#424245', fontSize: 14 }}>{rev.comment}</Paragraph>
+                          </div>
+                        </Col>
+                      ))}
+                    </Row>
+                  </Col>
+                </Row>
+              </div>
+
+              {/* Safety Tip Banner */}
+              <div style={{
+                background: '#f0faf4', border: '1px solid #d4edda',
+                borderRadius: '16px', padding: '20px 24px',
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                flexWrap: isPhone ? 'wrap' : 'nowrap', gap: 16
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <div style={{
+                    width: 48, height: 48, background: '#fff', borderRadius: '12px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 2px 8px rgba(39,174,96,0.1)'
+                  }}>
+                    <SafetyOutlined style={{ fontSize: 24, color: '#27ae60' }} />
+                  </div>
+                  <div>
+                    <Text strong style={{ fontSize: 16, display: 'block', color: '#1d1d1f' }}>Lưu ý an toàn khi thuê phòng</Text>
+                    <Text style={{ fontSize: 14, color: '#424245' }}>Không chuyển khoản đặt cọc khi chưa xem phòng trực tiếp. Hãy liên hệ và gặp trực tiếp chủ phòng để đảm bảo an toàn.</Text>
+                  </div>
+                </div>
+                <Button style={{ borderRadius: '12px', height: 44, fontWeight: 600, border: '1px solid #27ae60', color: '#27ae60' }}>
+                  Xem thêm kinh nghiệm thuê phòng
                 </Button>
-              </Form>
-            </Modal>
-          </>
-        )
+              </div>
+            </motion.div>
+          </Col>
+
+          {/* RIGHT SIDEBAR */}
+          <Col xs={24} lg={8}>
+            <div style={{ position: 'sticky', top: 32 }}>
+              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
+                {/* Contact Card */}
+                <Card style={{ borderRadius: '24px', border: 'none', boxShadow: '0 12px 32px rgba(0,0,0,0.06)', marginBottom: 24 }} bodyStyle={{ padding: 24 }}>
+                  <Title level={4} style={{ fontSize: 18, fontWeight: 700, marginBottom: 20 }}>Thông tin liên hệ</Title>
+                  <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 24 }}>
+                    <Avatar size={64} src={avata3} style={{ border: '2px solid #27ae60' }} />
+                    <div>
+                      <Text strong style={{ fontSize: 18, display: 'block', marginBottom: 2 }}>Bảo Thanh</Text>
+                      <Text style={{ fontSize: 14, color: '#86868b', display: 'block', marginBottom: 4 }}>Chủ nhà</Text>
+                      <Tag color="success" style={{ borderRadius: '10px', border: 'none', fontSize: 11, padding: '0 8px' }}>● Đang hoạt động</Tag>
+                    </div>
+                  </div>
+                  <Button
+                    type="primary" block
+                    style={{ background: '#006d31', border: 'none', borderRadius: '12px', height: 48, fontWeight: 600, fontSize: 15, marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                    onClick={() => setIsModalVisible(true)}
+                  >
+                    <MessageOutlined /> Đặt lịch xem phòng
+                  </Button>
+                  <Button
+                    block
+                    style={{ borderRadius: '12px', height: 48, fontWeight: 600, fontSize: 15, border: '1px solid #006d31', color: '#006d31', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                  >
+                    <PhoneOutlined /> Gọi ngay
+                  </Button>
+                  <Text style={{ display: 'block', textAlign: 'center', fontSize: 12, color: '#86868b', marginTop: 16, lineHeight: 1.5 }}>
+                    Khi liên hệ, hãy nói bạn thấy tin trên Tiến Đức Land nhé!
+                  </Text>
+                </Card>
+
+                {/* Highlights Table */}
+                <Card style={{ borderRadius: '24px', border: 'none', boxShadow: '0 12px 32px rgba(0,0,0,0.06)', marginBottom: 24 }} bodyStyle={{ padding: 24 }}>
+                  <Title level={4} style={{ fontSize: 18, fontWeight: 700, marginBottom: 20 }}>Thông tin nổi bật</Title>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {[
+                      { icon: <ClockCircleOutlined />, label: 'Ngày đăng', value: '15/05/2024' },
+                      // { icon: <ThunderboltOutlined />, label: 'Mã tin', value: room.code || 'TX12345' },
+                      { icon: <HomeOutlined />, label: 'Loại phòng', value: room.type },
+                      { icon: <ClockCircleOutlined />, label: 'Tình trạng', value: 'Còn trống' },
+                      { icon: <SafetyOutlined />, label: 'Đặt cọc', value: '1 tháng' },
+                      { icon: <AppstoreOutlined />, label: 'Thanh toán', value: 'Tháng' },
+                    ].map((item, idx) => (
+                      <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ color: '#86868b', fontSize: 14 }}>{item.icon}</span>
+                          <Text style={{ color: '#86868b', fontSize: 14 }}>{item.label}</Text>
+                        </div>
+                        <Text strong style={{ fontSize: 14, color: '#1d1d1f' }}>{item.value}</Text>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+
+                {/* Location with Map Preview */}
+                <Card style={{ borderRadius: '24px', border: 'none', boxShadow: '0 12px 32px rgba(0,0,0,0.06)' }} bodyStyle={{ padding: 24 }}>
+                  <Title level={4} style={{ fontSize: 18, fontWeight: 700, marginBottom: 12 }}>Vị trí</Title>
+                  <Paragraph style={{ color: '#424245', fontSize: 14, marginBottom: 16 }}>
+                    {tName(room.houseForRent?.address) || 'Tây Hồ - Hà Nội'}
+                  </Paragraph>
+                  <div style={{
+                    width: '100%', height: 160, borderRadius: '16px', background: '#f2f2f7',
+                    overflow: 'hidden', position: 'relative', marginBottom: 16
+                  }}>
+                    <img src="https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/pin-s+27ae60(106.67,10.82)/106.67,10.82,14/400x200@2x?access_token=pk.eyJ1IjoiYmFvcHRwaCIsImEiOiJjbDFsZzN6ZHAwMGZzM2JxbXN4Z3B4Z3B4In0.XXXX" alt="Map Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+                      <EnvironmentOutlined style={{ fontSize: 32, color: '#27ae60' }} />
+                    </div>
+                  </div>
+                  <Button block style={{ borderRadius: '12px', height: 44, fontWeight: 600, border: '1px solid #d2d2d7', color: '#1d1d1f' }}>
+                    Xem trên bản đồ lớn
+                  </Button>
+                </Card>
+              </motion.div>
+            </div>
+          </Col>
+        </Row>
+      </div>
+
+      {/* MODAL - Contact Form */}
+      <Modal
+        title={<Title level={4} style={{ margin: 0 }}>{rd('modal.title')}</Title>}
+        open={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        footer={null} centered
+        styles={{ body: { padding: '24px' } }}
+        width={500}
+      >
+        <div style={{ background: '#f5f5f7', padding: 16, borderRadius: '12px', marginBottom: 24 }}>
+          <Text strong style={{ display: 'block', fontSize: 15, color: '#1d1d1f' }}>{rd('modal.hostInfo')}</Text>
+          <div style={{ marginTop: 8, display: 'flex', justifyContent: 'space-between' }}>
+            <Text>{rd('modal.representative')}</Text>
+            <Text strong>{room.host?.name || room.houseForRent?.host?.name || rd('modal.management')}</Text>
+          </div>
+          <div style={{ marginTop: 4, display: 'flex', justifyContent: 'space-between' }}>
+            <Text>{rd('modal.phone')}</Text>
+            <Text strong style={{ color: '#0071e3' }}>
+              <a href={`tel:${room.host?.phoneNumber || room.houseForRent?.host?.phoneNumber || "0364862148"}`}>
+                {room.host?.phoneNumber || room.houseForRent?.host?.phoneNumber || "0364.862.148"}
+              </a>
+            </Text>
+          </div>
+        </div>
+        <Form form={form} layout="vertical" onFinish={handleContactSubmit}>
+          <Form.Item label="Họ tên" name="name" rules={[{ required: true, message: 'Vui lòng nhập tên!' }]}>
+            <Input size="large" placeholder="Nhập họ tên của bạn" />
+          </Form.Item>
+          <Form.Item label="Số điện thoại" name="phone" rules={[{ required: true, message: 'Vui lòng nhập SĐT!' }]}>
+            <Input size="large" placeholder="Nhập số điện thoại" />
+          </Form.Item>
+          <Form.Item label="Ngày xem phòng" name="viewDate" rules={[{ required: true, message: 'Chọn ngày xem!' }]}>
+            <DatePicker showTime size="large" style={{ width: '100%' }} format="DD-MM-YYYY HH:mm" disabledDate={(c) => c && c < dayjs().startOf('day')} />
+          </Form.Item>
+          <Form.Item label="Ghi chú" name="note">
+            <Input.TextArea rows={3} placeholder="Ví dụ: Tôi muốn xem phòng vào buổi chiều" />
+          </Form.Item>
+          <Button type="primary" size="large" htmlType="submit" block loading={submitting} style={{ background: '#006d31', borderColor: '#006d31', height: 48, borderRadius: 12, fontWeight: 600 }}>
+            Gửi yêu cầu đặt lịch
+          </Button>
+        </Form>
+      </Modal>
+
+      {/* MOBILE FIXED BOTTOM ACTION BAR */}
+      {isPhone && (
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1000,
+          background: '#fff', padding: '12px 20px', borderTop: '1px solid #eee',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          boxShadow: '0 -4px 12px rgba(0,0,0,0.05)'
+        }}>
+          <div>
+            <Text style={{ fontSize: '12px', color: '#888', display: 'block' }}>Giá thuê</Text>
+            <Text strong style={{ fontSize: '18px', color: '#27ae60' }}>
+              {(room?.price || 0).toLocaleString()} <span style={{ fontSize: '12px', fontWeight: 400 }}>đ/tháng</span>
+            </Text>
+          </div>
+          <Space>
+            <Button
+              shape="circle"
+              size="large"
+              icon={<PhoneOutlined />}
+              style={{ background: '#f0faf4', color: '#27ae60', border: 'none' }}
+            />
+            <Button
+              type="primary"
+              size="large"
+              style={{ background: '#27ae60', border: 'none', borderRadius: '12px', fontWeight: 600, height: 48, padding: '0 24px' }}
+              onClick={() => setIsModalVisible(true)}
+            >
+              Liên hệ ngay
+            </Button>
+          </Space>
+        </div>
       )}
     </div>
   );
 };
 
 export default RoomDetailClient;
-

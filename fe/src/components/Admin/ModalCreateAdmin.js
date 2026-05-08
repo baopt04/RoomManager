@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Form, Input, Button, Card, Typography, message, Select, Modal } from "antd";
-import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, TeamOutlined, UserAddOutlined } from "@ant-design/icons";
+import { Form, Input, Button, Typography, message, Select, Modal } from "antd";
+import { UserOutlined, MailOutlined, PhoneOutlined, TeamOutlined } from "@ant-design/icons";
 import AdminService from "../../services/AdminService";
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -27,8 +27,7 @@ const ModalCreateAdmin = ({ visible, onclose, onSuccess }) => {
     const registerAdmin = async (values) => {
         setLoading(true)
         try {
-            const response = await AdminService.createAdmin(token, values);
-            
+            await AdminService.createAdmin(token, values);
             message.success("Thêm người quản lý mới thành công")
             if (onSuccess) {
                 await onSuccess();
@@ -49,7 +48,7 @@ const ModalCreateAdmin = ({ visible, onclose, onSuccess }) => {
     }
     return (
         <Modal
-            visible={visible}
+            open={visible}
             onCancel={close}
             footer={null}
         >

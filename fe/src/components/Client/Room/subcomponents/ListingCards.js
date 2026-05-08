@@ -1,113 +1,158 @@
 import React, { useState, memo } from 'react';
-import { Typography, Card } from 'antd';
+import { Typography } from 'antd';
 import { motion } from 'framer-motion';
-import { RightOutlined, TagOutlined, StarFilled, WifiOutlined } from '@ant-design/icons';
+import { EnvironmentOutlined, ColumnWidthOutlined, HeartOutlined, HeartFilled, ClockCircleOutlined } from '@ant-design/icons';
 import { useLanguage } from '../../../../contexts/LanguageContext';
+import { useClientBreakpoints } from '../../hooks/useClientBreakpoints';
 
 const { Text } = Typography;
 
 const formatCurrency = (amount) => {
   if (!amount) return "Liên hệ";
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency', currency: 'VND', maximumFractionDigits: 0
-  }).format(amount).replace("₫", "VNĐ");
+  const million = amount / 1000000;
+  return `${million % 1 === 0 ? million : million.toFixed(1)} triệu/tháng`;
 };
 
-export const ListingRoomCard = memo(({ room, onClick, index, activeType }) => {
-  const { t, tName } = useLanguage();
+export const ListingRoomCard = memo(({ room, onClick, index }) => {
+  const { tName } = useLanguage();
   const [isHovered, setIsHovered] = useState(false);
-
-  const isShortTerm = activeType === 'short' || (activeType === 'all' && index % 3 === 0);
+  const [liked, setLiked] = useState(false);
+  const { isPhone } = useClientBreakpoints();
 
   const isNew = (dateString) => {
     if (!dateString) return false;
     return (new Date() - new Date(dateString)) / (1000 * 60 * 60 * 24) <= 3;
   };
-
   const isRoomNew = isNew(room.lastModifiedDate);
-  const dailyPrice = Math.round(room.price / 30 / 1000) * 1000 + 150000;
+  const imgSrc = room.images && room.images.length > 0 ? room.images[0] : room.displayImage;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 40 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.05, ease: 'easeOut' }}
+      transition={{ duration: 0.4, delay: index * 0.05 }}
     >
-      <Card
-        hoverable
+      <div
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={onClick}
-        className="apple-card"
         style={{
-          borderRadius: '24px',
+          display: 'flex',
+          flexDirection: isPhone ? 'column' : 'row',
+          background: '#fff',
+          borderRadius: '16px',
           overflow: 'hidden',
-          border: isShortTerm ? '2px solid rgba(0,113,227,0.1)' : '1px solid rgba(0,0,0,0.04)',
-          background: '#ffffff',
-          boxShadow: isHovered ? '0 25px 50px rgba(0,0,0,0.1)' : '0 4px 12px rgba(0,0,0,0.03)',
-          transform: isHovered ? 'translateY(-8px)' : 'none',
+          border: '1px solid #f0f0f0',
+          boxShadow: isHovered ? '0 8px 30px rgba(0,0,0,0.08)' : '0 2px 8px rgba(0,0,0,0.03)',
+          transition: 'all 0.3s ease',
+          transform: isHovered ? 'translateY(-2px)' : 'none',
+          cursor: 'pointer',
+          marginBottom: '16px',
         }}
-        bodyStyle={{ padding: 0 }}
       >
-        <div style={{ position: 'relative', height: '220px', overflow: 'hidden' }}>
+        {/* Image Section */}
+        <div style={{
+          position: 'relative',
+          width: isPhone ? '100%' : '280px',
+          height: isPhone ? '200px' : 'auto',
+          minHeight: isPhone ? '200px' : '200px',
+          flexShrink: 0,
+          overflow: 'hidden'
+        }}>
           <img
             alt={room.name}
-            src={room.images && room.images.length > 0 ? room.images[0] : room.displayImage}
+            src={imgSrc}
             loading="lazy"
             style={{
-              position: 'absolute', top: 0, left: 0,
               width: '100%', height: '100%', objectFit: 'cover',
-              transition: 'transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
-              transform: isHovered ? 'scale(1.1)' : 'scale(1)',
+              transition: 'transform 0.5s ease',
+              transform: isHovered ? 'scale(1.05)' : 'scale(1)',
             }}
           />
-          <div className="overlay-tag" style={{ top: '12px', left: '12px', background: isShortTerm ? '#0071e3' : 'rgba(29,29,31,0.9)', color: '#fff' }}>
-            {isShortTerm ? t('roomsPage.card.homestay') : t('roomsPage.card.room')}
-          </div>
           {isRoomNew && (
-            <div className="overlay-tag" style={{ top: '12px', right: '12px', background: 'rgba(255,255,255,0.98)', color: '#34c759', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <TagOutlined style={{ fontSize: '12px' }} /> {t('roomsPage.card.new')}
+            <div style={{
+              position: 'absolute', top: '12px', left: '12px',
+              background: '#27ae60', color: '#fff',
+              padding: '4px 12px', borderRadius: '8px',
+              fontSize: '11px', fontWeight: 700,
+            }}>
+              MỚI ĐĂNG
             </div>
           )}
-          {isShortTerm && (
-            <div className="overlay-tag" style={{ bottom: '12px', right: '12px', background: 'rgba(0,0,0,0.75)', color: '#fff' }}>
-              <StarFilled style={{ color: '#ffb800', marginRight: 4 }} /> 4.9
+          {/* Heart icon on mobile - overlay on image */}
+          {isPhone && (
+            <div
+              onClick={(e) => { e.stopPropagation(); setLiked(!liked); }}
+              style={{
+                position: 'absolute', top: '12px', right: '12px',
+                width: '36px', height: '36px', background: '#fff', borderRadius: '50%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                cursor: 'pointer', fontSize: '18px', color: liked ? '#e74c3c' : '#bdc3c7'
+              }}
+            >
+              {liked ? <HeartFilled /> : <HeartOutlined />}
             </div>
           )}
         </div>
 
-        <div style={{ padding: '20px' }}>
-          <Text strong style={{ display: 'block', fontSize: '16px', color: '#1d1d1f', marginBottom: '8px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {tName(room.name) || t('roomsPage.card.unknownAddress')}
+        {/* Info Section */}
+        <div style={{
+          flex: 1,
+          padding: isPhone ? '14px 16px' : '20px 24px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          {/* Heart icon on desktop */}
+          {!isPhone && (
+            <div
+              onClick={(e) => { e.stopPropagation(); setLiked(!liked); }}
+              style={{ position: 'absolute', top: '16px', right: '16px', cursor: 'pointer', fontSize: '20px', color: liked ? '#e74c3c' : '#bdc3c7', transition: 'color 0.2s' }}
+            >
+              {liked ? <HeartFilled /> : <HeartOutlined />}
+            </div>
+          )}
+
+          <Text strong style={{
+            fontSize: isPhone ? '15px' : '17px',
+            color: '#1a1a1a',
+            marginBottom: '6px',
+            display: 'block',
+            paddingRight: isPhone ? '0' : '40px',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: isPhone ? 'nowrap' : 'normal'
+          }}>
+            {tName(room.name) || 'Phòng trọ nội thất, cửa sổ lớn'}
           </Text>
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', minHeight: '22px' }}>
-            {isShortTerm ? (
-              <>
-                <span style={{ fontSize: '12px', color: '#86868b' }}><WifiOutlined /> Wifi</span>
-                <span style={{ fontSize: '12px', color: '#86868b' }}><StarFilled style={{ color: '#ffb800' }} /> Best Stay</span>
-              </>
-            ) : (
-              <>
-                <span className="info-tag" style={{ padding: '2px 8px', fontSize: '11px' }}>{room.acreage} m²</span>
-                <span className="info-tag" style={{ padding: '2px 8px', fontSize: '11px' }}>{t('roomsPage.card.peopleMax')} {room.peopleMax}</span>
-              </>
+
+          <Text style={{ fontSize: '13px', color: '#888', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: isPhone ? '8px' : '10px' }}>
+            <EnvironmentOutlined style={{ color: '#27ae60' }} />
+            {room.houseName || 'Gò Vấp, TP.HCM'}
+          </Text>
+
+          <Text strong style={{ fontSize: isPhone ? '16px' : '18px', color: '#27ae60', display: 'block', marginBottom: isPhone ? '10px' : '14px' }}>
+            {formatCurrency(room.price)}
+          </Text>
+
+          <div style={{ display: 'flex', gap: isPhone ? '12px' : '20px', color: '#666', fontSize: '13px', flexWrap: 'wrap' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <ColumnWidthOutlined /> {room.acreage || 25}m²
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              🛋️ Full nội thất
+            </span>
+            {!isPhone && (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <ClockCircleOutlined /> Giờ tự do
+              </span>
             )}
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '16px', borderTop: '1px solid #f5f5f7' }}>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <Text style={{ color: '#86868b', fontSize: '11px' }}>{isShortTerm ? t('roomsPage.card.pricePerNight') : t('roomsPage.card.pricePerMonth')}</Text>
-              <Text strong style={{ color: isShortTerm ? '#0071e3' : '#1d1d1f', fontSize: '18px', lineHeight: 1 }}>
-                {isShortTerm ? `${new Intl.NumberFormat('vi-VN').format(dailyPrice).replace("₫", "")}K` : formatCurrency(room.price)}
-                <span style={{ fontSize: '13px', fontWeight: 500, color: '#86868b' }}> {isShortTerm ? t('roomsPage.card.night') : t('roomsPage.card.month')}</span>
-              </Text>
-            </div>
-            <div className="action-circle small" style={{ background: isHovered ? (isShortTerm ? '#0071e3' : '#1d1d1f') : '#f5f5f7', color: isHovered ? '#fff' : (isShortTerm ? '#0071e3' : '#1d1d1f') }}>
-              <RightOutlined style={{ fontSize: '12px' }} />
-            </div>
-          </div>
         </div>
-      </Card>
+      </div>
     </motion.div>
   );
 });
-

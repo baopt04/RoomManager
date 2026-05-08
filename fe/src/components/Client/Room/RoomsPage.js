@@ -1,377 +1,421 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Row, Col, Card, Spin, Button, Empty, Slider } from 'antd';
+import { Typography, Row, Col, Button, Empty, Input, Select, Checkbox, Radio, Collapse, Drawer, Skeleton } from 'antd';
 import {
-  LoadingOutlined, RightOutlined, EnvironmentOutlined, TagOutlined,
-  CompassOutlined, GlobalOutlined, BankOutlined, ShopOutlined,
-  BuildOutlined, HomeOutlined, AppstoreOutlined, FilterOutlined, WifiOutlined, StarFilled
+  SearchOutlined, EnvironmentOutlined, FilterOutlined,
+  ColumnWidthOutlined,
+  CloseCircleOutlined
 } from '@ant-design/icons';
-import { Skeleton, Space } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useLanguage } from '../../../contexts/LanguageContext';
-import { getAllRooms, searchRoomsByAddress } from '../../../services/customer/HomeService';
+import { getAllRooms } from '../../../services/customer/HomeService';
 import { ListingRoomCard as RoomCard } from './subcomponents/ListingCards';
 import { LOCATIONS, FALLBACK_IMAGES } from './RoomConstants';
-const { Title, Text } = Typography;
+import banner_rooms from '../../../assets/banner_rooms.png';
+import { useClientBreakpoints } from '../hooks/useClientBreakpoints';
+const { Text } = Typography;
+const { Panel } = Collapse;
 
+const PRICE_OPTIONS = [
+  { label: 'Dưới 2 triệu', value: '0-2000000' },
+  { label: '2 - 3 triệu', value: '2000000-3000000' },
+  { label: '3 - 4 triệu', value: '3000000-4000000' },
+  { label: '4 - 5 triệu', value: '4000000-5000000' },
+  { label: 'Trên 5 triệu', value: '5000000-99999999' },
+];
 
-
-
-
-
-
+const AREA_OPTIONS = [
+  { label: 'Dưới 20m²', value: '0-20' },
+  { label: '20 - 30m²', value: '20-30' },
+  { label: '30 - 50m²', value: '30-50' },
+  { label: 'Trên 50m²', value: '50-999' },
+];
 
 const RoomsPage = () => {
-  const { t, tName } = useLanguage();
+  const { tName } = useLanguage();
   const navigate = useNavigate();
   const [allRooms, setAllRooms] = useState([]);
   const [dataRooms, setDataRooms] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [activeLocation, setActiveLocation] = useState('all');
-  const [activeType, setActiveType] = useState('all');
-  const [priceRange, setPriceRange] = useState([1000000, 20000000]);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-  const [isTablet, setIsTablet] = useState(window.innerWidth <= 1024);
+  const [selectedLocations, setSelectedLocations] = useState([]);
+  const [selectedPrice, setSelectedPrice] = useState(null);
+  const [selectedArea, setSelectedArea] = useState(null);
+  const [sortBy, setSortBy] = useState('newest');
+  const [locationSearch, setLocationSearch] = useState('');
+  const [priceMin, setPriceMin] = useState('');
+  const [priceMax, setPriceMax] = useState('');
+  const [filterDrawerVisible, setFilterDrawerVisible] = useState(false);
+  const { isPhone } = useClientBreakpoints();
 
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
-      setIsTablet(window.innerWidth <= 1024);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const RENTAL_TYPES = [
-    { name: t('roomsPage.filters.all'), key: 'all', icon: <AppstoreOutlined /> },
-    { name: t('roomsPage.filters.longTerm'), key: 'long', icon: <HomeOutlined /> },
-    { name: t('roomsPage.filters.shortTerm'), key: 'short', icon: <GlobalOutlined /> },
-  ];
-
-  const LOCATIONS_T = LOCATIONS.map(loc => ({
+  const LOCATIONS_T = LOCATIONS.filter(l => l.key !== 'all').map(loc => ({
     ...loc,
-    name: loc.key === 'all' ? t('roomsPage.filters.all') : tName(loc.name)
+    name: tName(loc.name),
+    count: Math.floor(Math.random() * 1000) + 200,
   }));
 
-  const formatVND = (val) => `${val / 1000000} ${t('roomsPage.filters.million')}`;
+  const filteredLocations = LOCATIONS_T.filter(loc =>
+    loc.name.toLowerCase().includes(locationSearch.toLowerCase())
+  );
 
   const fetchRooms = async () => {
     setLoading(true);
     try {
       const response = await getAllRooms();
       const vacantRooms = response.filter(room => room.status === "TRONG");
-      const sorted = vacantRooms.sort((a, b) => {
-        const now = new Date();
-        const isANew = (now - new Date(a.lastModifiedDate || 0)) / (1000 * 60 * 60 * 24) <= 3;
-        const isBNew = (now - new Date(b.lastModifiedDate || 0)) / (1000 * 60 * 60 * 24) <= 3;
-        if (isANew && !isBNew) return -1;
-        if (!isANew && isBNew) return 1;
-        return new Date(b.lastModifiedDate || 0) - new Date(a.lastModifiedDate || 0);
+      const sorted = vacantRooms.sort((a, b) => new Date(b.lastModifiedDate || 0) - new Date(a.lastModifiedDate || 0));
+      const mapped = sorted.map((room, idx) => ({
+        ...room,
+        displayImage: FALLBACK_IMAGES[idx % FALLBACK_IMAGES.length]
+      }));
+      setAllRooms(mapped);
+    } catch (err) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Failed to load rooms:", err);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchRooms(); }, []);
+
+  // Filter and sort
+  useEffect(() => {
+    let filtered = [...allRooms];
+
+    if (selectedLocations.length > 0) {
+      filtered = filtered.filter(room => {
+        const name = (room.houseName || room.name || '').toLowerCase();
+        return selectedLocations.some(loc => name.includes(loc.toLowerCase()));
       });
-      const mapped = sorted.map((room, idx) => ({
-        ...room,
-        displayImage: FALLBACK_IMAGES[idx % FALLBACK_IMAGES.length]
-      }));
-      setAllRooms(mapped);
-      setDataRooms(mapped);
-    } catch (err) {
-      console.error("Failed to load rooms:", err);
-    } finally {
-      setLoading(false);
     }
-  };
 
-  const fetchByAddress = async (address) => {
-    setLoading(true);
-    try {
-      const response = await searchRoomsByAddress(address);
-      const sorted = response.sort((a, b) => new Date(b.lastModifiedDate || 0) - new Date(a.lastModifiedDate || 0));
-      const mapped = sorted.map((room, idx) => ({
-        ...room,
-        displayImage: FALLBACK_IMAGES[idx % FALLBACK_IMAGES.length]
-      }));
-      setAllRooms(mapped);
-      setDataRooms(mapped);
-    } catch (err) {
-      console.error("Search failed:", err);
-    } finally {
-      setLoading(false);
+    if (selectedPrice) {
+      const [min, max] = selectedPrice.split('-').map(Number);
+      filtered = filtered.filter(room => room.price >= min && room.price <= max);
+    } else if (priceMin || priceMax) {
+      const min = Number(priceMin) || 0;
+      const max = Number(priceMax) || 999999999;
+      filtered = filtered.filter(room => room.price >= min && room.price <= max);
     }
-  };
 
-  useEffect(() => {
-    fetchRooms();
-  }, []);
+    if (selectedArea) {
+      const [min, max] = selectedArea.split('-').map(Number);
+      filtered = filtered.filter(room => (room.acreage || 0) >= min && (room.acreage || 0) <= max);
+    }
 
-  // Filter by price range and rental type whenever dependencies change
-  useEffect(() => {
-    let filtered = allRooms.filter(
-      room => room.price >= priceRange[0] && room.price <= priceRange[1]
-    );
-
-    if (activeType === 'short') {
-      // For demonstration: any room with 'Studio' or just a subset
-      filtered = filtered.filter((_, idx) => idx % 2 === 0 || idx < 3);
-    } else if (activeType === 'long') {
-      filtered = filtered.filter((_, idx) => idx % 2 !== 0 && idx >= 3);
+    if (sortBy === 'newest') {
+      filtered.sort((a, b) => new Date(b.lastModifiedDate || 0) - new Date(a.lastModifiedDate || 0));
+    } else if (sortBy === 'price_asc') {
+      filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
+    } else if (sortBy === 'price_desc') {
+      filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
     }
 
     setDataRooms(filtered);
-  }, [priceRange, allRooms, activeType]);
+  }, [allRooms, selectedLocations, selectedPrice, selectedArea, sortBy, priceMin, priceMax]);
 
-  const handleLocationClick = (loc) => {
-    setActiveLocation(loc.key);
-    if (loc.key === 'all') {
-      fetchRooms();
+  const clearAllFilters = () => {
+    setSelectedLocations([]);
+    setSelectedPrice(null);
+    setSelectedArea(null);
+    setPriceMin('');
+    setPriceMax('');
+    setLocationSearch('');
+  };
+
+  const handleLocationCheck = (locName, checked) => {
+    if (checked) {
+      setSelectedLocations(prev => [...prev, locName]);
     } else {
-      fetchByAddress(loc.name);
+      setSelectedLocations(prev => prev.filter(l => l !== locName));
     }
   };
 
-  const handlePriceChange = (value) => {
-    setPriceRange(value);
-  };
+  // Sidebar Filter Component
+  const FilterSidebar = () => (
+    <div style={{
+      background: '#fff', borderRadius: '16px', padding: '24px',
+      border: '1px solid #f0f0f0', position: 'sticky', top: '100px'
+    }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <Text strong style={{ fontSize: '18px' }}>Bộ lọc</Text>
+        <Button type="link" onClick={clearAllFilters} style={{ color: '#27ae60', fontWeight: 600, padding: 0 }}>
+          <CloseCircleOutlined /> Xóa bộ lọc
+        </Button>
+      </div>
+
+      {/* Location Filter */}
+      <Collapse defaultActiveKey={['location', 'price', 'area']} ghost expandIconPosition="end"
+        style={{ background: 'transparent' }}
+      >
+        <Panel header={<Text strong style={{ fontSize: '15px' }}>Khu vực</Text>} key="location"
+          style={{ borderBottom: '1px solid #f5f5f5' }}
+        >
+          <Input
+            placeholder="Tìm kiếm khu vực"
+            prefix={<SearchOutlined style={{ color: '#bbb' }} />}
+            value={locationSearch}
+            onChange={e => setLocationSearch(e.target.value)}
+            style={{ marginBottom: '12px', borderRadius: '10px', border: '1px solid #e8e8e8', background: '#fafafa' }}
+          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '200px', overflowY: 'auto' }}>
+            {filteredLocations.map(loc => (
+              <Checkbox
+                key={loc.key}
+                checked={selectedLocations.includes(loc.name)}
+                onChange={e => handleLocationCheck(loc.name, e.target.checked)}
+                style={{ fontSize: '14px' }}
+              >
+                {loc.name} <span style={{ color: '#999', fontSize: '12px' }}>({loc.count})</span>
+              </Checkbox>
+            ))}
+          </div>
+        </Panel>
+
+        <Panel header={<Text strong style={{ fontSize: '15px' }}>Khoảng giá</Text>} key="price"
+          style={{ borderBottom: '1px solid #f5f5f5' }}
+        >
+          <Radio.Group
+            value={selectedPrice}
+            onChange={e => { setSelectedPrice(e.target.value); setPriceMin(''); setPriceMax(''); }}
+            style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
+          >
+            {PRICE_OPTIONS.map(opt => (
+              <Radio key={opt.value} value={opt.value} style={{ fontSize: '14px' }}>
+                {opt.label}
+              </Radio>
+            ))}
+          </Radio.Group>
+
+        </Panel>
+
+        <Panel header={<Text strong style={{ fontSize: '15px' }}>Diện tích</Text>} key="area">
+          <Radio.Group
+            value={selectedArea}
+            onChange={e => setSelectedArea(e.target.value)}
+            style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
+          >
+            {AREA_OPTIONS.map(opt => (
+              <Radio key={opt.value} value={opt.value} style={{ fontSize: '14px' }}>
+                {opt.label}
+              </Radio>
+            ))}
+          </Radio.Group>
+        </Panel>
+      </Collapse>
+    </div>
+  );
 
   return (
-    <div style={{ background: '#f5f5f7', minHeight: '100vh', paddingBottom: '100px' }}>
+    <div style={{ background: '#f8f9fa', minHeight: '100vh', paddingBottom: '80px' }}>
 
-      {/* ── HERO BANNER (Premium Dark Minimalist) ── */}
-      <div style={{
-        position: 'relative', minHeight: isMobile ? '240px' : isTablet ? '300px' : '360px', overflow: 'hidden',
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
-        padding: isMobile ? '40px 0' : '60px 0'
-      }}>
-        {/* Subtle premium glows */}
+      {/* HERO BANNER - full width */}
+      <div style={{ position: 'relative', marginBottom: '40px' }}>
+        <img
+          src={banner_rooms}
+          alt="Tìm phòng trọ phù hợp"
+          style={{
+            width: '100%',
+            height: isPhone ? '200px' : '320px',
+            objectFit: 'cover',
+            objectPosition: isPhone ? 'left center' : 'center',
+            display: 'block',
+          }}
+        />
+
+        {/* SEARCH BAR - overlapping banner */}
         <div style={{
-          position: 'absolute', top: '-100px', right: '-5%',
-          width: '500px', height: '500px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(56,189,248,0.15) 0%, transparent 70%)',
-          filter: 'blur(40px)'
-        }} />
-        <div style={{
-          position: 'absolute', bottom: '-150px', left: '-5%',
-          width: '400px', height: '400px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(168,85,247,0.1) 0%, transparent 70%)',
-          filter: 'blur(40px)'
-        }} />
-        <div style={{
-          maxWidth: '1200px', margin: '0 auto', height: '100%',
-          display: 'flex', flexDirection: 'column', justifyContent: 'center',
-          padding: isMobile ? '0 16px' : '0 24px', position: 'relative', zIndex: 1
+          position: 'relative',
+          marginTop: isPhone ? '-12px' : '-36px',
+          padding: isPhone ? '0 12px' : '0 24px',
+          zIndex: 10,
         }}>
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.7 }}
-          >
-            <Text className="custom-color" style={{
-              color: '#34c759', fontSize: '13px', fontWeight: 600,
-              letterSpacing: '3px', textTransform: 'uppercase', display: 'block', marginBottom: '12px'
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <div style={{
+              background: '#fff', borderRadius: '16px', padding: isPhone ? '12px' : '14px 20px',
+              display: 'flex', gap: '12px', alignItems: 'center',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+              flexWrap: isPhone ? 'wrap' : 'nowrap',
             }}>
-              {t('roomsPage.hero.subtitle')}
-            </Text>
-            <Title level={1} className="custom-color" style={{
-              color: '#ffffff', fontSize: isMobile ? '32px' : isTablet ? '40px' : '48px', fontWeight: 800,
-              margin: 0, lineHeight: 1.15, letterSpacing: '-1px', textShadow: '0 2px 10px rgba(0,0,0,0.3)'
-            }}>
-              {t('roomsPage.hero.title1')} <span style={{ color: '#34c759' }}>{t('roomsPage.hero.title2')}</span>
-            </Title>
-            <Text className="custom-color" style={{
-              color: 'rgba(255,255,255,0.8)', fontSize: '16px',
-              display: 'block', marginTop: '16px', maxWidth: '480px', lineHeight: 1.6
-            }}>
-              {t('roomsPage.hero.desc')}
-            </Text>
+              <div style={{ flex: 1, minWidth: isPhone ? '100%' : '180px' }}>
+                <Text style={{ fontSize: '11px', color: '#999', display: 'block', marginBottom: '2px' }}>Khu vực</Text>
+                <Select
+                  placeholder="Chọn khu vực"
+                  suffixIcon={<EnvironmentOutlined />}
+                  style={{ width: '100%' }}
+                  bordered={false}
+                  options={LOCATIONS_T.map(l => ({ label: l.name, value: l.key }))}
+                  onChange={val => {
+                    const loc = LOCATIONS_T.find(l => l.key === val);
+                    if (loc) handleLocationCheck(loc.name, true);
+                  }}
+                />
+              </div>
+              <div style={{ width: '1px', height: '36px', background: '#e8e8e8', display: isPhone ? 'none' : 'block' }} />
+              <div style={{ flex: 1, minWidth: isPhone ? '100%' : '180px' }}>
+                <Text style={{ fontSize: '11px', color: '#999', display: 'block', marginBottom: '2px' }}>Khoảng giá</Text>
+                <Select
+                  placeholder="Chọn khoảng giá"
+                  bordered={false}
+                  style={{ width: '100%' }}
+                  options={PRICE_OPTIONS.map(o => ({ label: o.label, value: o.value }))}
+                  onChange={val => setSelectedPrice(val)}
+                  value={selectedPrice}
+                  allowClear
+                />
+              </div>
+              <div style={{ width: '1px', height: '36px', background: '#e8e8e8', display: isPhone ? 'none' : 'block' }} />
+              <div style={{ flex: 1, minWidth: isPhone ? '100%' : '180px' }}>
+                <Text style={{ fontSize: '11px', color: '#999', display: 'block', marginBottom: '2px' }}>Diện tích</Text>
+                <Select
+                  placeholder="Chọn diện tích"
+                  suffixIcon={<ColumnWidthOutlined />}
+                  bordered={false}
+                  style={{ width: '100%' }}
+                  options={AREA_OPTIONS.map(o => ({ label: o.label, value: o.value }))}
+                  onChange={val => setSelectedArea(val)}
+                  value={selectedArea}
+                  allowClear
+                />
+              </div>
+              <Button
+                type="primary"
+                icon={<SearchOutlined />}
+                style={{
+                  background: '#27ae60', border: 'none', borderRadius: '12px',
+                  height: '48px', padding: '0 28px', fontWeight: 700, fontSize: '15px',
+                  minWidth: isPhone ? '100%' : '140px',
+                  boxShadow: '0 4px 12px rgba(39,174,96,0.3)'
+                }}
+              >
+                Tìm kiếm
+              </Button>
+            </div>
           </motion.div>
         </div>
       </div>
 
-      {/* ── FILTERS SECTION (Below banner) ── */}
-      <div style={{ maxWidth: '1200px', margin: '32px auto 0', padding: isMobile ? '0 12px' : '0 24px' }}>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <Card style={{
-            borderRadius: '16px', border: 'none',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
-          }} bodyStyle={{ padding: isMobile ? '16px 12px' : '20px 24px' }}>
 
-            {/* Location tabs */}
-            <Row gutter={isMobile ? [12, 16] : [24, 24]}>
-              <Col xs={24} lg={14}>
-                <Text strong style={{ fontSize: '13px', color: '#86868b', display: 'block', marginBottom: '12px' }}>
-                  <EnvironmentOutlined /> {t('roomsPage.filters.location')}
-                </Text>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  {LOCATIONS_T.map((loc) => {
-                    const isActive = activeLocation === loc.key;
-                    return (
-                      <Button
-                        key={loc.key}
-                        type={isActive ? 'primary' : 'default'}
-                        onClick={() => handleLocationClick(loc)}
-                        style={{
-                          height: '38px', borderRadius: '12px',
-                          display: 'flex', alignItems: 'center', gap: '6px',
-                          padding: '0 16px', fontWeight: isActive ? 600 : 400,
-                          fontSize: '13px',
-                          background: isActive ? '#1d1d1f' : '#f5f5f7',
-                          color: isActive ? '#fff' : '#515154',
-                          border: isActive ? 'none' : '1px solid #e8e8e8',
-                        }}
-                        icon={loc.icon}
-                      >
-                        {loc.name}
-                      </Button>
-                    );
-                  })}
-                </div>
-              </Col>
+      {/* MAIN CONTENT */}
+      <div style={{ margin: isPhone ? '16px 0 0' : '32px 0 0', padding: isPhone ? '0 12px' : '0 24px' }}>
+        <Row gutter={24}>
+          {/* LEFT SIDEBAR */}
+          {!isPhone && (
+            <Col xs={0} md={7} lg={6}>
+              <FilterSidebar />
+            </Col>
+          )}
 
-              <Col xs={24} lg={10}>
-                <Text strong style={{ fontSize: '13px', color: '#86868b', display: 'block', marginBottom: '12px' }}>
-                  <TagOutlined /> {t('roomsPage.filters.type')}
+          {/* RIGHT CONTENT */}
+          <Col xs={24} md={17} lg={18}>
+            {/* Results header */}
+            <div style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              marginBottom: '20px', flexWrap: 'wrap', gap: '12px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <Text strong style={{ fontSize: '16px', color: '#333' }}>
+                  {loading ? 'Đang tải...' : `${dataRooms.length} kết quả phù hợp`}
                 </Text>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  {RENTAL_TYPES.map((type) => {
-                    const isActive = activeType === type.key;
-                    return (
-                      <Button
-                        key={type.key}
-                        type={isActive ? 'primary' : 'default'}
-                        onClick={() => setActiveType(type.key)}
-                        style={{
-                          height: '38px', borderRadius: '12px',
-                          display: 'flex', alignItems: 'center', gap: '6px',
-                          padding: '0 16px', fontWeight: isActive ? 600 : 400,
-                          fontSize: '13px',
-                          background: isActive ? '#0071e3' : '#f5f5f7',
-                          color: isActive ? '#fff' : '#515154',
-                          border: isActive ? 'none' : '1px solid #e8e8e8',
-                        }}
-                        icon={type.icon}
-                      >
-                        {type.name}
-                      </Button>
-                    );
-                  })}
-                </div>
-              </Col>
-            </Row>
-
-            {/* Price range slider */}
-            <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: '16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <Text strong style={{ fontSize: '13px', color: '#86868b' }}>
-                  <FilterOutlined /> {t('roomsPage.filters.priceRange')}
-                </Text>
-                <Text style={{ fontSize: '14px', fontWeight: 600, color: '#0071e3' }}>
-                  {formatVND(priceRange[0])} — {formatVND(priceRange[1])}
-                </Text>
+                {isPhone && (
+                  <Button 
+                    icon={<FilterOutlined />} 
+                    onClick={() => setFilterDrawerVisible(true)}
+                    style={{ borderRadius: '8px', border: '1px solid #27ae60', color: '#27ae60' }}
+                  >
+                    Lọc
+                  </Button>
+                )}
               </div>
-              <Slider
-                range
-                min={1000000}
-                max={20000000}
-                step={500000}
-                value={priceRange}
-                onChange={handlePriceChange}
-                tooltip={{ formatter: (val) => formatVND(val) }}
-                trackStyle={[{ backgroundColor: '#1d1d1f' }]}
-                handleStyle={[
-                  { borderColor: '#1d1d1f', backgroundColor: '#fff' },
-                  { borderColor: '#1d1d1f', backgroundColor: '#fff' }
-                ]}
-              />
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Text style={{ fontSize: '12px', color: '#86868b' }}>1 {t('roomsPage.filters.million')}</Text>
-                <Text style={{ fontSize: '12px', color: '#86868b' }}>20 {t('roomsPage.filters.million')}</Text>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Text style={{ fontSize: '13px', color: '#888' }}>Sắp xếp:</Text>
+                <Select
+                  value={sortBy}
+                  onChange={setSortBy}
+                  style={{ width: '160px' }}
+                  options={[
+                    { label: 'Mới nhất', value: 'newest' },
+                    { label: 'Giá tăng dần', value: 'price_asc' },
+                    { label: 'Giá giảm dần', value: 'price_desc' },
+                  ]}
+                />
               </div>
             </div>
-          </Card>
-        </motion.div>
-      </div>
 
-      <div style={{ maxWidth: '1200px', margin: '24px auto 0', padding: isMobile ? '0 12px' : '0 24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', marginBottom: '24px' }}>
-          <div>
-            <Title level={3} style={{ margin: 0, fontSize: '20px', fontWeight: 600, color: '#1d1d1f' }}>
-              {activeLocation === 'all'
-                ? t('roomsPage.results.allRooms')
-                : `${t('roomsPage.results.area')} ${LOCATIONS_T.find(l => l.key === activeLocation)?.name || ''}`
-              }
-            </Title>
-            <Text style={{ color: '#86868b', fontSize: '13px' }}>
-              {loading ? t('roomsPage.results.loading') : `${dataRooms.length} ${t('roomsPage.results.found')}`}
-            </Text>
-          </div>
-        </div>
-
-        {loading ? (
-          <Row gutter={isMobile ? [12, 20] : [24, 32]}>
-            {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-              <Col xs={24} sm={12} md={8} lg={6} key={i}>
-                <div style={{ background: '#fff', borderRadius: '24px', overflow: 'hidden', height: '400px', border: '1px solid rgba(0,0,0,0.04)' }}>
-                  <Skeleton.Button active style={{ width: '100%', height: '220px' }} />
-                  <div style={{ padding: '20px' }}>
-                    <Skeleton active paragraph={{ rows: 2 }} title={{ width: '80%' }} />
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px' }}>
-                      <Skeleton.Button active style={{ width: '60%', height: '24px' }} />
-                      <Skeleton.Avatar active shape="circle" size="small" />
+            {/* Room Listings */}
+            {loading ? (
+              <div>
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} style={{
+                    display: 'flex',
+                    flexDirection: isPhone ? 'column' : 'row',
+                    background: '#fff', borderRadius: '16px',
+                    overflow: 'hidden', marginBottom: '16px', border: '1px solid #f0f0f0'
+                  }}>
+                    <Skeleton.Button active style={{
+                      width: isPhone ? '100%' : '280px',
+                      height: '200px',
+                      borderRadius: 0
+                    }} />
+                    <div style={{ flex: 1, padding: '20px' }}>
+                      <Skeleton active paragraph={{ rows: 3 }} />
                     </div>
                   </div>
-                </div>
-              </Col>
-            ))}
-          </Row>
-        ) : dataRooms.length > 0 ? (
-          <Row gutter={isMobile ? [12, 20] : [24, 32]}>
-            {dataRooms.map((room, index) => (
-              <Col xs={24} sm={12} md={8} lg={6} key={room.id}>
-                <RoomCard
-                  room={room}
-                  index={index}
-                  activeType={activeType}
-                  onClick={() => navigate(`/room/${room.slug}-${room.id}`)}
-                />
-              </Col>
-            ))}
-          </Row>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
-            style={{
-              textAlign: 'center', padding: '80px 0',
-              background: '#fff', borderRadius: '20px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-            }}
-          >
-            <Empty description={
-              <Text style={{ color: '#86868b', fontSize: '16px' }}>
-                {t('roomsPage.results.notFound')}
-              </Text>
-            } />
-            <Button
-              type="primary"
-              onClick={() => { setPriceRange([1000000, 20000000]); handleLocationClick({ key: 'all', name: 'Tất cả' }); }}
-              style={{
-                marginTop: '20px', background: '#0071e3', border: 'none',
-                borderRadius: '12px', fontWeight: 600, height: '44px', padding: '0 28px'
-              }}
-            >
-              {t('roomsPage.results.viewAll')}
-            </Button>
-          </motion.div>
-        )}
+                ))}
+              </div>
+            ) : dataRooms.length > 0 ? (
+              <div>
+                {dataRooms.map((room, index) => (
+                  <RoomCard
+                    key={room.id}
+                    room={room}
+                    index={index}
+                    onClick={() => navigate(`/room/${room.slug}-${room.id}`)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                style={{
+                  textAlign: 'center', padding: '80px 0',
+                  background: '#fff', borderRadius: '16px', border: '1px solid #f0f0f0'
+                }}
+              >
+                <Empty description={<Text style={{ color: '#888', fontSize: '16px' }}>Không tìm thấy phòng trọ phù hợp</Text>} />
+                <Button
+                  type="primary"
+                  onClick={clearAllFilters}
+                  style={{
+                    marginTop: '20px', background: '#27ae60', border: 'none',
+                    borderRadius: '12px', fontWeight: 600, height: '44px', padding: '0 28px'
+                  }}
+                >
+                  Xóa bộ lọc & xem tất cả
+                </Button>
+              </motion.div>
+            )}
+          </Col>
+        </Row>
       </div>
 
-
-
+      {/* Mobile Filter Drawer */}
+      <Drawer
+        title="Bộ lọc tìm kiếm"
+        placement="right"
+        onClose={() => setFilterDrawerVisible(false)}
+        open={filterDrawerVisible}
+        width={320}
+        styles={{ body: { padding: 0 } }}
+      >
+        <div style={{ padding: '24px' }}>
+           <FilterSidebar />
+        </div>
+      </Drawer>
     </div>
   );
 };
 
 export default RoomsPage;
-

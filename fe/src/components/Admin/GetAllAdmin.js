@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import AdminService from "../../services/AdminService";
 import {
     Input,
@@ -37,14 +37,13 @@ const GetAllAdmin = () => {
     const [dataAdmin, setDataAdmin] = useState([]);
     const [filteredAdmin, setFilteredAdmin] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [searchText, setSearchText] = useState("");
     const token = localStorage.getItem('token');
     const [modalCreate, setModalCreate] = useState(false);
     const [modalUpdate, setModalUpdate] = useState(false);
     const [modalLocker, setModalLocker] = useState(false);
 
     const [idAdmin, setIdAdmin] = useState("");
-    const fetchAllAdmin = async () => {
+    const fetchAllAdmin = useCallback(async () => {
         setLoading(true);
         try {
             const response = await AdminService.getAllAdmin(token);
@@ -55,14 +54,13 @@ const GetAllAdmin = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [token]);
 
     useEffect(() => {
         fetchAllAdmin();
-    }, [token]);
+    }, [fetchAllAdmin]);
 
     const handleSearch = (value) => {
-        setSearchText(value);
         if (!value.trim()) {
             setFilteredAdmin(dataAdmin);
             return;
@@ -99,7 +97,7 @@ const GetAllAdmin = () => {
     };
 
     const getStatusTag = (status) => {
-        let color, text, icon;
+        let color, text;
 
         switch (status) {
             case 'HOAT_DONG':

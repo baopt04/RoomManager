@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { LanguageProvider } from './contexts/LanguageContext';
+import ScrollToTop from './components/ScrollToTop';
 
 const SidebarMenu = lazy(() => import('./components/Menu/SideBarMenu'));
 const DashboardLayout = lazy(() => import('./layouts/Dashboard/DashBoardLayout'));
@@ -41,11 +42,14 @@ const RoomsPage = lazy(() => import('./components/Client/Room/RoomsPage'));
 const LocationsPage = lazy(() => import('./components/Client/Location/LocationsPage'));
 const ExplorePage = lazy(() => import('./components/Client/Explore/ExplorePage'));
 const AdminLogin = lazy(() => import('./components/Admin/Login/AdminLogin'));
+const BlogPage = lazy(() => import('./components/Client/Blog/BlogPage'));
+const BlogDetail = lazy(() => import('./components/Client/Blog/BlogDetail'));
 
 function App() {
   return (
     <LanguageProvider>
       <Router>
+        <ScrollToTop />
         <Suspense fallback={<div style={{ padding: 16 }}>Loading...</div>}>
           <Routes>
             {/* Client Routes */}
@@ -54,6 +58,8 @@ function App() {
             <Route path="/room/:slugAndId" element={<ClientLayout><RoomDetailClient /></ClientLayout>} />
             <Route path="/locations" element={<ClientLayout><LocationsPage /></ClientLayout>} />
             <Route path="/support" element={<ClientLayout><ExplorePage /></ClientLayout>} />
+            <Route path="/blog" element={<ClientLayout><BlogPage /></ClientLayout>} />
+            <Route path="/blog/:id" element={<ClientLayout><BlogDetail /></ClientLayout>} />
 
             {/* Auth Routes */}
             <Route path='/login' element={<LoginRoom />}></Route>
