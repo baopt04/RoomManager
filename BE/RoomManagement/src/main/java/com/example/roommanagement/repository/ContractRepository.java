@@ -12,6 +12,8 @@ import org.springframework.stereotype.Repository;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface ContractRepository extends JpaRepository<Contract, String> {
@@ -38,8 +40,15 @@ public interface ContractRepository extends JpaRepository<Contract, String> {
              left join house_for_rent h on h.id = r.id_house_for_rent
              left join admin adm on adm.id = r.id_admin
              left join customer c on c.id = r.id_customer
+            """, countQuery = """
+             select count(r.id)
+             from contract r
+             left join room rm on rm.id = r.id_room
+             left join house_for_rent h on h.id = r.id_house_for_rent
+             left join admin adm on adm.id = r.id_admin
+             left join customer c on c.id = r.id_customer
             """, nativeQuery = true)
-    List<FindAllContractDTO> findAllContracts();
+    Page<FindAllContractDTO> findAllContracts(Pageable pageable);
 
     @Query(value = """
 select c.id from contract c where c.id_room =:id_room

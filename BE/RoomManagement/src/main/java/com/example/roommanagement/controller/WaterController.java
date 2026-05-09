@@ -15,6 +15,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @RestController
 @RequestMapping("/admin/water")
@@ -22,8 +25,11 @@ public class WaterController {
     @Autowired
     private WaterService waterService;
     @GetMapping("/getAll")
-    public ResponseEntity<List<FindAllWaterDTO>> getAll() {
-        List<FindAllWaterDTO> list = waterService.findAllWater();
+    public ResponseEntity<Page<FindAllWaterDTO>> getAll(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<FindAllWaterDTO> list = waterService.findAllWater(pageable);
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
     @PostMapping("/create")

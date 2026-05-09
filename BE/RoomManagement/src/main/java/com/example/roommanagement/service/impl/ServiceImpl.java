@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class ServiceImpl implements ServiceService {
@@ -30,8 +32,8 @@ public class ServiceImpl implements ServiceService {
 
 
     @Override
-    public List<FindAllServiceDTO> findAll() {
-        return serviceRepository.findAllServices();
+    public Page<FindAllServiceDTO> findAll(Pageable pageable) {
+        return serviceRepository.findAllServices(pageable);
     }
 
     @Override

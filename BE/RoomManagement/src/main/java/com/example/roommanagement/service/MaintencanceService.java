@@ -7,9 +7,11 @@ import com.example.roommanagement.dto.request.maintenance.UpdateMaintenanceDTO;
 import com.example.roommanagement.infrastructure.error.Reponse;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface MaintencanceService {
-    List<FindAllMaintencanceDTO> findAllMaintencance();
+    Page<FindAllMaintencanceDTO> findAllMaintencance(Pageable pageable);
     CreateMaintenanceDTO create(CreateMaintenanceDTO createMaintenanceDTO);
     UpdateMaintenanceDTO update(String id ,UpdateMaintenanceDTO updateMaintenanceDTO);
     BaseMaintenanceDTO detail(String id);

@@ -19,6 +19,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class HouseForRentServiceImpl implements HouseForRentService {
@@ -29,8 +31,8 @@ public class HouseForRentServiceImpl implements HouseForRentService {
 @Autowired
 private HostRepository hostRepository;
     @Override
-    public List<FindAllHouseForRentDTO> getAllHouseForRent() {
-        return houseForRentRepository.findAllHouseForRent();
+    public Page<FindAllHouseForRentDTO> getAllHouseForRent(Pageable pageable) {
+        return houseForRentRepository.findAllHouseForRent(pageable);
     }
 
     @Override

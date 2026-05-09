@@ -7,9 +7,11 @@ import com.example.roommanagement.dto.request.houseForRent.UpdateHouseForRentDTO
 import com.example.roommanagement.infrastructure.error.Reponse;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface HouseForRentService {
-    List<FindAllHouseForRentDTO> getAllHouseForRent();
+    Page<FindAllHouseForRentDTO> getAllHouseForRent(Pageable pageable);
     CreateHouseForRentDTO create(CreateHouseForRentDTO createHouseForRent);
     UpdateHouseForRentDTO update(String id, UpdateHouseForRentDTO updateHouseForRent);
     FindAllHouseForRentDTO findByNameAndAddress(String name, String address);

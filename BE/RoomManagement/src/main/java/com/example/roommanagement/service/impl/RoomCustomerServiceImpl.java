@@ -19,6 +19,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
@@ -30,9 +33,10 @@ public class RoomCustomerServiceImpl implements RoomCustomerService {
     private final WaterRepository waterRepository;
 
     @Override
-    public List<RoomCustomerResponse> getAllRoomsForCustomer() {
-        List<Room> rooms = roomCustomerRepository.findAllByStatus(StatusRoom.TRONG);
-        return mapToResponses(rooms);
+    public Page<RoomCustomerResponse> getAllRoomsForCustomer(Pageable pageable) {
+        Page<Room> rooms = roomCustomerRepository.findAllByStatus(StatusRoom.TRONG, pageable);
+        List<RoomCustomerResponse> responses = mapToResponses(rooms.getContent());
+        return new PageImpl<>(responses, pageable, rooms.getTotalElements());
     }
 
     @Override

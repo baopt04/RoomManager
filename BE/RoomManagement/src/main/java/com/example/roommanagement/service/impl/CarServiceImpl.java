@@ -16,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class CarServiceImpl implements CarService {
@@ -24,8 +26,8 @@ public class CarServiceImpl implements CarService {
     @Autowired
     private Generate generate;
     @Override
-    public List<FindAllCarDTO> findAllCars() {
-       return carRepository.findAllCars();
+    public Page<FindAllCarDTO> findAllCars(Pageable pageable) {
+       return carRepository.findAllCars(pageable);
     }
 
     @Override

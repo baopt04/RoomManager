@@ -13,6 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @RestController
 @RequestMapping("/admin/customer")
@@ -20,9 +23,12 @@ public class CustomerController {
     @Autowired
     private CustomerService customerService;
     @GetMapping("/getAll")
-    public ResponseEntity<List<FindAllCustomerDTO>> getAll() {
-        List<FindAllCustomerDTO> list = customerService.findAll();
-    return new ResponseEntity<>(list, HttpStatus.OK);
+    public ResponseEntity<Page<FindAllCustomerDTO>> getAll(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<FindAllCustomerDTO> list = customerService.findAll(pageable);
+        return new ResponseEntity<>(list, HttpStatus.OK);
     }
     @PostMapping("/create")
     public ResponseEntity<CreateCustomerDTO> create(@Valid  @RequestBody CreateCustomerDTO createCustomerDTO) {

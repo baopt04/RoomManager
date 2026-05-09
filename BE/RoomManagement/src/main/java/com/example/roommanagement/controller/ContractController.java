@@ -14,6 +14,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @RestController
 @RequestMapping("/admin/contract")
@@ -26,8 +29,11 @@ public class ContractController {
     private ImageRepository imageRepository;
 
     @GetMapping("/getAll")
-    public ResponseEntity<List<FindAllContractDTO>> getAll() {
-        List<FindAllContractDTO> list = contractService.findAll();
+    public ResponseEntity<Page<FindAllContractDTO>> getAll(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<FindAllContractDTO> list = contractService.findAll(pageable);
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
 

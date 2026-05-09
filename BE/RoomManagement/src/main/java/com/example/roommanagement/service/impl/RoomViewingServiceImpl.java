@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
@@ -85,11 +87,9 @@ String message = formatMessage(roomViewing);
     }
 
     @Override
-    public List<RoomViewingResponse> getAll() {
-        return roomViewingRepository.findAllWithRoom()
-                .stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+    public Page<RoomViewingResponse> getAll(Pageable pageable) {
+        return roomViewingRepository.findAllWithRoom(pageable)
+                .map(this::mapToResponse);
     }
 
     @Override

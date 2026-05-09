@@ -22,6 +22,8 @@ import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class BillServiceImpl implements BillService {
@@ -51,8 +53,8 @@ public class BillServiceImpl implements BillService {
     private RoomHistoryRepository roomHistoryRepository;
 
     @Override
-    public List<FindAllBillProjection> findAllBills() {
-        return billRepository.findAllBills();
+    public Page<FindAllBillProjection> findAllBills(Pageable pageable) {
+        return billRepository.findAllBills(pageable);
     }
 
     @Override

@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, String> {
@@ -34,8 +36,11 @@ public interface CustomerRepository extends JpaRepository<Customer, String> {
             ct.date_of_birth as date ,
             ct.status as status
             from customer ct 
+            """, countQuery = """
+            select count(ct.id)
+            from customer ct
             """, nativeQuery = true)
-    List<FindAllCustomerDTO> findAllCustomers();
+    Page<FindAllCustomerDTO> findAllCustomers(Pageable pageable);
 
     @Query(value = """
             select 

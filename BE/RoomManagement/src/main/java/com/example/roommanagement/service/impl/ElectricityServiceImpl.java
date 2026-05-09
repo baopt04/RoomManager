@@ -17,6 +17,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class ElectricityServiceImpl implements ElectricityService {
@@ -27,8 +29,8 @@ public class ElectricityServiceImpl implements ElectricityService {
     @Autowired
     private ElectricityHistoryRepository electricityHistoryRepository;
     @Override
-    public List<FindAllElectricityDTO> getAllElectricity() {
-       return electricityRepository.findAllElectricity();
+    public Page<FindAllElectricityDTO> getAllElectricity(Pageable pageable) {
+       return electricityRepository.findAllElectricity(pageable);
     }
 
     @Override

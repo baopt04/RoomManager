@@ -27,6 +27,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @EnableAsync
@@ -54,8 +56,8 @@ public class ContractServiceImpl implements ContractService {
     @Autowired
     private ContractHistoryRepository contractHistoryRepository;
     @Override
-    public List<FindAllContractDTO> findAll() {
-        return contractRepository.findAllContracts();
+    public Page<FindAllContractDTO> findAll(Pageable pageable) {
+        return contractRepository.findAllContracts(pageable);
     }
 
     @Override

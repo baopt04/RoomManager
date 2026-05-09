@@ -8,6 +8,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface CarRepository extends JpaRepository<Car , Long> {
@@ -31,6 +33,12 @@ public interface CarRepository extends JpaRepository<Car , Long> {
             left join room r on r.id = c.id_room
                              left join house_for_rent hfr on hfr.id = r.id_house_for_rent
             left join customer ct on ct.id = c.id_customer
-            """ , nativeQuery = true)
-    List<FindAllCarDTO> findAllCars();
+            """, countQuery = """
+            select count(c.id)
+            from car c
+            left join room r on r.id = c.id_room
+            left join house_for_rent hfr on hfr.id = r.id_house_for_rent
+            left join customer ct on ct.id = c.id_customer
+            """, nativeQuery = true)
+    Page<FindAllCarDTO> findAllCars(Pageable pageable);
 }

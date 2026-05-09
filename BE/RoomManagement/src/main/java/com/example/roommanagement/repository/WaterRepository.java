@@ -12,6 +12,8 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 import com.example.roommanagement.dto.request.water.WaterPriceProjection;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface WaterRepository extends JpaRepository<Water, String> {
@@ -43,8 +45,13 @@ boolean existsByRoom_Id(String id);
             from water r
             left join room rm on rm.id = r.id_room
                         left join house_for_rent hfr on hfr.id = rm.id_house_for_rent
+         """, countQuery = """
+            select count(r.id)
+            from water r
+            left join room rm on rm.id = r.id_room
+            left join house_for_rent hfr on hfr.id = rm.id_house_for_rent
          """, nativeQuery = true)
-    List<FindAllWaterDTO> findAllWaters();
+    Page<FindAllWaterDTO> findAllWaters(Pageable pageable);
 
     @Modifying
     @Query(value = """

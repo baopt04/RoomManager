@@ -12,6 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @RestController
 @RequestMapping("/admin/service")
@@ -19,8 +22,11 @@ public class ServiceSController {
     @Autowired
     private ServiceService serviceService;
     @GetMapping("/getAll")
-    public ResponseEntity<List<FindAllServiceDTO>> getAllServices() {
-        List<FindAllServiceDTO> list = serviceService.findAll();
+    public ResponseEntity<Page<FindAllServiceDTO>> getAllServices(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<FindAllServiceDTO> list = serviceService.findAll(pageable);
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
     @PostMapping("/create")

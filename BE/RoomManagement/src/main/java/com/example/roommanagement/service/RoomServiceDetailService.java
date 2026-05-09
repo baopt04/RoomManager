@@ -6,9 +6,11 @@ import com.example.roommanagement.dto.request.roomServiceDetail.FindAllRoomServi
 import com.example.roommanagement.dto.request.roomServiceDetail.UpdateRoomServiceDetail;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface RoomServiceDetailService {
-    List<FindAllRoomServiceDetail> getAll();
+    Page<FindAllRoomServiceDetail> getAll(Pageable pageable);
     CreateRoomServiceDetail create(CreateRoomServiceDetail request);
     UpdateRoomServiceDetail update(String id , UpdateRoomServiceDetail request);
     BaseRoomServiceDetail detail(String id );

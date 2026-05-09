@@ -13,14 +13,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 @Service
 public class RoomServiceDetailServiceImpl implements RoomServiceDetailService {
     @Autowired
     private RoomServiceDetailRepository roomServiceDetailRepository;
 
     @Override
-    public List<FindAllRoomServiceDetail> getAll() {
-        return roomServiceDetailRepository.findAllRoomService()    ;
+    public Page<FindAllRoomServiceDetail> getAll(Pageable pageable) {
+        return roomServiceDetailRepository.findAllRoomService(pageable);
     }
 
     @Override

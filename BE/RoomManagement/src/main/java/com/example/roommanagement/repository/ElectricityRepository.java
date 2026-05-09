@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import com.example.roommanagement.dto.request.electricity.ElectricityPriceProjection;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 
@@ -47,8 +49,13 @@ public interface ElectricityRepository extends CrudRepository<Electricity, Strin
             from electricity r
             left join room rm on rm.id = r.id_room
                          left join house_for_rent hfr on hfr.id = rm.id_house_for_rent
+            """, countQuery = """
+            select count(r.id)
+            from electricity r
+            left join room rm on rm.id = r.id_room
+            left join house_for_rent hfr on hfr.id = rm.id_house_for_rent
             """, nativeQuery = true)
-    List<FindAllElectricityDTO> findAllElectricity();
+    Page<FindAllElectricityDTO> findAllElectricity(Pageable pageable);
 
     @Modifying
     @Query(value = """

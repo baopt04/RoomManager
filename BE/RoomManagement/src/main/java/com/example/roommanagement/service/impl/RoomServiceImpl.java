@@ -26,12 +26,14 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class RoomServiceImpl implements RoomService {
     @Override
-    public List<FindAllRoomDTO> findAllRooms() {
-        return roomRepository.findRoom();
+    public Page<FindAllRoomDTO> findAllRooms(Pageable pageable) {
+        return roomRepository.findRoom(pageable);
     }
 
     @Override

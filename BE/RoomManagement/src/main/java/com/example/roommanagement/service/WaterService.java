@@ -8,9 +8,11 @@ import com.example.roommanagement.dto.request.water.UpdateWaterDTO;
 import com.example.roommanagement.infrastructure.error.Reponse;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface WaterService {
-    List<FindAllWaterDTO> findAllWater();
+    Page<FindAllWaterDTO> findAllWater(Pageable pageable);
     CreateWaterDTO create(CreateWaterDTO createWaterDTO);
     UpdateWaterDTO update(String id , UpdateWaterDTO updateWaterDTO);
     BaseWaterDTO detail(String id );

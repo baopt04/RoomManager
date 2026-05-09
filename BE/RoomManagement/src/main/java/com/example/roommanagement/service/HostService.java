@@ -8,9 +8,11 @@ import com.example.roommanagement.infrastructure.error.Reponse;
 import org.eclipse.angus.mail.iap.Response;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface HostService {
-    List<FindAllHostDTO> findAllHosts();
+    Page<FindAllHostDTO> findAllHosts(Pageable pageable);
    CreateHostDTO create(CreateHostDTO createHostDTO);
     UpdateHostDTO update(String id , UpdateHostDTO updateHostDTO);
     Reponse<FindAllHostDTO> getOneEmail(String email);

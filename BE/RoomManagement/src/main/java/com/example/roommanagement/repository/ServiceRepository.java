@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface ServiceRepository extends JpaRepository<ServiceS, String> {
@@ -25,7 +27,10 @@ boolean existsByName(String name);
             r.unit_of_measure as unitOfMeasure ,
             r.discription as discription 
              from service r 
+            """, countQuery = """
+            select count(r.id)
+            from service r
             """, nativeQuery = true)
-    List<FindAllServiceDTO> findAllServices();
+    Page<FindAllServiceDTO> findAllServices(Pageable pageable);
 
 }

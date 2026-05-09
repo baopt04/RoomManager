@@ -8,9 +8,11 @@ import com.example.roommanagement.dto.request.service.UpdateServiceDTO;
 import com.example.roommanagement.infrastructure.error.Reponse;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface ServiceService {
-    List<FindAllServiceDTO> findAll();
+    Page<FindAllServiceDTO> findAll(Pageable pageable);
 
     CreateServiceDTO create(CreateServiceDTO createServiceDTO);
 

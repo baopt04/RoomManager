@@ -23,6 +23,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class WaterServiceImpl implements WaterService {
@@ -33,8 +35,8 @@ public class WaterServiceImpl implements WaterService {
     @Autowired
     private WaterHistoryRepository waterHistoryRepository;
     @Override
-    public List<FindAllWaterDTO> findAllWater() {
-    return waterRepository.findAllWaters();
+    public Page<FindAllWaterDTO> findAllWater(Pageable pageable) {
+        return waterRepository.findAllWaters(pageable);
     }
 
     @Override

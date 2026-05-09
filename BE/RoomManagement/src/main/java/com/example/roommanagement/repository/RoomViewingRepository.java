@@ -8,12 +8,15 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface RoomViewingRepository extends JpaRepository<RoomViewing, String> {
     @Query("SELECT rv FROM RoomViewing rv JOIN FETCH rv.room WHERE rv.status = :status ORDER BY rv.createDate DESC")
     List<RoomViewing> findByStatusWithRoom(@Param("status") StatusRoomViewing status);
 
-    @Query("SELECT rv FROM RoomViewing rv JOIN FETCH rv.room ORDER BY rv.createDate DESC")
-    List<RoomViewing> findAllWithRoom();
+    @Query(value = "SELECT rv FROM RoomViewing rv JOIN FETCH rv.room ORDER BY rv.createDate DESC",
+           countQuery = "SELECT count(rv) FROM RoomViewing rv")
+    Page<RoomViewing> findAllWithRoom(Pageable pageable);
 }

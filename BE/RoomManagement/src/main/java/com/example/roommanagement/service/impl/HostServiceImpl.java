@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class HostServiceImpl implements HostService {
@@ -25,8 +27,8 @@ public class HostServiceImpl implements HostService {
     private Generate generate;
 
     @Override
-    public List<FindAllHostDTO> findAllHosts() {
-        return hostRepository.findAllHosts();
+    public Page<FindAllHostDTO> findAllHosts(Pageable pageable) {
+        return hostRepository.findAllHosts(pageable);
     }
 
     @Override

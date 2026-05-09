@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class CustomerServiceImpl implements CustomerService {
@@ -94,8 +96,8 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public List<FindAllCustomerDTO> findAll() {
-        return customerRepository.findAllCustomers();
+    public Page<FindAllCustomerDTO> findAll(Pageable pageable) {
+        return customerRepository.findAllCustomers(pageable);
     }
 
     @Override

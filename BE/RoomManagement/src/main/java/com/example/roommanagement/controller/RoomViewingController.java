@@ -10,6 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @RestController
 @RequestMapping("/api/v1/room-viewing")
@@ -31,8 +34,11 @@ public class RoomViewingController {
     }
 
     @GetMapping
-    public ResponseEntity<List<RoomViewingResponse>> getAll() {
-        return ResponseEntity.ok(roomViewingService.getAll());
+    public ResponseEntity<Page<RoomViewingResponse>> getAll(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(roomViewingService.getAll(pageable));
     }
 
     @GetMapping("/status/{status}")

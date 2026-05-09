@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @RestController
 @RequestMapping("/admin/room")
@@ -27,8 +30,11 @@ public class RoomController {
     @Autowired
     private ExportExcelService exportExcelService;
     @GetMapping("/getAll")
-    public ResponseEntity<List<FindAllRoomDTO>> getAll() {
-        List<FindAllRoomDTO> list = roomService.findAllRooms();
+    public ResponseEntity<Page<FindAllRoomDTO>> getAll(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<FindAllRoomDTO> list = roomService.findAllRooms(pageable);
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
     @PostMapping(value = "/create" , consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface MaintenaceRepository extends JpaRepository<Maintenance, String> {
@@ -31,8 +33,13 @@ public interface MaintenaceRepository extends JpaRepository<Maintenance, String>
              from maintenance m
              left join room r on r.id = m.id_room
                          left join house_for_rent hfr on hfr.id = r.id_house_for_rent
+            """, countQuery = """
+             select count(m.id)
+             from maintenance m
+             left join room r on r.id = m.id_room
+                         left join house_for_rent hfr on hfr.id = r.id_house_for_rent
             """, nativeQuery = true)
-    List<FindAllMaintencanceDTO> findAllMaintencance();
+    Page<FindAllMaintencanceDTO> findAllMaintencance(Pageable pageable);
     @Transactional
     @Modifying
     void deleteById(String id);

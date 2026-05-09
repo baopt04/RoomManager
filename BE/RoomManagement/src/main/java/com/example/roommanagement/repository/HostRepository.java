@@ -8,6 +8,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface HostRepository extends JpaRepository<Host, String> {
@@ -27,8 +29,11 @@ public interface HostRepository extends JpaRepository<Host, String> {
             ht.number_phone as numberPhone ,
             ht.gender as gender
              from host ht 
+            """, countQuery = """
+            select count(ht.id)
+            from host ht
             """, nativeQuery = true)
-    List<FindAllHostDTO> findAllHosts();
+    Page<FindAllHostDTO> findAllHosts(Pageable pageable);
 
     @Query(value = """
             select 

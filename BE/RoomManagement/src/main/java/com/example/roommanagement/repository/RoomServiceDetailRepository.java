@@ -8,6 +8,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface RoomServiceDetailRepository extends JpaRepository<RoomService , String> {
@@ -20,8 +22,13 @@ public interface RoomServiceDetailRepository extends JpaRepository<RoomService ,
             from room_services rs
             left join room r on r.id = rs.id_room
             left join service s on s.id = rs.id_service
+            """, countQuery = """
+            select count(rs.id)
+            from room_services rs
+            left join room r on r.id = rs.id_room
+            left join service s on s.id = rs.id_service
             """, nativeQuery = true)
-    List<FindAllRoomServiceDetail> findAllRoomService();
+    Page<FindAllRoomServiceDetail> findAllRoomService(Pageable pageable);
     boolean existsByRoom_IdAndServiceS_Id(String room_id , String service_id);
 
     @Query("""

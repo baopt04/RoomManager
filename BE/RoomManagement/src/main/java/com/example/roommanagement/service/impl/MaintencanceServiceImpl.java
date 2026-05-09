@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class MaintencanceServiceImpl implements MaintencanceService {
@@ -28,8 +30,8 @@ public class MaintencanceServiceImpl implements MaintencanceService {
     private Generate generate;
 
     @Override
-    public List<FindAllMaintencanceDTO> findAllMaintencance() {
-        return maintenaceRepository.findAllMaintencance();
+    public Page<FindAllMaintencanceDTO> findAllMaintencance(Pageable pageable) {
+        return maintenaceRepository.findAllMaintencance(pageable);
     }
 
     @Override

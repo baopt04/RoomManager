@@ -10,6 +10,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface BillRepository extends JpaRepository<Bill, String> {
@@ -44,8 +46,15 @@ boolean existsByCode(String code);
              left join customer c on c.id = b.id_customer
              left join contract con on con.id = b.id_contract
              left join admin adm on adm.id = b.id_admin
+            """, countQuery = """
+             select count(b.id)
+             from bill b
+             left join room r on r.id = b.id_room
+             left join customer c on c.id = b.id_customer
+             left join contract con on con.id = b.id_contract
+             left join admin adm on adm.id = b.id_admin
             """, nativeQuery = true)
-    List<FindAllBillProjection> findAllBills();
+    Page<FindAllBillProjection> findAllBills(Pageable pageable);
 
     @Query(value = """
             select 

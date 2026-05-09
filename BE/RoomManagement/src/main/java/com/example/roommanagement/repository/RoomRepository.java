@@ -13,6 +13,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface RoomRepository extends JpaRepository<Room, String> {
@@ -60,8 +62,13 @@ public interface RoomRepository extends JpaRepository<Room, String> {
             from room r
             left join customer c on c.id = r.id_customer
             left join house_for_rent h on h.id = r.id_house_for_rent
+            """, countQuery = """
+            select count(r.id)
+            from room r
+            left join customer c on c.id = r.id_customer
+            left join house_for_rent h on h.id = r.id_house_for_rent
             """, nativeQuery = true)
-    List<FindAllRoomDTO> findRoom();
+    Page<FindAllRoomDTO> findRoom(Pageable pageable);
 
     @Query(value = """
             select 

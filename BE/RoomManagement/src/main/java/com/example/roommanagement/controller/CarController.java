@@ -11,6 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @RestController
 @RequestMapping("/admin/car")
@@ -18,8 +21,11 @@ public class CarController {
     @Autowired
     private CarService carService;
     @GetMapping("/getAll")
-   public ResponseEntity<List<FindAllCarDTO>> getAll() {
-        List<FindAllCarDTO> list = carService.findAllCars();
+    public ResponseEntity<Page<FindAllCarDTO>> getAll(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<FindAllCarDTO> list = carService.findAllCars(pageable);
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
 

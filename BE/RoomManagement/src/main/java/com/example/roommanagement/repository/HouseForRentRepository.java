@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface HouseForRentRepository extends JpaRepository<HouseForRent, String> {
@@ -28,8 +30,11 @@ public interface HouseForRentRepository extends JpaRepository<HouseForRent, Stri
                         r.status as status ,
              r.id_host as id_host
              from  house_for_rent r
+            """, countQuery = """
+             select count(r.id)
+             from house_for_rent r
             """, nativeQuery = true)
-    List<FindAllHouseForRentDTO> findAllHouseForRent();
+    Page<FindAllHouseForRentDTO> findAllHouseForRent(Pageable pageable);
 
 
     @Query(value = """

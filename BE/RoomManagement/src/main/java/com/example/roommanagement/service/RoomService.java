@@ -4,9 +4,11 @@ import com.example.roommanagement.dto.request.image.FindAllImageProjection;
 import com.example.roommanagement.dto.request.room.*;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface RoomService {
-    List<FindAllRoomDTO> findAllRooms();
+    Page<FindAllRoomDTO> findAllRooms(Pageable pageable);
     CreateRoomDTO createRoom(CreateRoomDTO createRoomDTO);
     UpdateRoomDTO updateRoom(String id ,UpdateRoomDTO updateRoomDTO  );
     FindAllRoomDTO findCustomerAndHouseForRent(String customer ,String houseForRent);

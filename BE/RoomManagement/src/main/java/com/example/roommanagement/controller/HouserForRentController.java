@@ -14,15 +14,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @RestController
-@RequestMapping("/admin/houseForRent")
+    @RequestMapping("/admin/houseForRent")
 public class HouserForRentController {
     @Autowired
     private HouseForRentService houseForRentService;
     @GetMapping("/getAll")
-    public ResponseEntity<List<FindAllHouseForRentDTO>> getAll() {
-        List<FindAllHouseForRentDTO> list = houseForRentService.getAllHouseForRent();
+    public ResponseEntity<Page<FindAllHouseForRentDTO>> getAll(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<FindAllHouseForRentDTO> list = houseForRentService.getAllHouseForRent(pageable);
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
     @PostMapping("/create")

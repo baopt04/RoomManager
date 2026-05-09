@@ -7,13 +7,15 @@ import com.example.roommanagement.dto.request.customer.UpdateCustomerDTO;
 import com.example.roommanagement.infrastructure.error.Reponse;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface CustomerService {
     CreateCustomerDTO create(CreateCustomerDTO createCustomerDTO);
 
     UpdateCustomerDTO update(String id, UpdateCustomerDTO updateCustomerDTO );
 
-    List<FindAllCustomerDTO> findAll();
+    Page<FindAllCustomerDTO> findAll(Pageable pageable);
 
     FindAllCustomerDTO getOneByEmail(String email);
 

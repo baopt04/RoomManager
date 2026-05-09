@@ -15,6 +15,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @RestController
 @RequestMapping("/admin/mainten")
@@ -22,8 +25,11 @@ public class MaintencanceController {
     @Autowired
     private MaintencanceService maintencanceService;
     @GetMapping("/getAll")
-    public ResponseEntity<List<FindAllMaintencanceDTO>> getAllMaintencance() {
-        List<FindAllMaintencanceDTO> list = maintencanceService.findAllMaintencance();
+    public ResponseEntity<Page<FindAllMaintencanceDTO>> getAllMaintencance(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<FindAllMaintencanceDTO> list = maintencanceService.findAllMaintencance(pageable);
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
     @PostMapping("/create")
