@@ -16,7 +16,8 @@ import {
     Select,
     DatePicker,
     Statistic,
-    Badge
+    Badge,
+    Pagination
 } from "antd";
 import {
     SearchOutlined,
@@ -50,11 +51,20 @@ const GetAllMain = () => {
     const [originalData, setOriginalData] = useState([]);
     const [selectedHouse, setSelectedHouse] = useState("Tất cả");
 
-    const fetchAllData = async () => {
+    const [currentPage, setCurrentPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalElements, setTotalElements] = useState(0);
+
+    const fetchAllData = async (page = currentPage, size = pageSize) => {
         setLoading(true);
         try {
-            const mainResponse = await MaintencanceService.getAllMainTen(token);
-            setDataMain(mainResponse);
+            const mainResponse = await MaintencanceService.getAllMainTen(token, page, size);
+            const content = mainResponse.content || [];
+            setDataMain(content);
+
+            setCurrentPage(mainResponse.number !== undefined ? mainResponse.number : 0);
+            setTotalElements(mainResponse.totalElements !== undefined ? mainResponse.totalElements : content.length);
+            setPageSize(mainResponse.size !== undefined ? mainResponse.size : 10);
         } catch (error) {
             message.error("Lỗi khi tải dữ liệu bảo trì!");
             console.error("Failed to fetch maintenance data:", error);
@@ -64,10 +74,16 @@ const GetAllMain = () => {
     };
 
     useEffect(() => {
-        fetchAllData();
+        fetchAllData(0, pageSize);
     }, [token]);
 
-    // Map room data with maintenance data
+    const handlePageChange = (page, size) => {
+        const zeroBasedPage = page - 1;
+        setCurrentPage(zeroBasedPage);
+        setPageSize(size);
+        fetchAllData(zeroBasedPage, size);
+    };
+
     useEffect(() => {
         if (dataMain.length > 0) {
             const mapped = dataMain.map((item, index) => {
@@ -78,7 +94,6 @@ const GetAllMain = () => {
                     roomName: item.room || "Không xác định"
                 };
             });
-            // Sắp xếp theo Nhà rồi đến Phòng để thực hiện gộp dòng
             const sorted = mapped.sort((a, b) => {
                 const houseA = a.houseForRent || "";
                 const houseB = b.houseForRent || "";
@@ -93,7 +108,6 @@ const GetAllMain = () => {
 
     const houses = ["Tất cả", ...new Set(originalData.map(item => item.houseForRent).filter(Boolean))];
 
-    // Search and filter function
     const handleFilter = () => {
         let filtered = [...originalData];
 
@@ -101,7 +115,6 @@ const GetAllMain = () => {
             filtered = filtered.filter(item => item.houseForRent === selectedHouse);
         }
 
-        // Filter by keyword
         if (keyWord.trim()) {
             filtered = filtered.filter((item) =>
                 Object.values(item).some((value) =>
@@ -111,7 +124,6 @@ const GetAllMain = () => {
             );
         }
 
-        // Filter by status
         if (statusFilter !== "ALL") {
             filtered = filtered.filter(item => item.status === statusFilter);
         }
@@ -147,7 +159,8 @@ const GetAllMain = () => {
         setKeyWord("");
         setStatusFilter("ALL");
         setSelectedHouse("Tất cả");
-        fetchAllData();
+        setCurrentPage(0);
+        fetchAllData(0, pageSize);
     };
 
     const deleteMainTen = async (id) => {
@@ -159,9 +172,9 @@ const GetAllMain = () => {
             okType: 'danger',
             onOk: async () => {
                 try {
-                    await MaintencanceService.deleteMainTen(id, token);
+                    await MaintencanceService.deleteMainTen(token, id);
                     message.success("Xóa phiếu bảo trì thành công");
-                    fetchAllData();
+                    fetchAllData(currentPage, pageSize);
                 } catch (error) {
                     message.error("Xóa phiếu bảo trì thất bại");
                 }
@@ -178,7 +191,6 @@ const GetAllMain = () => {
         setIsModalUpdate(true);
     };
 
-    // Status badge component
     const StatusBadge = ({ status }) => {
         const statusConfig = {
             'TAO_PHIEU': { color: 'orange', text: 'Tạo phiếu' },
@@ -478,8 +490,8 @@ const GetAllMain = () => {
                     acc[house].push(item);
                     return acc;
                 }, {})).map(([house, items]) => (
-                    <Card 
-                        key={house} 
+                    <Card
+                        key={house}
                         title={
                             <Space>
                                 <HomeOutlined style={{ color: '#1890ff' }} />
@@ -503,18 +515,31 @@ const GetAllMain = () => {
                 ))}
             </div>
 
+            {totalElements > 0 && (
+                <div style={{ textAlign: 'right', marginTop: '16px', marginBottom: '24px' }}>
+                    <Pagination
+                        current={currentPage + 1}
+                        pageSize={pageSize}
+                        total={totalElements}
+                        showSizeChanger={true}
+                        onChange={handlePageChange}
+                        showTotal={(total, range) => `${range[0]}-${range[1]} của ${total} bản ghi`}
+                    />
+                </div>
+            )}
+
             {/* Modals */}
             <ModalCreateMain
                 visible={isModalCreate}
                 onClose={() => setIsModalCreate(false)}
-                onSuccess={fetchAllData}
+                onSuccess={() => fetchAllData(currentPage, pageSize)}
             />
 
             <ModalUpdateMain
                 visible={isModalUpdate}
                 onClose={() => setIsModalUpdate(false)}
                 id={selectIdMain}
-                onSuccess={fetchAllData}
+                onSuccess={() => fetchAllData(currentPage, pageSize)}
             />
 
             <style jsx>{`

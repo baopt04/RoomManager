@@ -42,22 +42,39 @@ const GetAllBill = () => {
     const token = localStorage.getItem("token");
     const navigate = useNavigate();
 
-    const fetchAllData = useCallback(async () => {
+    const [currentPage, setCurrentPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalElements, setTotalElements] = useState(0);
+
+    const fetchAllData = useCallback(async (page = currentPage, size = pageSize) => {
         setLoading(true);
         try {
-            const billResponse = await SaleService.getAllBill(token);
-            setListBill(billResponse);
-            setFilteredBills(billResponse);
+            const response = await SaleService.getAllBill(token, page, size);
+            const content = response.content || [];
+            setListBill(content);
+            setFilteredBills(content);
+
+            setCurrentPage(response.number !== undefined ? response.number : 0);
+            setTotalElements(response.totalElements !== undefined ? response.totalElements : content.length);
+            setPageSize(response.size !== undefined ? response.size : 10);
         } catch (error) {
             message.error("Lỗi khi tải dữ liệu!");
         } finally {
             setLoading(false);
         }
-    }, [token]);
+    }, [token, currentPage, pageSize]);
 
     useEffect(() => {
-        fetchAllData();
-    }, [fetchAllData]);
+        fetchAllData(0, 10);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const handlePageChange = (page, size) => {
+        const zeroBasedPage = page - 1;
+        setCurrentPage(zeroBasedPage);
+        setPageSize(size);
+        fetchAllData(zeroBasedPage, size);
+    };
 
     const handleFilter = () => {
         let filtered = [...listBill];
@@ -79,7 +96,8 @@ const GetAllBill = () => {
     const resetFilters = () => {
         setKeyword("");
         setStatusFilter("ALL");
-        fetchAllData();
+        setCurrentPage(0);
+        fetchAllData(0, pageSize);
     };
 
     const createBill = () => navigate("/admin/bills/create");
@@ -280,8 +298,11 @@ const GetAllBill = () => {
                     loading={loading}
                     rowKey="id"
                     pagination={{
-                        pageSize: 10,
+                        current: currentPage + 1,
+                        pageSize: pageSize,
+                        total: totalElements,
                         showSizeChanger: true,
+                        onChange: handlePageChange,
                         showTotal: (total) => `Tổng cộng ${total} hóa đơn`,
                     }}
                     scroll={{ x: 1000 }}

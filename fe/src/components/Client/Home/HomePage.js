@@ -96,8 +96,9 @@ const HomePage = () => {
   const fetchRooms = async () => {
     setLoading(true);
     try {
-      const response = await getAllRooms();
-      const vacantRooms = response.filter(room => room.status === "TRONG");
+      const response = await getAllRooms(0, 10);
+      const content = response.content || [];
+      const vacantRooms = content.filter(room => room.status === "TRONG");
       const mappedRooms = vacantRooms.map((room, index) => ({
         ...room,
         displayImage: PRIMARY_IMAGES[index % PRIMARY_IMAGES.length]
@@ -152,7 +153,6 @@ const HomePage = () => {
   return (
     <div style={{ background: '#fff' }}>
 
-      {/* 1. HERO SECTION - CLEAN FLOW LAYOUT */}
       <motion.section
         initial="hidden"
         whileInView="visible"
@@ -166,7 +166,6 @@ const HomePage = () => {
           zIndex: 1
         }}
       >
-        {/* Banner Image Container */}
         <motion.div
           variants={fadeInUp}
           style={{
@@ -186,7 +185,6 @@ const HomePage = () => {
           />
         </motion.div>
 
-        {/* Interactive Search Box - Enhanced & Even Wider */}
         <motion.div
           variants={fadeInUp}
           transition={{ delay: 0.2 }}
@@ -335,7 +333,6 @@ const HomePage = () => {
         </motion.div>
       </motion.section>
 
-      {/* 2. POPULAR LOCATIONS */}
       <motion.section
         initial="hidden"
         whileInView="visible"
@@ -382,7 +379,6 @@ const HomePage = () => {
         </div>
       </motion.section>
 
-      {/* 3. FEATURED ROOMS */}
       <motion.section
         initial="hidden"
         whileInView="visible"
@@ -416,7 +412,6 @@ const HomePage = () => {
         </div>
       </motion.section>
 
-      {/* 4. WHY CHOOSE US */}
       <motion.section
         initial="hidden"
         whileInView="visible"
@@ -478,7 +473,6 @@ const HomePage = () => {
         </div>
       </motion.section>
 
-      {/* 5. TESTIMONIALS */}
       <motion.section
         initial="hidden"
         whileInView="visible"
@@ -543,7 +537,6 @@ const HomePage = () => {
         </div>
       </motion.section>
 
-      {/* 6. BLOG / EXPERIENCE */}
       <motion.section
         initial="hidden"
         whileInView="visible"
@@ -584,7 +577,6 @@ const HomePage = () => {
         </div>
       </motion.section>
 
-      {/* 7. CTA SECTION */}
       <motion.section
         initial="hidden"
         whileInView="visible"

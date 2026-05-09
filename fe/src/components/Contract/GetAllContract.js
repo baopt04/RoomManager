@@ -11,7 +11,8 @@ import {
     Col,
     Typography,
     Badge,
-    Statistic
+    Statistic,
+    Pagination
 } from "antd";
 import {
     SearchOutlined,
@@ -45,17 +46,25 @@ const GetAllContract = () => {
     const [loading, setLoading] = useState(false);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
+    const [currentPage, setCurrentPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalElements, setTotalElements] = useState(0);
+
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
         window.addEventListener("resize", handleResize);
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
-    const fetchAllData = async () => {
+    const fetchAllData = async (page = currentPage, size = pageSize) => {
         setLoading(true);
         try {
-            const contractResponse = await ContractService.getAllcontract(token);
-            setDataContract(contractResponse);
+            const response = await ContractService.getAllcontract(token, page, size);
+            const content = response.content || [];
+            setDataContract(content);
+            setCurrentPage(response.number !== undefined ? response.number : 0);
+            setTotalElements(response.totalElements !== undefined ? response.totalElements : content.length);
+            setPageSize(response.size !== undefined ? response.size : 10);
         } catch (error) {
             
         } finally {
@@ -64,8 +73,15 @@ const GetAllContract = () => {
     };
 
     useEffect(() => {
-        fetchAllData();
+        fetchAllData(0, pageSize);
     }, [token]);
+
+    const handlePageChange = (page, size) => {
+        const zeroBasedPage = page - 1;
+        setCurrentPage(zeroBasedPage);
+        setPageSize(size);
+        fetchAllData(zeroBasedPage, size);
+    };
 
     useEffect(() => {
         if (dataContract && dataContract.length > 0) {
@@ -107,7 +123,8 @@ const GetAllContract = () => {
 
     const resetSearch = () => {
         setKeyWord("");
-        fetchAllData();
+        setCurrentPage(0);
+        fetchAllData(0, pageSize);
     };
 
     const openModalCreate = () => {
@@ -381,11 +398,7 @@ const GetAllContract = () => {
                     dataSource={groupedData}
                     loading={loading}
                     scroll={{ x: 1000 }}
-                    pagination={{
-                        pageSize: 10,
-                        showSizeChanger: !isMobile,
-                        showTotal: (total) => `${total} nhà có hợp đồng`,
-                    }}
+                    pagination={false}
                     size={isMobile ? "small" : "middle"}
                     rowKey="key"
                     expandable={{
@@ -393,6 +406,18 @@ const GetAllContract = () => {
                         defaultExpandAllRows: false,
                     }}
                 />
+                {totalElements > 0 && (
+                    <div style={{ textAlign: 'right', marginTop: '16px' }}>
+                        <Pagination
+                            current={currentPage + 1}
+                            pageSize={pageSize}
+                            total={totalElements}
+                            showSizeChanger={!isMobile}
+                            onChange={handlePageChange}
+                            showTotal={(total) => `Tổng số ${total} hợp đồng`}
+                        />
+                    </div>
+                )}
             </Card>
 
             <ModalContractHistory

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Row, Col, Button, Empty, Input, Select, Checkbox, Radio, Collapse, Drawer, Skeleton } from 'antd';
+import { Typography, Row, Col, Button, Empty, Input, Select, Checkbox, Radio, Collapse, Drawer, Skeleton, Pagination } from 'antd';
 import {
   SearchOutlined, EnvironmentOutlined, FilterOutlined,
   ColumnWidthOutlined,
@@ -57,17 +57,26 @@ const RoomsPage = () => {
     loc.name.toLowerCase().includes(locationSearch.toLowerCase())
   );
 
-  const fetchRooms = async () => {
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalElements, setTotalElements] = useState(0);
+
+  const fetchRooms = async (page = currentPage, size = pageSize) => {
     setLoading(true);
     try {
-      const response = await getAllRooms();
-      const vacantRooms = response.filter(room => room.status === "TRONG");
+      const response = await getAllRooms(page, size);
+      const content = response.content || [];
+      const vacantRooms = content.filter(room => room.status === "TRONG");
       const sorted = vacantRooms.sort((a, b) => new Date(b.lastModifiedDate || 0) - new Date(a.lastModifiedDate || 0));
       const mapped = sorted.map((room, idx) => ({
         ...room,
         displayImage: FALLBACK_IMAGES[idx % FALLBACK_IMAGES.length]
       }));
       setAllRooms(mapped);
+      
+      setCurrentPage(response.number !== undefined ? response.number : 0);
+      setTotalElements(response.totalElements !== undefined ? response.totalElements : content.length);
+      setPageSize(response.size !== undefined ? response.size : 10);
     } catch (err) {
       if (process.env.NODE_ENV !== "production") {
         console.error("Failed to load rooms:", err);
@@ -77,7 +86,14 @@ const RoomsPage = () => {
     }
   };
 
-  useEffect(() => { fetchRooms(); }, []);
+  useEffect(() => { fetchRooms(0, pageSize); }, []);
+
+  const handlePageChange = (page, size) => {
+    const zeroBasedPage = page - 1;
+    setCurrentPage(zeroBasedPage);
+    setPageSize(size);
+    fetchRooms(zeroBasedPage, size);
+  };
 
   // Filter and sort
   useEffect(() => {
@@ -375,6 +391,18 @@ const RoomsPage = () => {
                     onClick={() => navigate(`/room/${room.slug}-${room.id}`)}
                   />
                 ))}
+                {totalElements > 0 && (
+                  <div style={{ textAlign: 'center', marginTop: '32px', marginBottom: '16px' }}>
+                    <Pagination
+                      current={currentPage + 1}
+                      pageSize={pageSize}
+                      total={totalElements}
+                      onChange={handlePageChange}
+                      showSizeChanger={false}
+                      showTotal={(total) => `Tổng số ${total} phòng`}
+                    />
+                  </div>
+                )}
               </div>
             ) : (
               <motion.div

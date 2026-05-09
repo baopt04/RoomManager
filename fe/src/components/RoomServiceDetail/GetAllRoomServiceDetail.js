@@ -59,27 +59,28 @@ const GetAllRoomServiceDetail = () => {
     const token = localStorage.getItem("token");
     const navigate = useNavigate();
 
-    useEffect(() => {
-        fetchAllData();
-        
+    const [currentPage, setCurrentPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalElements, setTotalElements] = useState(0);
 
-    }, [token]);
-
-    const fetchAllData = async () => {
+    const fetchAllData = async (page = currentPage, size = pageSize) => {
         setLoading(true);
         try {
             const [servicesResponse, roomsResponse, roomServiceResponse] = await Promise.all([
                 Services.getAllService(token),
                 RoomService.getAllRooms(token),
-                RoomServiceDetail.getAllRoomServiceDetail(token)
+                RoomServiceDetail.getAllRoomServiceDetail(token, page, size)
             ]);
 
-            // Đảm bảo loading ít nhất 2 giây để phù hợp với môi trường deploy
-            
+            const content = roomServiceResponse.content || [];
 
             setDataService(servicesResponse);
             setDataRoom(roomsResponse);
-            setRoomServiceData(roomServiceResponse);
+            setRoomServiceData(content);
+
+            setCurrentPage(roomServiceResponse.number !== undefined ? roomServiceResponse.number : 0);
+            setTotalElements(roomServiceResponse.totalElements !== undefined ? roomServiceResponse.totalElements : content.length);
+            setPageSize(roomServiceResponse.size !== undefined ? roomServiceResponse.size : 10);
         } catch (error) {
             message.error("Lỗi khi tải dữ liệu!");
             console.error("Failed to fetch data:", error);
@@ -88,14 +89,24 @@ const GetAllRoomServiceDetail = () => {
         }
     };
 
-    // Map data and group by room
+    useEffect(() => {
+        fetchAllData(0, pageSize);
+    }, [token]);
+
+    const handlePageChange = (page, size) => {
+        const zeroBasedPage = page - 1;
+        setCurrentPage(zeroBasedPage);
+        setPageSize(size);
+        fetchAllData(zeroBasedPage, size);
+    };
+
     useEffect(() => {
         if (dataRoom.length > 0 && dataService.length > 0) {
             const assignments = roomServiceData.map((item) => {
                 // Theo API response mới, item.room và item.service là tên (String)
                 const room = dataRoom.find(r => r.id === item.room || r.name === item.room);
                 const service = dataService.find(s => s.id === item.service || s.name === item.service);
-                
+
                 return {
                     ...item,
                     roomName: room ? room.name : (item.room || "Không xác định"),
@@ -105,7 +116,6 @@ const GetAllRoomServiceDetail = () => {
                 };
             });
 
-            // Grouping logic
             const grouped = dataRoom.map((room) => {
                 // Lọc dịch vụ dựa trên ID hoặc Tên phòng
                 const roomServices = assignments.filter(a => a.room === room.id || a.room === room.name);
@@ -118,7 +128,6 @@ const GetAllRoomServiceDetail = () => {
                 };
             }).filter(group => group.services.length > 0);
 
-            // Sort and add STT
             const finalData = grouped.sort((a, b) => a.roomName.localeCompare(b.roomName))
                 .map((item, idx) => ({ ...item, stt: idx + 1 }));
 
@@ -127,11 +136,9 @@ const GetAllRoomServiceDetail = () => {
         }
     }, [roomServiceData, dataRoom, dataService]);
 
-    // Search and filter function
     const handleFilter = () => {
         let filtered = [...originalData];
 
-        // Filter by keyword
         if (searchText.trim()) {
             filtered = filtered.filter((roomGroup) =>
                 roomGroup.roomName.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -139,12 +146,10 @@ const GetAllRoomServiceDetail = () => {
             );
         }
 
-        // Filter by room
         if (roomFilter !== "ALL") {
             filtered = filtered.filter(item => item.roomId === roomFilter);
         }
 
-        // Filter by service
         if (serviceFilter !== "ALL") {
             filtered = filtered.filter(item => item.services.some(s => s.service === serviceFilter));
         }
@@ -156,10 +161,10 @@ const GetAllRoomServiceDetail = () => {
         setSearchText("");
         setRoomFilter("ALL");
         setServiceFilter("ALL");
-        setFilteredData(originalData);
+        setCurrentPage(0);
+        fetchAllData(0, pageSize);
     };
 
-    // Delete room service
     const handleDelete = (record) => {
         Modal.confirm({
             title: 'Xác nhận xóa',
@@ -180,7 +185,6 @@ const GetAllRoomServiceDetail = () => {
         });
     };
 
-    // Modal handlers
     const handleEdit = (id) => {
         setSelectedServiceId(id);
         setIsModalUpdate(true);
@@ -190,7 +194,6 @@ const GetAllRoomServiceDetail = () => {
         setIsModalVisible(true);
     };
 
-    // Room badge component
     const RoomBadge = ({ roomName }) => {
         return (
             <Space>
@@ -214,13 +217,11 @@ const GetAllRoomServiceDetail = () => {
     const uniqueServices = new Set(filteredData.flatMap(item => item.services.map(s => s.service))).size;
     const totalValue = filteredData.reduce((sum, item) => sum + item.totalPrice, 0);
 
-    // Get room options for filter
     const roomOptions = dataRoom.map(room => ({
         value: room.id,
         label: room.name
     }));
 
-    // Get service options for filter
     const serviceOptions = dataService.map(service => ({
         value: service.id,
         label: service.name
@@ -326,7 +327,6 @@ const GetAllRoomServiceDetail = () => {
 
     return (
         <div>
-            {/* Page Header */}
             <div className="page-header">
                 <div>
                     <Title level={4} style={{ margin: 0, fontWeight: 600 }}>
@@ -345,7 +345,6 @@ const GetAllRoomServiceDetail = () => {
                 </Button>
             </div>
 
-            {/* Statistics */}
             <Row gutter={16} className="stat-row">
                 <Col xs={24} sm={6}>
                     <Card size="small">
@@ -391,7 +390,6 @@ const GetAllRoomServiceDetail = () => {
                 </Col>
             </Row>
 
-            {/* Filter Section */}
             <Card size="small" style={{ marginBottom: 16 }}>
                 <div className="filter-bar">
                     <Input
@@ -442,7 +440,6 @@ const GetAllRoomServiceDetail = () => {
                 </div>
             </Card>
 
-            {/* Data Table */}
             <Card size="small">
                 <Table
                     columns={columns}
@@ -450,9 +447,12 @@ const GetAllRoomServiceDetail = () => {
                     loading={loading}
                     rowKey="key"
                     pagination={{
-                        pageSize: 10,
+                        current: currentPage + 1,
+                        pageSize: pageSize,
+                        total: totalElements,
                         showSizeChanger: true,
                         showQuickJumper: true,
+                        onChange: handlePageChange,
                         showTotal: (total, range) =>
                             `${range[0]}-${range[1]} của ${total} bản ghi`,
                     }}
@@ -461,12 +461,11 @@ const GetAllRoomServiceDetail = () => {
                 />
             </Card>
 
-            {/* Modals */}
             <ModalCreateRoomService
                 visible={isModalVisible}
                 onClose={() => {
                     setIsModalVisible(false);
-                    fetchAllData();
+                    fetchAllData(currentPage, pageSize);
                 }}
             />
 
@@ -474,7 +473,7 @@ const GetAllRoomServiceDetail = () => {
                 visible={isModalUpdate}
                 onClose={() => {
                     setIsModalUpdate(false);
-                    fetchAllData();
+                    fetchAllData(currentPage, pageSize);
                 }}
                 serviceId={selectedServiceId}
             />

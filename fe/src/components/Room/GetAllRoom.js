@@ -53,24 +53,28 @@ const GetAllRoom = () => {
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        fetchAllData();
-    }, [token]);
+    const [currentPage, setCurrentPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalElements, setTotalElements] = useState(0);
 
-    const fetchAllData = async () => {
+    const fetchAllData = async (page = currentPage, size = pageSize) => {
         setLoading(true);
         try {
-            const [rooms, houses, customers, status] = await Promise.all([
-                RoomService.getAllRooms(token),
+            const [roomsRes, houses, customers, status] = await Promise.all([
+                RoomService.getAllRooms(token, page, size),
                 HouseForRentService.getAllHouseForRent(token),
                 CustomerService.getAllCustomers(token),
                 RoomService.getAllStatusRoom(token)
             ]);
 
-            
+            const rooms = roomsRes.content || [];
 
             setDataRoom(rooms);
             setFilterData(rooms);
+            setCurrentPage(roomsRes.number !== undefined ? roomsRes.number : 0);
+            setTotalElements(roomsRes.totalElements !== undefined ? roomsRes.totalElements : rooms.length);
+            setPageSize(roomsRes.size !== undefined ? roomsRes.size : 10);
+
             setDataHouseForRent(houses);
             setDataCustomer(customers);
             if (status && status.length > 0) {
@@ -82,6 +86,17 @@ const GetAllRoom = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    useEffect(() => {
+        fetchAllData(0, pageSize);
+    }, [token]);
+
+    const handlePageChange = (page, size) => {
+        const zeroBasedPage = page - 1;
+        setCurrentPage(zeroBasedPage);
+        setPageSize(size);
+        fetchAllData(zeroBasedPage, size);
     };
 
     const handleSearch = () => {
@@ -148,7 +163,7 @@ const GetAllRoom = () => {
                 const safeHouseName = houseName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '_');
                 fileName = `Bang_Ke_${safeHouseName}_Thang_${month}_${year}.xlsx`;
             }
-            
+
             link.setAttribute('download', fileName);
             document.body.appendChild(link);
             link.click();
@@ -250,7 +265,6 @@ const GetAllRoom = () => {
 
     return (
         <div>
-            {/* Page Header */}
             <div className="page-header">
                 <div>
                     <Title level={4} style={{ margin: 0, fontWeight: 600 }}>
@@ -265,7 +279,6 @@ const GetAllRoom = () => {
                 </Button>
             </div>
 
-            {/* Statistics */}
             <Row gutter={16} className="stat-row">
                 <Col xs={24} sm={8}>
                     <Card size="small">
@@ -296,7 +309,6 @@ const GetAllRoom = () => {
                 </Col>
             </Row>
 
-            {/* Filters */}
             <Card size="small" style={{ marginBottom: 16 }}>
                 <div className="filter-bar">
                     <Input
@@ -341,24 +353,29 @@ const GetAllRoom = () => {
                     <Button icon={<SearchOutlined />} onClick={handleSearch}>
                         Tìm
                     </Button>
-                    <Button 
-                        icon={<FileExcelOutlined />} 
+                    <Button
+                        icon={<FileExcelOutlined />}
                         onClick={handleExportMonthlyBilling}
-                        style={{ 
-                            backgroundColor: "#1d6f42", 
+                        style={{
+                            backgroundColor: "#1d6f42",
                             color: "white",
-                            borderRadius: 6 
+                            borderRadius: 6
                         }}
                     >
                         Xuất bảng kê
                     </Button>
-                    <Button icon={<ReloadOutlined />} onClick={fetchAllData}>
+                    <Button icon={<ReloadOutlined />} onClick={() => {
+                        setKeyword("");
+                        setSelectedHouseId("all");
+                        setSelectedCustomerId("all");
+                        setCurrentPage(0);
+                        fetchAllData(0, pageSize);
+                    }}>
                         Làm mới
                     </Button>
                 </div>
             </Card>
 
-            {/* Table */}
             <Card size="small">
                 <Table
                     columns={columns}
@@ -366,7 +383,14 @@ const GetAllRoom = () => {
                     loading={loading}
                     rowKey="id"
                     scroll={{ x: 1200 }}
-                    pagination={{ pageSize: 10, showSizeChanger: !isMobile, showTotal: (total) => `${total} phòng` }}
+                    pagination={{
+                        current: currentPage + 1,
+                        pageSize: pageSize,
+                        total: totalElements,
+                        showSizeChanger: !isMobile,
+                        onChange: handlePageChange,
+                        showTotal: (total) => `Tổng số ${total} phòng`
+                    }}
                     size={isMobile ? "small" : "middle"}
                 />
             </Card>

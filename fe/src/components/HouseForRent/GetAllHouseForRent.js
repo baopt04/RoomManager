@@ -41,6 +41,10 @@ const GetAllHouseForRent = () => {
     const [loading, setLoading] = useState(false);
     const token = localStorage.getItem("token");
 
+    const [currentPage, setCurrentPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalElements, setTotalElements] = useState(0);
+
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isModalUpdate, setIsModalUpdate] = useState(false);
     const [isModalDetail, setIsModalDetail] = useState(false);
@@ -56,27 +60,38 @@ const GetAllHouseForRent = () => {
     }, []);
 
     useEffect(() => {
-        fetchAllData();
+        fetchAllData(0, pageSize);
     }, [token]);
 
-    const fetchAllData = async () => {
+    const fetchAllData = async (page = currentPage, size = pageSize) => {
         setLoading(true);
         try {
-            const [houses, hosts] = await Promise.all([
-                HouseForRentService.getAllHouseForRent(token),
+            const [houseResponse, hosts] = await Promise.all([
+                HouseForRentService.getAllHouseForRent(token, page, size),
                 HostService.getAllHosts(token)
             ]);
 
-            
+            const houses = houseResponse.content || [];
 
             setDataHouseForRent(houses);
             setFilteredHouseForRent(houses);
             setDataHost(hosts);
+
+            setCurrentPage(houseResponse.number !== undefined ? houseResponse.number : 0);
+            setTotalElements(houseResponse.totalElements !== undefined ? houseResponse.totalElements : houses.length);
+            setPageSize(houseResponse.size !== undefined ? houseResponse.size : 10);
         } catch (error) {
             console.error("Failed to fetch data:", error);
         } finally {
             setLoading(false);
         }
+    };
+
+    const handlePageChange = (page, size) => {
+        const zeroBasedPage = page - 1;
+        setCurrentPage(zeroBasedPage);
+        setPageSize(size);
+        fetchAllData(zeroBasedPage, size);
     };
 
     const handleSearch = (value) => {
@@ -298,7 +313,6 @@ const GetAllHouseForRent = () => {
                 </Col>
             </Row>
 
-            {/* Filters */}
             <Card size="small" style={{ marginBottom: 16 }}>
                 <div className="filter-bar">
                     <Input
@@ -313,22 +327,24 @@ const GetAllHouseForRent = () => {
                     <Button icon={<SearchOutlined />} onClick={() => handleSearch(search)}>
                         Tìm
                     </Button>
-                    <Button icon={<ReloadOutlined />} onClick={() => { setSearch(""); fetchAllData(); }}>
+                    <Button icon={<ReloadOutlined />} onClick={() => { setSearch(""); setCurrentPage(0); fetchAllData(0, pageSize); }}>
                         Làm mới
                     </Button>
                 </div>
             </Card>
 
-            {/* Table */}
             <Card size="small">
                 <Table
                     columns={columns}
                     dataSource={filteredHouseForRent}
                     loading={loading}
                     pagination={{
-                        pageSize: 10,
+                        current: currentPage + 1,
+                        pageSize: pageSize,
+                        total: totalElements,
                         showSizeChanger: !isMobile,
                         showQuickJumper: !isMobile,
+                        onChange: handlePageChange,
                         showTotal: (total, range) =>
                             `${range[0]}-${range[1]} của ${total} bản ghi`,
                     }}
@@ -338,17 +354,16 @@ const GetAllHouseForRent = () => {
                 />
             </Card>
 
-            {/* Modals */}
             <ModalCreate
                 visible={isModalVisible}
                 onClose={() => setIsModalVisible(false)}
-                onSuccess={fetchAllData}
+                onSuccess={() => fetchAllData(currentPage, pageSize)}
             />
             <ModalUpdate
                 visible={isModalUpdate}
                 onClose={() => setIsModalUpdate(false)}
                 houseData={selectedHouse}
-                onSuccess={fetchAllData}
+                onSuccess={() => fetchAllData(currentPage, pageSize)}
             />
             <ModalDetail
                 visible={isModalDetail}
@@ -357,7 +372,6 @@ const GetAllHouseForRent = () => {
                 hostId={selectedHost}
             />
 
-            {/* Custom CSS */}
             <style jsx>{`
                 .ant-statistic-content-value {
                     font-weight: bold;

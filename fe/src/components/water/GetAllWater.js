@@ -12,7 +12,8 @@ import {
     Typography,
     Divider,
     Badge,
-    Statistic
+    Statistic,
+    Pagination
 } from "antd";
 import {
     SearchOutlined,
@@ -49,20 +50,29 @@ const GetAllWater = () => {
     const [loading, setLoading] = useState(false);
     const [selectedHouse, setSelectedHouse] = useState("Tất cả");
 
-    const fetchAllData = async () => {
+    // Pagination states
+    const [currentPage, setCurrentPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalElements, setTotalElements] = useState(0);
+
+    const fetchAllData = async (page = currentPage, size = pageSize) => {
         setLoading(true);
         try {
-            const waterResponse = await WaterService.getAllWater(token);
-            setDataWater(waterResponse);
+            const response = await WaterService.getAllWater(token, page, size);
+            const content = response.content || [];
+            setDataWater(content);
+            setCurrentPage(response.number !== undefined ? response.number : 0);
+            setTotalElements(response.totalElements !== undefined ? response.totalElements : content.length);
+            setPageSize(response.size !== undefined ? response.size : 10);
         } catch (error) {
-            
+
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchAllData();
+        fetchAllData(0, pageSize);
     }, [token]);
 
     useEffect(() => {
@@ -89,7 +99,6 @@ const GetAllWater = () => {
 
     const houses = ["Tất cả", ...new Set(originalData.map(item => item.houseForRent).filter(Boolean))];
 
-    // Search functionality
     const searchWater = () => {
         let dataToFilter = originalData;
         if (selectedHouse !== "Tất cả") {
@@ -133,7 +142,16 @@ const GetAllWater = () => {
 
     const resetSearch = () => {
         setKeyWord("");
-        fetchAllData();
+        setSelectedHouse("Tất cả");
+        setCurrentPage(0);
+        fetchAllData(0, pageSize);
+    };
+
+    const handlePageChange = (page, size) => {
+        const zeroBasedPage = page - 1;
+        setCurrentPage(zeroBasedPage);
+        setPageSize(size);
+        fetchAllData(zeroBasedPage, size);
     };
 
     const openModalCreate = () => {
@@ -163,7 +181,6 @@ const GetAllWater = () => {
         return new Intl.NumberFormat("vi-VN").format(number || 0);
     };
 
-    // Status render
     const renderStatus = (status) => {
         return status === "DA_THANH_TOAN" ? (
             <Tag color="success" icon={<DollarOutlined />}>Đã thanh toán</Tag>
@@ -205,8 +222,8 @@ const GetAllWater = () => {
             width: 130,
             onCell: (record, index) => {
                 let rowSpan = 0;
-                if (index === 0 || 
-                    filterData[index - 1]?.roomName !== record.roomName || 
+                if (index === 0 ||
+                    filterData[index - 1]?.roomName !== record.roomName ||
                     filterData[index - 1]?.houseForRent !== record.houseForRent) {
                     for (let i = index; i < filterData.length; i++) {
                         if (filterData[i].roomName === record.roomName && filterData[i].houseForRent === record.houseForRent) {
@@ -361,7 +378,6 @@ const GetAllWater = () => {
 
     return (
         <div>
-            {/* Page Header */}
             <div className="page-header">
                 <div>
                     <Title level={4} style={{ margin: 0, fontWeight: 600 }}>
@@ -380,7 +396,6 @@ const GetAllWater = () => {
                 </Button>
             </div>
 
-            {/* Statistics */}
             <Row gutter={16} className="stat-row">
                 <Col xs={24} sm={8}>
                     <Card size="small">
@@ -414,7 +429,6 @@ const GetAllWater = () => {
                 </Col>
             </Row>
 
-            {/* Filters */}
             <Card size="small" style={{ marginBottom: 16 }}>
                 <div className="filter-bar">
                     <Input
@@ -451,11 +465,10 @@ const GetAllWater = () => {
                 </div>
             </Card>
 
-            {/* Grouped Data Display */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 {Object.entries(groupedData).map(([house, items]) => (
-                    <Card 
-                        key={house} 
+                    <Card
+                        key={house}
                         title={
                             <Space>
                                 <HomeOutlined style={{ color: '#1890ff' }} />
@@ -479,17 +492,29 @@ const GetAllWater = () => {
                 ))}
             </div>
 
-            {/* Modals */}
+            {totalElements > 0 && (
+                <div style={{ textAlign: 'right', marginTop: '16px', marginBottom: '24px' }}>
+                    <Pagination
+                        current={currentPage + 1}
+                        pageSize={pageSize}
+                        total={totalElements}
+                        showSizeChanger
+                        onChange={handlePageChange}
+                        showTotal={(total) => `Tổng số ${total} bản ghi`}
+                    />
+                </div>
+            )}
+
             <ModalCreateWater
                 visible={isModalCreate}
                 onClose={() => setIsModaCreate(false)}
-                onSuccess={fetchAllData}
+                onSuccess={() => fetchAllData(currentPage, pageSize)}
             />
             <ModalUpdateWater
                 visible={isModalUpdate}
                 onClose={() => setIsModalUpdate(false)}
                 id={selectIdRoom}
-                onSuccess={fetchAllData}
+                onSuccess={() => fetchAllData(currentPage, pageSize)}
             />
             <ModalDetailWaterHistory
                 visible={isModalDetailHistory}

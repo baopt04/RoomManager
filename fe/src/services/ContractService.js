@@ -2,12 +2,13 @@ import axiosInstance from "./AxiosInstance";
 const BASE_URL = "/admin/contract";
 
 
-const getAllcontract = async (token) => {
+const getAllcontract = async (token, page = 0, size = 10) => {
     try {
         const response = await axiosInstance.get(`${BASE_URL}/getAll`, {
             headers: {
                 Authorization: `Bearer ${token}`,
-            }
+            },
+            params: { page, size }
         })
         
         return response.data;

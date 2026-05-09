@@ -14,7 +14,8 @@ import {
     message,
     Select,
     Popconfirm,
-    Badge
+    Badge,
+    Pagination
 } from "antd";
 import {
     SearchOutlined,
@@ -41,20 +42,28 @@ const GetAllRoomViewing = () => {
     const [loading, setLoading] = useState(false);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
+    const [currentPage, setCurrentPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalElements, setTotalElements] = useState(0);
+
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
         window.addEventListener("resize", handleResize);
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
-    const fetchData = async () => {
+    const fetchData = async (page = currentPage, size = pageSize) => {
         setLoading(true);
         try {
-            const response = await getAllRoomViewing();
-            // Sort by createdAt descending (newest first)
-            const sortedData = [...response].sort((a, b) => dayjs(b.createdAt).diff(dayjs(a.createdAt)));
+            const response = await getAllRoomViewing(page, size);
+            const content = response.content || [];
+            const sortedData = [...content].sort((a, b) => dayjs(b.createdAt).diff(dayjs(a.createdAt)));
             setData(sortedData);
             setFilteredData(sortedData);
+
+            setCurrentPage(response.number !== undefined ? response.number : 0);
+            setTotalElements(response.totalElements !== undefined ? response.totalElements : content.length);
+            setPageSize(response.size !== undefined ? response.size : 10);
         } catch (error) {
             console.error("Failed to fetch room viewings:", error);
             message.error("Không thể tải danh sách người xem nhà!");
@@ -64,8 +73,15 @@ const GetAllRoomViewing = () => {
     };
 
     useEffect(() => {
-        fetchData();
+        fetchData(0, pageSize);
     }, []);
+
+    const handlePageChange = (page, size) => {
+        const zeroBasedPage = page - 1;
+        setCurrentPage(zeroBasedPage);
+        setPageSize(size);
+        fetchData(zeroBasedPage, size);
+    };
 
     const handleSearch = (value) => {
         setSearchText(value);
@@ -87,7 +103,7 @@ const GetAllRoomViewing = () => {
         try {
             await updateRoomViewingStatus(id, newStatus);
             message.success("Cập nhật trạng thái thành công!");
-            fetchData();
+            fetchData(currentPage, pageSize);
         } catch (error) {
             console.error("Failed to update status:", error);
             message.error("Có lỗi xảy ra khi cập nhật trạng thái!");
@@ -266,7 +282,7 @@ const GetAllRoomViewing = () => {
                     <Title level={4} style={{ margin: 0, fontWeight: 600 }}>Quản lý thông tin người xem nhà</Title>
                     <Text type="secondary" style={{ fontSize: '13px' }}>Theo dõi và cập nhật trạng thái các yêu cầu xem phòng từ khách hàng</Text>
                 </div>
-                <Button icon={<ReloadOutlined />} onClick={fetchData}>Làm mới</Button>
+                <Button icon={<ReloadOutlined />} onClick={() => { setSearchText(""); setCurrentPage(0); fetchData(0, pageSize); }}>Làm mới</Button>
             </div>
 
             <Row gutter={16} style={{ marginBottom: '24px' }}>
@@ -304,11 +320,7 @@ const GetAllRoomViewing = () => {
                     dataSource={groupedData}
                     loading={loading}
                     scroll={{ x: 950 }}
-                    pagination={{
-                        pageSize: 10,
-                        showSizeChanger: !isMobile,
-                        showTotal: (total) => `Tổng cộng ${total} phòng có người đăng ký`,
-                    }}
+                    pagination={false}
                     rowKey="key"
                     size={isMobile ? "small" : "middle"}
                     expandable={{
@@ -317,6 +329,18 @@ const GetAllRoomViewing = () => {
                     }}
                 />
             </Card>
+            {totalElements > 0 && (
+                <div style={{ textAlign: 'right', marginTop: '16px', marginBottom: '24px' }}>
+                    <Pagination
+                        current={currentPage + 1}
+                        pageSize={pageSize}
+                        total={totalElements}
+                        showSizeChanger={!isMobile}
+                        onChange={handlePageChange}
+                        showTotal={(total) => `Tổng số ${total} bản ghi`}
+                    />
+                </div>
+            )}
         </div>
     );
 };

@@ -14,7 +14,8 @@ import {
     Statistic,
     message,
     Badge,
-    Avatar
+    Avatar,
+    Pagination
 } from "antd";
 import {
     SearchOutlined,
@@ -53,31 +54,44 @@ const GetAllService = () => {
     const navigate = useNavigate();
     const token = localStorage.getItem("token");
 
-    // Fetch services data
-    useEffect(() => {
-        fetchServices();
-    }, [token]);
+    const [currentPage, setCurrentPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalElements, setTotalElements] = useState(0);
 
-    const fetchServices = async () => {
+    const fetchServices = async (page = currentPage, size = pageSize) => {
         setLoading(true);
         try {
-            const response = await Services.getAllService(token);
+            const response = await Services.getAllService(token, page, size);
+            const content = response.content || [];
 
-            
-
-            const servicesWithIndex = response.map((service, index) => ({
+            const servicesWithIndex = content.map((service, index) => ({
                 ...service,
                 stt: index + 1,
                 key: service.id
             }));
             setDataService(servicesWithIndex);
             setFilteredData(servicesWithIndex);
+            setCurrentPage(response.number !== undefined ? response.number : 0);
+            setTotalElements(response.totalElements !== undefined ? response.totalElements : content.length);
+            setPageSize(response.size !== undefined ? response.size : 10);
         } catch (error) {
             message.error("Lỗi khi tải dữ liệu dịch vụ!");
             console.error("Failed to fetch service:", error);
         } finally {
             setLoading(false);
         }
+    };
+
+    // Fetch services data
+    useEffect(() => {
+        fetchServices(0, pageSize);
+    }, [token]);
+
+    const handlePageChange = (page, size) => {
+        const zeroBasedPage = page - 1;
+        setCurrentPage(zeroBasedPage);
+        setPageSize(size);
+        fetchServices(zeroBasedPage, size);
     };
 
     // Search and filter function
@@ -120,7 +134,8 @@ const GetAllService = () => {
         setSearchText("");
         setUnitFilter("ALL");
         setPriceFilter("ALL");
-        fetchServices();
+        setCurrentPage(0);
+        fetchServices(0, pageSize);
     };
 
     const handleEdit = (id) => {
@@ -418,9 +433,12 @@ const GetAllService = () => {
                     loading={loading}
                     rowKey="id"
                     pagination={{
-                        pageSize: 10,
+                        current: currentPage + 1,
+                        pageSize: pageSize,
+                        total: totalElements,
                         showSizeChanger: true,
                         showQuickJumper: true,
+                        onChange: handlePageChange,
                         showTotal: (total, range) =>
                             `${range[0]}-${range[1]} của ${total} bản ghi`,
                     }}
@@ -433,14 +451,14 @@ const GetAllService = () => {
             <ModalCreateService
                 visible={isModalVisible}
                 onClose={() => setIsModalVisible(false)}
-                onSuccess={fetchServices}
+                onSuccess={() => fetchServices(currentPage, pageSize)}
             />
 
             <ModalUpdateService
                 visible={isModalUpdate}
                 onClose={() => setIsModalUpdate(false)}
                 serviceId={selectedServiceId}
-                onSuccess={fetchServices}
+                onSuccess={() => fetchServices(currentPage, pageSize)}
             />
 
             <ModalDetailService

@@ -12,7 +12,8 @@ import {
     Typography,
     Divider,
     Badge,
-    Statistic
+    Statistic,
+    Pagination
 } from "antd";
 import {
     SearchOutlined,
@@ -49,23 +50,37 @@ const GetAllElectricity = () => {
     const [loading, setLoading] = useState(false);
     const [selectedHouse, setSelectedHouse] = useState("Tất cả");
 
-    const fetchAllData = async () => {
+    const [currentPage, setCurrentPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalElements, setTotalElements] = useState(0);
+
+    const fetchAllData = async (page = currentPage, size = pageSize) => {
         setLoading(true);
         try {
-            const electricityResponse = await ElectricityService.getAllElectricity(token);
-            setDataElectricity(electricityResponse);
+            const response = await ElectricityService.getAllElectricity(token, page, size);
+            const content = response.content || [];
+            setDataElectricity(content);
+            setCurrentPage(response.number !== undefined ? response.number : 0);
+            setTotalElements(response.totalElements !== undefined ? response.totalElements : content.length);
+            setPageSize(response.size !== undefined ? response.size : 10);
         } catch (error) {
-            
+
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchAllData();
+        fetchAllData(0, pageSize);
     }, [token]);
 
-    // Map electricity data with room info
+    const handlePageChange = (page, size) => {
+        const zeroBasedPage = page - 1;
+        setCurrentPage(zeroBasedPage);
+        setPageSize(size);
+        fetchAllData(zeroBasedPage, size);
+    };
+
     useEffect(() => {
         if (dataElectricity.length > 0) {
             const mapped = dataElectricity.map((item, index) => {
@@ -90,7 +105,6 @@ const GetAllElectricity = () => {
 
     const houses = ["Tất cả", ...new Set(originalData.map(item => item.houseForRent).filter(Boolean))];
 
-    // Search functionality
     const searchElectricity = () => {
         let dataToFilter = originalData;
         if (selectedHouse !== "Tất cả") {
@@ -134,10 +148,11 @@ const GetAllElectricity = () => {
 
     const resetSearch = () => {
         setKeyWord("");
-        fetchAllData();
+        setSelectedHouse("Tất cả");
+        setCurrentPage(0);
+        fetchAllData(0, pageSize);
     };
 
-    // Modal handlers
     const openModalCreate = () => {
         setIsModaCreate(true);
     };
@@ -163,7 +178,6 @@ const GetAllElectricity = () => {
         return new Intl.NumberFormat("vi-VN").format(number || 0);
     };
 
-    // Status render
     const renderStatus = (status) => {
         return status === "DA_THANH_TOAN" ? (
             <Tag color="success" icon={<DollarOutlined />}>Đã thanh toán</Tag>
@@ -210,8 +224,8 @@ const GetAllElectricity = () => {
             width: 130,
             onCell: (record, index) => {
                 let rowSpan = 0;
-                if (index === 0 || 
-                    filterData[index - 1]?.roomName !== record.roomName || 
+                if (index === 0 ||
+                    filterData[index - 1]?.roomName !== record.roomName ||
                     filterData[index - 1]?.houseForRent !== record.houseForRent) {
                     for (let i = index; i < filterData.length; i++) {
                         if (filterData[i].roomName === record.roomName && filterData[i].houseForRent === record.houseForRent) {
@@ -472,8 +486,8 @@ const GetAllElectricity = () => {
             {/* Grouped Data Display */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 {Object.entries(groupedData).map(([house, items]) => (
-                    <Card 
-                        key={house} 
+                    <Card
+                        key={house}
                         title={
                             <Space>
                                 <HomeOutlined style={{ color: '#1890ff' }} />
@@ -497,17 +511,30 @@ const GetAllElectricity = () => {
                 ))}
             </div>
 
+            {totalElements > 0 && (
+                <div style={{ textAlign: 'right', marginTop: '16px', marginBottom: '24px' }}>
+                    <Pagination
+                        current={currentPage + 1}
+                        pageSize={pageSize}
+                        total={totalElements}
+                        showSizeChanger
+                        onChange={handlePageChange}
+                        showTotal={(total) => `Tổng số ${total} bản ghi`}
+                    />
+                </div>
+            )}
+
             {/* Modals */}
             <ModalCreateElectricity
                 visible={isModalCreate}
                 onClose={() => setIsModaCreate(false)}
-                onSuccess={fetchAllData}
+                onSuccess={() => fetchAllData(currentPage, pageSize)}
             />
             <ModalUpdateElectricity
                 visible={isModalUpdate}
                 onClose={() => setIsModalUpdate(false)}
                 id={selectIdRoom}
-                onSuccess={fetchAllData}
+                onSuccess={() => fetchAllData(currentPage, pageSize)}
             />
             <ModalDetailHistory
                 visible={isModalDetailHistory}

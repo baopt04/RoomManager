@@ -14,7 +14,8 @@ import {
     Tooltip,
     Avatar,
     Divider,
-    Badge
+    Badge,
+    Pagination
 } from "antd";
 import {
     SearchOutlined,
@@ -42,11 +43,19 @@ const GetAllCar = () => {
     const [filterData, setFilterData] = useState([]);
     const [originalData, setOriginalData] = useState([]);
 
-    const fetchAllData = async () => {
+    const [currentPage, setCurrentPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalElements, setTotalElements] = useState(0);
+
+    const fetchAllData = async (page = currentPage, size = pageSize) => {
         setLoading(true);
         try {
-            const carResponse = await CarService.getAllCar(token);
-            setDataCar(carResponse);
+            const response = await CarService.getAllCar(token, page, size);
+            const content = response.content || [];
+            setDataCar(content);
+            setCurrentPage(response.number !== undefined ? response.number : 0);
+            setTotalElements(response.totalElements !== undefined ? response.totalElements : content.length);
+            setPageSize(response.size !== undefined ? response.size : 10);
         } catch (error) {
             
         } finally {
@@ -55,8 +64,15 @@ const GetAllCar = () => {
     };
 
     useEffect(() => {
-        fetchAllData();
+        fetchAllData(0, pageSize);
     }, [token]);
+
+    const handlePageChange = (page, size) => {
+        const zeroBasedPage = page - 1;
+        setCurrentPage(zeroBasedPage);
+        setPageSize(size);
+        fetchAllData(zeroBasedPage, size);
+    };
 
     useEffect(() => {
         if (dataCar.length > 0) {
@@ -436,7 +452,9 @@ const GetAllCar = () => {
                         icon={<ReloadOutlined />}
                         onClick={() => {
                             setKeyWord('');
-                            fetchAllData();
+                            setSelectedHouse("Tất cả");
+                            setCurrentPage(0);
+                            fetchAllData(0, pageSize);
                         }}
                     >
                         Làm mới
@@ -471,6 +489,19 @@ const GetAllCar = () => {
                     </Card>
                 ))}
             </div>
+
+            {totalElements > 0 && (
+                <div style={{ textAlign: 'right', marginTop: '16px', marginBottom: '24px' }}>
+                    <Pagination
+                        current={currentPage + 1}
+                        pageSize={pageSize}
+                        total={totalElements}
+                        showSizeChanger
+                        onChange={handlePageChange}
+                        showTotal={(total) => `Tổng số ${total} bản ghi`}
+                    />
+                </div>
+            )}
 
             <style jsx>{`
                 .ant-statistic-content-value {

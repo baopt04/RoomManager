@@ -45,14 +45,17 @@ const GetAllCustomer = () => {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    const fetchCustomer = async () => {
+    const [currentPage, setCurrentPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalElements, setTotalElements] = useState(0);
+
+    const fetchCustomer = async (page = currentPage, size = pageSize) => {
         setLoading(true);
         try {
-            const response = await CustomerService.getAllCustomers(token);
+            const response = await CustomerService.getAllCustomers(token, page, size);
+            const content = response.content || [];
 
-            
-
-            const mappedData = response.map((item, index) => ({
+            const mappedData = content.map((item, index) => ({
                 ...item,
                 key: item.id,
                 stt: index + 1
@@ -60,6 +63,10 @@ const GetAllCustomer = () => {
             setDataCustomer(mappedData);
             setFilterData(mappedData);
             setOriginalData(mappedData);
+
+            setCurrentPage(response.number !== undefined ? response.number : 0);
+            setTotalElements(response.totalElements !== undefined ? response.totalElements : content.length);
+            setPageSize(response.size !== undefined ? response.size : 10);
         } catch (error) {
             console.error("Failed to fetch customers:", error);
         } finally {
@@ -68,8 +75,15 @@ const GetAllCustomer = () => {
     };
 
     useEffect(() => {
-        fetchCustomer();
+        fetchCustomer(0, pageSize);
     }, [token]);
+
+    const handlePageChange = (page, size) => {
+        const zeroBasedPage = page - 1;
+        setCurrentPage(zeroBasedPage);
+        setPageSize(size);
+        fetchCustomer(zeroBasedPage, size);
+    };
 
     const searchCustomer = () => {
         if (!keyWord.trim()) {
@@ -86,7 +100,8 @@ const GetAllCustomer = () => {
 
     const resetSearch = () => {
         setKeyWord("");
-        fetchCustomer();
+        setCurrentPage(0);
+        fetchCustomer(0, pageSize);
     };
 
     const handleAdd = () => {
@@ -283,8 +298,11 @@ const GetAllCustomer = () => {
                     dataSource={filterData}
                     loading={loading}
                     pagination={{
-                        pageSize: 10,
+                        current: currentPage + 1,
+                        pageSize: pageSize,
+                        total: totalElements,
                         showSizeChanger: true,
+                        onChange: handlePageChange,
                         showTotal: (total) => `${total} khách hàng`,
                     }}
                     scroll={{ x: 1000 }}
@@ -297,13 +315,13 @@ const GetAllCustomer = () => {
             <ModalCreateCustomer
                 visible={isModalVisible}
                 onClose={() => setIsModalVisible(false)}
-                onSuccess={fetchCustomer}
+                onSuccess={() => fetchCustomer(currentPage, pageSize)}
             />
             <ModalUpdateCustomer
                 visible={isModalUpdate}
                 onClose={() => setIsModalUpdate(false)}
                 id={selectId}
-                onSuccess={fetchCustomer}
+                onSuccess={() => fetchCustomer(currentPage, pageSize)}
             />
         </div>
     );

@@ -1,16 +1,31 @@
 import axiosInstance from "./AxiosInstance";
 const BASE_URL = "/admin/room";
 
-const getAllRooms = async (token) => {
+const getAllRooms = async (token, page = undefined, size = undefined) => {
     try {
+        const params = {};
+        if (page !== undefined) {
+            params.page = page;
+            params.size = size !== undefined ? size : 10;
+        } else {
+            // For legacy calls expecting an array of all rooms, ask for a large size
+            params.size = 1000;
+        }
+        
         const response = await axiosInstance.get(`${BASE_URL}/getAll`, {
             headers: {
                 Authorization: `Bearer ${token}`,
-            }
-        }
-        )
+            },
+            params: params
+        });
         
-        return response.data;
+        // If caller passes page parameter, they expect the paginated object.
+        if (page !== undefined) {
+            return response.data;
+        }
+        
+        // Otherwise, they expect a simple array
+        return response.data.content || response.data;
 
     } catch (error) {
         

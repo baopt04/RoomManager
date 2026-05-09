@@ -12,6 +12,7 @@ import {
     Statistic,
     Tooltip,
     Avatar,
+    Pagination
 } from "antd";
 import {
     SearchOutlined,
@@ -45,25 +46,31 @@ const GetAllHost = () => {
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
     const token = localStorage.getItem("token");
 
+    const [currentPage, setCurrentPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalElements, setTotalElements] = useState(0);
+
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
         window.addEventListener("resize", handleResize);
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
-    const fetchHosts = async () => {
+    const fetchHosts = async (page = currentPage, size = pageSize) => {
         setLoading(true);
         try {
-            const hosts = await HostService.getAllHosts(token);
+            const response = await HostService.getAllHosts(token, page, size);
+            const content = response.content || [];
 
-            
-
-            const hostsWithIndex = hosts.map((item, index) => ({
+            const hostsWithIndex = content.map((item, index) => ({
                 ...item,
                 stt: index + 1
             }));
             setData(hostsWithIndex);
             setFilteredData(hostsWithIndex);
+            setCurrentPage(response.number !== undefined ? response.number : 0);
+            setTotalElements(response.totalElements !== undefined ? response.totalElements : content.length);
+            setPageSize(response.size !== undefined ? response.size : 10);
         } catch (error) {
             console.error("Failed to fetch hosts:", error);
         } finally {
@@ -72,8 +79,15 @@ const GetAllHost = () => {
     };
 
     useEffect(() => {
-        fetchHosts();
+        fetchHosts(0, pageSize);
     }, [token]);
+
+    const handlePageChange = (page, size) => {
+        const zeroBasedPage = page - 1;
+        setCurrentPage(zeroBasedPage);
+        setPageSize(size);
+        fetchHosts(zeroBasedPage, size);
+    };
 
     const handleEdit = (host) => {
         setSelectedHost(host.id);
@@ -184,7 +198,6 @@ const GetAllHost = () => {
 
     return (
         <div>
-            {/* Page Header */}
             <div className="page-header">
                 <div>
                     <Title level={4} style={{ margin: 0, fontWeight: 600 }}>Quản lý chủ nhà</Title>
@@ -212,7 +225,6 @@ const GetAllHost = () => {
                 </Col>
             </Row>
 
-            {/* Filter */}
             <Card size="small" style={{ marginBottom: 16 }}>
                 <div className="filter-bar">
                     <Input
@@ -223,22 +235,24 @@ const GetAllHost = () => {
                         style={{ width: isMobile ? "100%" : 300 }}
                         allowClear
                     />
-                    <Button icon={<ReloadOutlined />} onClick={() => { setSearchText(""); fetchHosts(); }}>
+                    <Button icon={<ReloadOutlined />} onClick={() => { setSearchText(""); setCurrentPage(0); fetchHosts(0, pageSize); }}>
                         Làm mới
                     </Button>
                 </div>
             </Card>
 
-            {/* Table */}
             <Card size="small">
                 <Table
                     columns={columns}
                     dataSource={filteredData}
                     loading={loading}
                     pagination={{
-                        pageSize: 10,
+                        current: currentPage + 1,
+                        pageSize: pageSize,
+                        total: totalElements,
                         showSizeChanger: !isMobile,
-                        showTotal: (total) => `${total} chủ nhà`,
+                        onChange: handlePageChange,
+                        showTotal: (total) => `Tổng số ${total} chủ nhà`,
                     }}
                     rowKey="id"
                     scroll={{ x: 900 }}
@@ -246,12 +260,11 @@ const GetAllHost = () => {
                 />
             </Card>
 
-            {/* Modals */}
             <ModalUpdateHost
                 visible={isModalVisible}
                 onClose={() => setIsModalVisible(false)}
                 hostId={selectedHost}
-                onSuccess={fetchHosts}
+                onSuccess={() => fetchHosts(currentPage, pageSize)}
             />
             <ModalDetailHost
                 hostId={selectedHost}
